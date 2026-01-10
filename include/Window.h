@@ -1,0 +1,31 @@
+#pragma once
+#include "neuwindow_export.h"
+#include <SDL3/SDL.h>
+
+namespace neurender {
+class NEUWINDOW_API Window {
+public:
+  Window() = delete;
+  Window(const Window &) = delete;
+  Window &operator=(const Window &) = delete;
+  static void Init(int width, int height, const char *title);
+  static void Shutdown();
+  static bool ShouldClose() { return m_ShouldClose; }
+  static void PollEvents();
+  static void BeginFrame() {
+  } // SDL doesn't really have a begin frame for window itself unless we do
+    // something specific, but RenderCore will handle the big picture. Keeping
+    // empty or removing if not needed. Actually, let's keep it simple.
+  static void EndFrame() {}
+
+  static SDL_Window *GetNativeWindow() { return m_Window; }
+  static int GetWidth() { return m_Width; }
+  static int GetHeight() { return m_Height; }
+
+private:
+  static SDL_Window *m_Window;
+  static bool m_ShouldClose;
+  static int m_Width;
+  static int m_Height;
+};
+} // namespace neurender

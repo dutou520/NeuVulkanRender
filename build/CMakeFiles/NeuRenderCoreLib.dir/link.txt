@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libNeuRenderCoreLib.a CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libNeuRenderCoreLib.a

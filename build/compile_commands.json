@@ -1,0 +1,44 @@
+[
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DFMT_SHARED -DNEULOG_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuLogLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuLogLib.dir\\source\\neuLog.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\neuLog.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/neuLog.cpp",
+  "output": "CMakeFiles/NeuLogLib.dir/source/neuLog.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DFMT_SHARED -DNEULOG_STATIC_DEFINE -DNEUWINDOW_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuWindowLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuWindowLib.dir\\source\\Window.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\Window.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/Window.cpp",
+  "output": "CMakeFiles/NeuWindowLib.dir/source/Window.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/NeuImGuiBackendLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuImGuiBackendLib.dir\\source\\imgui_impl_sdl3.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\imgui_impl_sdl3.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/imgui_impl_sdl3.cpp",
+  "output": "CMakeFiles/NeuImGuiBackendLib.dir/source/imgui_impl_sdl3.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/NeuImGuiBackendLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuImGuiBackendLib.dir\\source\\imgui_impl_vulkan.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\imgui_impl_vulkan.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/imgui_impl_vulkan.cpp",
+  "output": "CMakeFiles/NeuImGuiBackendLib.dir/source/imgui_impl_vulkan.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DFMT_SHARED -DNEUGUI_STATIC_DEFINE -DNEULOG_STATIC_DEFINE -DNEUWINDOW_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuGUILib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuGUILib.dir\\source\\neuGUI.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\neuGUI.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/neuGUI.cpp",
+  "output": "CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DDEBUG -DFMT_SHARED -DNEUGUI_STATIC_DEFINE -DNEULOG_STATIC_DEFINE -DNEURENDERCORE_STATIC_DEFINE -DNEUWINDOW_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuRenderCoreLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuRenderCoreLib.dir\\source\\RenderCore.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\RenderCore.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/RenderCore.cpp",
+  "output": "CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DFMT_SHARED -DNEUGUI_STATIC_DEFINE -DNEULOG_STATIC_DEFINE -DNEURENDERCORE_STATIC_DEFINE -DNEUWINDOW_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuVulkanRender.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuVulkanRender.dir\\source\\Main.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\Main.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/Main.cpp",
+  "output": "CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj"
+}
+]

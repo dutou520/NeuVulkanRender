@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libNeuGUILib.a CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libNeuGUILib.a

@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libNeuImGuiBackendLib.a CMakeFiles/NeuImGuiBackendLib.dir/source/imgui_impl_sdl3.cpp.obj CMakeFiles/NeuImGuiBackendLib.dir/source/imgui_impl_vulkan.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libNeuImGuiBackendLib.a

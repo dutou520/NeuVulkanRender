@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libNeuLogLib.a CMakeFiles/NeuLogLib.dir/source/neuLog.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libNeuLogLib.a
