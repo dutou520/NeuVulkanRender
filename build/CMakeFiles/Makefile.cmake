@@ -68,6 +68,9 @@ set(CMAKE_MAKEFILE_DEPENDS
   "D:/vcpkg/installed/x64-mingw-dynamic/share/imgui/imgui-targets-debug.cmake"
   "D:/vcpkg/installed/x64-mingw-dynamic/share/imgui/imgui-targets-release.cmake"
   "D:/vcpkg/installed/x64-mingw-dynamic/share/imgui/imgui-targets.cmake"
+  "D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo/imguizmo-config-debug.cmake"
+  "D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo/imguizmo-config-release.cmake"
+  "D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo/imguizmo-config.cmake"
   "D:/vcpkg/installed/x64-mingw-dynamic/share/sdl3/SDL3Config.cmake"
   "D:/vcpkg/installed/x64-mingw-dynamic/share/sdl3/SDL3ConfigVersion.cmake"
   "D:/vcpkg/installed/x64-mingw-dynamic/share/sdl3/SDL3headersTargets.cmake"
@@ -103,7 +106,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/NeuWindowLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuImGuiBackendLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuGUILib.dir/DependInfo.cmake"
-  "CMakeFiles/ImGuizmo.dir/DependInfo.cmake"
   "CMakeFiles/NeuRenderCoreLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuVulkanRender.dir/DependInfo.cmake"
   )

@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libNeuGUILib.a"
+			"path" : "libNeuRenderCoreLib.a"
 		}
 	],
 	"backtrace" : 2,
@@ -30,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 46,
+				"line" : 82,
 				"parent" : 0
 			},
 			{
@@ -42,19 +42,25 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 50,
+				"line" : 96,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 48,
+				"line" : 112,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 88,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 1,
-				"line" : 49,
+				"line" : 89,
 				"parent" : 0
 			}
 		]
@@ -71,16 +77,24 @@
 			"defines" : 
 			[
 				{
+					"backtrace" : 4,
+					"define" : "DEBUG"
+				},
+				{
 					"backtrace" : 3,
 					"define" : "FMT_SHARED"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 3,
 					"define" : "NEUGUI_STATIC_DEFINE"
 				},
 				{
 					"backtrace" : 3,
 					"define" : "NEULOG_STATIC_DEFINE"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "NEURENDERCORE_STATIC_DEFINE"
 				},
 				{
 					"backtrace" : 3,
@@ -102,12 +116,28 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"path" : "D:/CppPrograms/NeuVulkanRender/include"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"path" : "D:/CppPrograms/NeuVulkanRender/build"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/stb"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/tinyobjloader"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/tinygltf"
 				},
 				{
 					"backtrace" : 3,
@@ -126,12 +156,22 @@
 			},
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
 	"dependencies" : 
 	[
+		{
+			"backtrace" : 3,
+			"id" : "NeuGUILib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
+		},
 		{
 			"backtrace" : 3,
 			"id" : "NeuLogLib::@6890427a1f51a3e7e1df"
@@ -141,9 +181,9 @@
 			"id" : "NeuWindowLib::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "NeuGUILib::@6890427a1f51a3e7e1df",
-	"name" : "NeuGUILib",
-	"nameOnDisk" : "libNeuGUILib.a",
+	"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df",
+	"name" : "NeuRenderCoreLib",
+	"nameOnDisk" : "libNeuRenderCoreLib.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -155,7 +195,9 @@
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1,
+				2
 			]
 		}
 	],
@@ -164,7 +206,19 @@
 		{
 			"backtrace" : 2,
 			"compileGroupIndex" : 0,
-			"path" : "source/neuGUI.cpp",
+			"path" : "source/RenderCore.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "source/GBuffer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "source/Camera.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

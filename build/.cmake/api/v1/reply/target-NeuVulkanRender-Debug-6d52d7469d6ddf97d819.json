@@ -30,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 124,
+				"line" : 120,
 				"parent" : 0
 			},
 			{
@@ -42,13 +42,13 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 125,
+				"line" : 121,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 100,
+				"line" : 96,
 				"parent" : 0
 			}
 		]
@@ -125,10 +125,6 @@
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/ImGuizmo"
-				},
-				{
-					"backtrace" : 3,
 					"isSystem" : true,
 					"path" : "D:/vcpkg/installed/x64-mingw-dynamic/include"
 				}
@@ -152,15 +148,7 @@
 	[
 		{
 			"backtrace" : 3,
-			"id" : "NeuLogLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
-			"id" : "NeuWindowLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
-			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
+			"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
@@ -168,11 +156,15 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "ImGuizmo::@6890427a1f51a3e7e1df"
+			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df"
+			"id" : "NeuLogLib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "NeuWindowLib::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "NeuVulkanRender::@6890427a1f51a3e7e1df",
@@ -205,7 +197,22 @@
 			},
 			{
 				"backtrace" : 4,
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libimguid.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libvulkan-1.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
 				"fragment" : "libNeuWindowLib.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libSDL3.dll.a",
 				"role" : "libraries"
 			},
 			{
@@ -230,22 +237,7 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "libImGuizmo.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libimguid.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libvulkan-1.dll.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libSDL3.dll.a",
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libimguizmo.a",
 				"role" : "libraries"
 			},
 			{

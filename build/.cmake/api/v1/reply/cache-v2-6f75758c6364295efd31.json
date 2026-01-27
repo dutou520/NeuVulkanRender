@@ -1491,7 +1491,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;ImGuizmo;"
+			"value" : "general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;imguizmo::imguizmo;"
 		},
 		{
 			"name" : "NeuVulkanRender_BINARY_DIR",
@@ -1896,6 +1896,18 @@
 			],
 			"type" : "PATH",
 			"value" : "D:/vcpkg/installed/x64-mingw-dynamic/share/imgui"
+		},
+		{
+			"name" : "imguizmo_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for imguizmo."
+				}
+			],
+			"type" : "PATH",
+			"value" : "D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo"
 		},
 		{
 			"name" : "spdlog_DIR",

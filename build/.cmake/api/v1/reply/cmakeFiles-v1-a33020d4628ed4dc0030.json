@@ -436,6 +436,18 @@
 			"path" : "D:/vcpkg/installed/x64-mingw-dynamic/share/glm/glmConfig-release.cmake"
 		},
 		{
+			"isExternal" : true,
+			"path" : "D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo/imguizmo-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo/imguizmo-config-debug.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo/imguizmo-config-release.cmake"
+		},
+		{
 			"isCMake" : true,
 			"isExternal" : true,
 			"path" : "C:/Program Files/CMake/share/cmake-3.28/Modules/exportheader.cmake.in"

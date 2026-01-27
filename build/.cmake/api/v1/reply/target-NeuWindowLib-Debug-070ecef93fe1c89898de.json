@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libImGuizmo.a"
+			"path" : "libNeuWindowLib.a"
 		}
 	],
 	"backtrace" : 2,
@@ -13,8 +13,9 @@
 		[
 			"_add_library",
 			"add_library",
-			"target_include_directories",
-			"target_link_libraries"
+			"target_link_libraries",
+			"target_compile_definitions",
+			"target_include_directories"
 		],
 		"files" : 
 		[
@@ -29,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 80,
+				"line" : 35,
 				"parent" : 0
 			},
 			{
@@ -41,13 +42,19 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 81,
+				"line" : 39,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 82,
+				"line" : 37,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 38,
 				"parent" : 0
 			}
 		]
@@ -61,14 +68,45 @@
 					"fragment" : "-g -std=gnu++17"
 				}
 			],
-			"includes" : 
+			"defines" : 
 			[
 				{
 					"backtrace" : 3,
-					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/ImGuizmo"
+					"define" : "FMT_SHARED"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "NEULOG_STATIC_DEFINE"
 				},
 				{
 					"backtrace" : 4,
+					"define" : "NEUWINDOW_STATIC_DEFINE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SPDLOG_COMPILED_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SPDLOG_FMT_EXTERNAL"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SPDLOG_SHARED_LIB"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "D:/CppPrograms/NeuVulkanRender/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "D:/CppPrograms/NeuVulkanRender/build"
+				},
+				{
+					"backtrace" : 3,
 					"isSystem" : true,
 					"path" : "D:/vcpkg/installed/x64-mingw-dynamic/include"
 				}
@@ -78,7 +116,7 @@
 			{
 				"backtraces" : 
 				[
-					4
+					3
 				],
 				"standard" : "17"
 			},
@@ -88,9 +126,16 @@
 			]
 		}
 	],
-	"id" : "ImGuizmo::@6890427a1f51a3e7e1df",
-	"name" : "ImGuizmo",
-	"nameOnDisk" : "libImGuizmo.a",
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "NeuLogLib::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "NeuWindowLib::@6890427a1f51a3e7e1df",
+	"name" : "NeuWindowLib",
+	"nameOnDisk" : "libNeuWindowLib.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -111,7 +156,7 @@
 		{
 			"backtrace" : 2,
 			"compileGroupIndex" : 0,
-			"path" : "source/ImGuizmo.cpp",
+			"path" : "source/Window.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

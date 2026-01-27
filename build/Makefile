@@ -168,19 +168,6 @@ NeuGUILib/fast:
 .PHONY : NeuGUILib/fast
 
 #=============================================================================
-# Target rules for targets named ImGuizmo
-
-# Build rule for target.
-ImGuizmo: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ImGuizmo
-.PHONY : ImGuizmo
-
-# fast build rule for target.
-ImGuizmo/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ImGuizmo.dir\build.make CMakeFiles/ImGuizmo.dir/build
-.PHONY : ImGuizmo/fast
-
-#=============================================================================
 # Target rules for targets named NeuRenderCoreLib
 
 # Build rule for target.
@@ -253,30 +240,6 @@ source/GBuffer.s: source/GBuffer.cpp.s
 source/GBuffer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.s
 .PHONY : source/GBuffer.cpp.s
-
-source/ImGuizmo.obj: source/ImGuizmo.cpp.obj
-.PHONY : source/ImGuizmo.obj
-
-# target to build an object file
-source/ImGuizmo.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ImGuizmo.dir\build.make CMakeFiles/ImGuizmo.dir/source/ImGuizmo.cpp.obj
-.PHONY : source/ImGuizmo.cpp.obj
-
-source/ImGuizmo.i: source/ImGuizmo.cpp.i
-.PHONY : source/ImGuizmo.i
-
-# target to preprocess a source file
-source/ImGuizmo.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ImGuizmo.dir\build.make CMakeFiles/ImGuizmo.dir/source/ImGuizmo.cpp.i
-.PHONY : source/ImGuizmo.cpp.i
-
-source/ImGuizmo.s: source/ImGuizmo.cpp.s
-.PHONY : source/ImGuizmo.s
-
-# target to generate assembly for a file
-source/ImGuizmo.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ImGuizmo.dir\build.make CMakeFiles/ImGuizmo.dir/source/ImGuizmo.cpp.s
-.PHONY : source/ImGuizmo.cpp.s
 
 source/Main.obj: source/Main.cpp.obj
 .PHONY : source/Main.obj
@@ -454,7 +417,6 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
-	@echo ... ImGuizmo
 	@echo ... NeuGUILib
 	@echo ... NeuImGuiBackendLib
 	@echo ... NeuLogLib
@@ -467,9 +429,6 @@ help:
 	@echo ... source/GBuffer.obj
 	@echo ... source/GBuffer.i
 	@echo ... source/GBuffer.s
-	@echo ... source/ImGuizmo.obj
-	@echo ... source/ImGuizmo.i
-	@echo ... source/ImGuizmo.s
 	@echo ... source/Main.obj
 	@echo ... source/Main.i
 	@echo ... source/Main.s

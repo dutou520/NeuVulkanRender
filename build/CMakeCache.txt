@@ -275,7 +275,7 @@ NeuImGuiBackendLib_LIB_DEPENDS:STATIC=general;imgui::imgui;general;SDL3::SDL3;ge
 NeuLogLib_LIB_DEPENDS:STATIC=general;spdlog::spdlog;general;fmt::fmt;
 
 //Dependencies for the target
-NeuRenderCoreLib_LIB_DEPENDS:STATIC=general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;ImGuizmo;
+NeuRenderCoreLib_LIB_DEPENDS:STATIC=general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;imguizmo::imguizmo;
 
 //Value Computed by CMake
 NeuVulkanRender_BINARY_DIR:STATIC=D:/CppPrograms/NeuVulkanRender/build
@@ -364,6 +364,9 @@ glm_DIR:PATH=D:/vcpkg/installed/x64-mingw-dynamic/share/glm
 
 //The directory containing a CMake configuration file for imgui.
 imgui_DIR:PATH=D:/vcpkg/installed/x64-mingw-dynamic/share/imgui
+
+//The directory containing a CMake configuration file for imguizmo.
+imguizmo_DIR:PATH=D:/vcpkg/installed/x64-mingw-dynamic/share/imguizmo
 
 //The directory containing a CMake configuration file for spdlog.
 spdlog_DIR:PATH=D:/vcpkg/installed/x64-mingw-dynamic/share/spdlog
