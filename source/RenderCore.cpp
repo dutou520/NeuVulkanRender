@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "neuGUI.h"
 #include "neuLog.h"
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 #include <algorithm>
 #include <chrono>
@@ -76,6 +77,16 @@ uint32_t RenderCore::m_IndexCount = 0;
 
 std::vector<VkFramebuffer> RenderCore::m_CompositionFramebuffers;
 VkSampler RenderCore::m_GBufferSampler = VK_NULL_HANDLE;
+
+// ========== 相机系统静态成员定义 ==========
+Camera RenderCore::m_Camera(glm::vec3(2.0f, 2.0f, 2.0f),
+                            glm::vec3(0.0f, 1.0f, 0.0f), -135.0f, -35.0f);
+float RenderCore::m_DeltaTime = 0.0f;
+float RenderCore::m_LastFrameTime = 0.0f;
+bool RenderCore::m_CameraControlEnabled = false;
+float RenderCore::m_LastMouseX = 640.0f;
+float RenderCore::m_LastMouseY = 360.0f;
+bool RenderCore::m_FirstMouse = true;
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -172,6 +183,74 @@ void RenderCore::Shutdown() {
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
 
+  // ========== 清理延迟渲染资源 ==========
+
+  // 销毁测试几何体缓冲
+  if (m_IndexBuffer != VK_NULL_HANDLE) {
+    vkDestroyBuffer(m_Device, m_IndexBuffer, nullptr);
+    vkFreeMemory(m_Device, m_IndexBufferMemory, nullptr);
+  }
+  if (m_VertexBuffer != VK_NULL_HANDLE) {
+    vkDestroyBuffer(m_Device, m_VertexBuffer, nullptr);
+    vkFreeMemory(m_Device, m_VertexBufferMemory, nullptr);
+  }
+
+  // 销毁 Uniform Buffers
+  for (size_t i = 0; i < m_UniformBuffers.size(); i++) {
+    vkDestroyBuffer(m_Device, m_UniformBuffers[i], nullptr);
+    vkFreeMemory(m_Device, m_UniformBuffersMemory[i], nullptr);
+  }
+  for (size_t i = 0; i < m_LightUniformBuffers.size(); i++) {
+    vkDestroyBuffer(m_Device, m_LightUniformBuffers[i], nullptr);
+    vkFreeMemory(m_Device, m_LightUniformBuffersMemory[i], nullptr);
+  }
+
+  // 销毁描述符集布局
+  if (m_GeometryDescriptorSetLayout != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(m_Device, m_GeometryDescriptorSetLayout,
+                                 nullptr);
+  }
+  if (m_CompositionGBufferDescriptorSetLayout != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(
+        m_Device, m_CompositionGBufferDescriptorSetLayout, nullptr);
+  }
+  if (m_CompositionLightDescriptorSetLayout != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(
+        m_Device, m_CompositionLightDescriptorSetLayout, nullptr);
+  }
+
+  // 销毁管线
+  if (m_GeometryPipeline != VK_NULL_HANDLE) {
+    vkDestroyPipeline(m_Device, m_GeometryPipeline, nullptr);
+  }
+  if (m_GeometryPipelineLayout != VK_NULL_HANDLE) {
+    vkDestroyPipelineLayout(m_Device, m_GeometryPipelineLayout, nullptr);
+  }
+  if (m_CompositionPipeline != VK_NULL_HANDLE) {
+    vkDestroyPipeline(m_Device, m_CompositionPipeline, nullptr);
+  }
+  if (m_CompositionPipelineLayout != VK_NULL_HANDLE) {
+    vkDestroyPipelineLayout(m_Device, m_CompositionPipelineLayout, nullptr);
+  }
+
+  // 销毁 Composition Framebuffers
+  for (auto framebuffer : m_CompositionFramebuffers) {
+    vkDestroyFramebuffer(m_Device, framebuffer, nullptr);
+  }
+
+  // 销毁 Render Passes
+  if (m_GBufferRenderPass != VK_NULL_HANDLE) {
+    vkDestroyRenderPass(m_Device, m_GBufferRenderPass, nullptr);
+  }
+  if (m_CompositionRenderPass != VK_NULL_HANDLE) {
+    vkDestroyRenderPass(m_Device, m_CompositionRenderPass, nullptr);
+  }
+
+  // 销毁 GBuffer
+  m_GBuffer.Destroy(m_Device);
+
+  // ========== 清理原有资源 ==========
+
   CleanupSwapchain();
 
   vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
@@ -182,6 +261,7 @@ void RenderCore::Shutdown() {
     vkDestroyFence(m_Device, m_InFlightFences[i], nullptr);
   }
 
+  vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
   vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
   vkDestroyDevice(m_Device, nullptr);
 
@@ -875,6 +955,9 @@ void RenderCore::DrawFrame() {
 
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame],
                        /*VkCommandBufferResetFlagBits*/ 0);
+
+  // 处理输入（相机控制）
+  ProcessInput();
 
   // Update uniform buffers (MVP matrices and light data)
   UpdateUniformBuffer(m_CurrentFrame);
@@ -1933,25 +2016,23 @@ void RenderCore::CreateDescriptorSets() {
 }
 
 void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
-  static auto startTime = std::chrono::high_resolution_clock::now();
+  // 使用相机获取视图和投影矩阵
+  float aspectRatio =
+      (float)m_SwapchainExtent.width / (float)m_SwapchainExtent.height;
 
+  static auto startTime = std::chrono::high_resolution_clock::now();
   auto currentTime = std::chrono::high_resolution_clock::now();
   float time = std::chrono::duration<float, std::chrono::seconds::period>(
                    currentTime - startTime)
                    .count();
 
   UniformBufferObject ubo{};
+  // 模型矩阵：旋转立方体
   ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(45.0f),
                           glm::vec3(0.0f, 1.0f, 0.0f));
-  ubo.view =
-      glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-                  glm::vec3(0.0f, 1.0f, 0.0f));
-  ubo.proj = glm::perspective(glm::radians(45.0f),
-                              (float)m_SwapchainExtent.width /
-                                  (float)m_SwapchainExtent.height,
-                              0.1f, 100.0f);
-  // Vulkan Y轴翻转
-  ubo.proj[1][1] *= -1;
+  // 使用相机的视图和投影矩阵
+  ubo.view = m_Camera.GetViewMatrix();
+  ubo.proj = m_Camera.GetProjectionMatrix(aspectRatio);
 
   memcpy(m_UniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 
@@ -1959,10 +2040,76 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
   LightDataUBO lightData{};
   lightData.lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
   lightData.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-  lightData.viewPos = glm::vec3(2.0f, 2.0f, 2.0f);
+  lightData.viewPos = m_Camera.GetPosition(); // 使用相机位置
 
   memcpy(m_LightUniformBuffersMapped[currentImage], &lightData,
          sizeof(lightData));
+}
+
+void RenderCore::ProcessInput() {
+  // 计算 delta time
+  float currentTime = SDL_GetTicks() / 1000.0f;
+  m_DeltaTime = currentTime - m_LastFrameTime;
+  m_LastFrameTime = currentTime;
+
+  // 检查是否按下右键启用相机控制
+  float mouseXf, mouseYf;
+  Uint32 mouseButtons = SDL_GetMouseState(&mouseXf, &mouseYf);
+
+  bool rightMousePressed = (mouseButtons & SDL_BUTTON_RMASK) != 0;
+
+  // 仅当 ImGui 没有捕获鼠标时才处理相机控制
+  if (ImGui::GetIO().WantCaptureMouse) {
+    m_CameraControlEnabled = false;
+    m_FirstMouse = true;
+    return;
+  }
+
+  if (rightMousePressed) {
+    if (!m_CameraControlEnabled) {
+      m_CameraControlEnabled = true;
+      m_FirstMouse = true;
+      SDL_SetWindowRelativeMouseMode(Window::GetNativeWindow(), true);
+    }
+
+    // 使用相对鼠标模式时获取相对移动
+    float relX, relY;
+    SDL_GetRelativeMouseState(&relX, &relY);
+    if (!m_FirstMouse) {
+      m_Camera.ProcessMouseMovement(relX, -relY);
+    }
+    m_FirstMouse = false;
+
+    // 处理键盘输入
+    const bool *keyState = SDL_GetKeyboardState(nullptr);
+
+    if (keyState[SDL_SCANCODE_W]) {
+      m_Camera.ProcessKeyboard(Camera::Movement::FORWARD, m_DeltaTime);
+    }
+    if (keyState[SDL_SCANCODE_S]) {
+      m_Camera.ProcessKeyboard(Camera::Movement::BACKWARD, m_DeltaTime);
+    }
+    if (keyState[SDL_SCANCODE_A]) {
+      m_Camera.ProcessKeyboard(Camera::Movement::LEFT, m_DeltaTime);
+    }
+    if (keyState[SDL_SCANCODE_D]) {
+      m_Camera.ProcessKeyboard(Camera::Movement::RIGHT, m_DeltaTime);
+    }
+    if (keyState[SDL_SCANCODE_SPACE]) {
+      m_Camera.ProcessKeyboard(Camera::Movement::UP, m_DeltaTime);
+    }
+    if (keyState[SDL_SCANCODE_LCTRL] || keyState[SDL_SCANCODE_LSHIFT]) {
+      m_Camera.ProcessKeyboard(Camera::Movement::DOWN, m_DeltaTime);
+    }
+    if (keyState[SDL_SCANCODE_R]) {
+      m_Camera.Reset();
+    }
+  } else {
+    if (m_CameraControlEnabled) {
+      m_CameraControlEnabled = false;
+      SDL_SetWindowRelativeMouseMode(Window::GetNativeWindow(), false);
+    }
+  }
 }
 
 } // namespace neurender

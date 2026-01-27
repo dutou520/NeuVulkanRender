@@ -193,6 +193,30 @@ NeuVulkanRender/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/build
 .PHONY : NeuVulkanRender/fast
 
+source/Camera.obj: source/Camera.cpp.obj
+.PHONY : source/Camera.obj
+
+# target to build an object file
+source/Camera.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj
+.PHONY : source/Camera.cpp.obj
+
+source/Camera.i: source/Camera.cpp.i
+.PHONY : source/Camera.i
+
+# target to preprocess a source file
+source/Camera.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.i
+.PHONY : source/Camera.cpp.i
+
+source/Camera.s: source/Camera.cpp.s
+.PHONY : source/Camera.s
+
+# target to generate assembly for a file
+source/Camera.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.s
+.PHONY : source/Camera.cpp.s
+
 source/GBuffer.obj: source/GBuffer.cpp.obj
 .PHONY : source/GBuffer.obj
 
@@ -399,6 +423,9 @@ help:
 	@echo ... NeuRenderCoreLib
 	@echo ... NeuVulkanRender
 	@echo ... NeuWindowLib
+	@echo ... source/Camera.obj
+	@echo ... source/Camera.i
+	@echo ... source/Camera.s
 	@echo ... source/GBuffer.obj
 	@echo ... source/GBuffer.i
 	@echo ... source/GBuffer.s

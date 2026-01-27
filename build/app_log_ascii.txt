@@ -1,0 +1,30 @@
+17:28:48:887 [29100-29548] [I] [            Main.cpp:9   ] - Starting NeuVulkanRender...
+17:28:49:127 [29100-29548] [I] [          Window.cpp:46  ] - Window initialized successfully: 1280x720
+17:28:49:137 [29100-29548] [W] [      RenderCore.cpp:107 ] - validation layer: Layer VK_LAYER_OBS_HOOK uses API version 1.3 which is older than the application specified API version of 1.4. May cause issues.
+17:28:49:228 [29100-29548] [I] [      RenderCore.cpp:363 ] - Running vulkan on NVIDIA GeForce RTX 3060 Laptop GPU
+17:28:49:596 [29100-29548] [I] [         GBuffer.cpp:48  ] - GBuffer created: 1280x720
+17:28:49:596 [29100-29548] [I] [      RenderCore.cpp:1143] - GBuffer created successfully
+17:28:49:596 [29100-29548] [I] [      RenderCore.cpp:1259] - GBuffer render pass created successfully
+17:28:49:596 [29100-29548] [I] [      RenderCore.cpp:1324] - Composition render pass created successfully
+17:28:49:596 [29100-29548] [I] [      RenderCore.cpp:1392] - Descriptor set layouts created successfully
+17:28:49:598 [29100-29548] [I] [      RenderCore.cpp:1543] - Geometry pipeline created successfully
+17:28:49:600 [29100-29548] [I] [      RenderCore.cpp:1678] - Composition pipeline created successfully
+17:28:49:602 [29100-29548] [I] [      RenderCore.cpp:1847] - Test geometry (cube) created: 24 vertices, 36 indices
+17:28:49:602 [29100-29548] [I] [      RenderCore.cpp:1885] - Uniform buffers created successfully
+17:28:49:602 [29100-29548] [I] [      RenderCore.cpp:2015] - Descriptor sets created successfully
+17:28:49:603 [29100-29548] [I] [      RenderCore.cpp:176 ] - RenderCore Initialized with Deferred Rendering Pipeline
+17:28:49:659 [29100-29548] [W] [      RenderCore.cpp:107 ] - validation layer: vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x100000000010) is being signaled by VkQueue 0x10fa66f80f0, but it may still be in use by VkSwapchainKHR 0x30000000003.
+Most recently acquired image indices: 0, 1, [0], 1, 1.
+(Brackets mark the last use of VkSemaphore 0x100000000010 in a presentation operation.)
+Swapchain image 0 was presented but was not re-acquired, so VkSemaphore 0x100000000010 may still be in use and cannot be safely reused with image index 1.
+Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+   a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+   b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores member of any element of pSubmits must be unsignaled when the semaphore signal operation it defines is executed on the device (https://docs.vulkan.org/spec/latest/chapters/cmdbuffers.html#VUID-vkQueueSubmit-pSignalSemaphores-00067)
+17:28:51:000 [29100-29548] [I] [          neuGUI.cpp:32  ] - Info Button Clicked from ImGui!
+17:28:51:461 [29100-29548] [W] [          neuGUI.cpp:36  ] - Warning Button Clicked from ImGui!
+17:28:51:875 [29100-29548] [E] [          neuGUI.cpp:40  ] - Error Button Clicked from ImGui!
+17:28:55:604 [29100-29548] [W] [          neuGUI.cpp:36  ] - Warning Button Clicked from ImGui!
+17:28:55:956 [29100-29548] [I] [          neuGUI.cpp:32  ] - Info Button Clicked from ImGui!
+17:28:56:224 [29100-29548] [E] [          neuGUI.cpp:40  ] - Error Button Clicked from ImGui!
+17:28:56:454 [29100-29548] [E] [          neuGUI.cpp:40  ] - Error Button Clicked from ImGui!

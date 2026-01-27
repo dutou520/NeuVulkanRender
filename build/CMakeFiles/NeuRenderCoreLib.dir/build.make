@@ -98,19 +98,36 @@ CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.s"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\CppPrograms\NeuVulkanRender\source\GBuffer.cpp -o CMakeFiles\NeuRenderCoreLib.dir\source\GBuffer.cpp.s
 
+CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj: CMakeFiles/NeuRenderCoreLib.dir/flags.make
+CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj: CMakeFiles/NeuRenderCoreLib.dir/includes_CXX.rsp
+CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj: D:/CppPrograms/NeuVulkanRender/source/Camera.cpp
+CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj: CMakeFiles/NeuRenderCoreLib.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj -MF CMakeFiles\NeuRenderCoreLib.dir\source\Camera.cpp.obj.d -o CMakeFiles\NeuRenderCoreLib.dir\source\Camera.cpp.obj -c D:\CppPrograms\NeuVulkanRender\source\Camera.cpp
+
+CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.i"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\CppPrograms\NeuVulkanRender\source\Camera.cpp > CMakeFiles\NeuRenderCoreLib.dir\source\Camera.cpp.i
+
+CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.s"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\CppPrograms\NeuVulkanRender\source\Camera.cpp -o CMakeFiles\NeuRenderCoreLib.dir\source\Camera.cpp.s
+
 # Object files for target NeuRenderCoreLib
 NeuRenderCoreLib_OBJECTS = \
 "CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj" \
-"CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj"
+"CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj" \
+"CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj"
 
 # External object files for target NeuRenderCoreLib
 NeuRenderCoreLib_EXTERNAL_OBJECTS =
 
 libNeuRenderCoreLib.a: CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj
 libNeuRenderCoreLib.a: CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj
+libNeuRenderCoreLib.a: CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj
 libNeuRenderCoreLib.a: CMakeFiles/NeuRenderCoreLib.dir/build.make
 libNeuRenderCoreLib.a: CMakeFiles/NeuRenderCoreLib.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libNeuRenderCoreLib.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libNeuRenderCoreLib.a"
 	$(CMAKE_COMMAND) -P CMakeFiles\NeuRenderCoreLib.dir\cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\NeuRenderCoreLib.dir\link.txt --verbose=$(VERBOSE)
 

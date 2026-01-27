@@ -1,2 +1,2 @@
-C:\msys64\mingw64\bin\ar.exe qc libNeuRenderCoreLib.a CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj
+C:\msys64\mingw64\bin\ar.exe qc libNeuRenderCoreLib.a CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj
 C:\msys64\mingw64\bin\ranlib.exe libNeuRenderCoreLib.a

@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj"
+  "CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj.d"
   "CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj"
   "CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj.d"
   "CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj"

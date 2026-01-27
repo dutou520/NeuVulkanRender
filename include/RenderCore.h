@@ -1,4 +1,5 @@
 #pragma once
+#include "Camera.h"
 #include "GBuffer.h"
 #include "Vertex.h"
 #include "neurendercore_export.h"
@@ -221,5 +222,23 @@ private:
 
   // GBuffer Sampler
   static VkSampler m_GBufferSampler;
+
+  // ============================== 相机系统 ==============================
+  static Camera m_Camera;
+  static float m_DeltaTime;
+  static float m_LastFrameTime;
+  static bool m_CameraControlEnabled;
+  static float m_LastMouseX;
+  static float m_LastMouseY;
+  static bool m_FirstMouse;
+
+public:
+  // 相机控制接口
+  static void ProcessInput();
+  static Camera &GetCamera() { return m_Camera; }
+  static void SetCameraControlEnabled(bool enabled) {
+    m_CameraControlEnabled = enabled;
+  }
+  static bool IsCameraControlEnabled() { return m_CameraControlEnabled; }
 };
 } // namespace neurender

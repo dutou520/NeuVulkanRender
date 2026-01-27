@@ -67,7 +67,7 @@ target_include_directories(tinyobjloader INTERFACE "${CMAKE_SOURCE_DIR}/ThirPart
 
 
 # 5. NeuRenderCoreLib
-add_library(NeuRenderCoreLib STATIC source/RenderCore.cpp source/GBuffer.cpp)
+add_library(NeuRenderCoreLib STATIC source/RenderCore.cpp source/GBuffer.cpp source/Camera.cpp)
 generate_export_header(NeuRenderCoreLib EXPORT_MACRO_NAME NEURENDERCORE_API BASE_NAME NeuRenderCore)
 target_compile_definitions(NeuRenderCoreLib PUBLIC NEURENDERCORE_STATIC_DEFINE)
 target_include_directories(NeuRenderCoreLib PUBLIC 

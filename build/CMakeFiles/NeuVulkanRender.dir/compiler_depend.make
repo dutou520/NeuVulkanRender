@@ -227,6 +227,7 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: D:/CppPrograms/NeuVulkanRend
   neulog_export.h \
   neurendercore_export.h \
   neuwindow_export.h \
+  D:/CppPrograms/NeuVulkanRender/include/Camera.h \
   D:/CppPrograms/NeuVulkanRender/include/GBuffer.h \
   D:/CppPrograms/NeuVulkanRender/include/RenderCore.h \
   D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
@@ -338,6 +339,8 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: D:/CppPrograms/NeuVulkanRend
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.inl \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/exponential.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_clip_space.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_clip_space.inl \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_double2x2.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_double2x2_precision.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_double2x3.hpp \
@@ -374,6 +377,12 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: D:/CppPrograms/NeuVulkanRend
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x3_precision.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x4.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x4_precision.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_projection.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_projection.inl \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_transform.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_transform.inl \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_constants.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_constants.inl \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_int_sized.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_uint_sized.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool2.hpp \
@@ -409,6 +418,10 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: D:/CppPrograms/NeuVulkanRend
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/fwd.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/geometric.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/glm.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/constants.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/constants.inl \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/matrix_transform.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/matrix_transform.inl \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/integer.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat2x2.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat2x3.hpp \
@@ -640,6 +653,8 @@ C:/msys64/mingw64/include/c++/14.1.0/type_traits:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/localefwd.h:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/matrix_transform.hpp:
+
 C:/msys64/mingw64/include/c++/14.1.0/bits/memory_resource.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/move.h:
@@ -659,6 +674,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float2x3.hpp:
 C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/predefined_ops.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_projection.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/exception:
 
@@ -781,6 +798,8 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/utility.h:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_half.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_clip_space.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/cassert:
 
@@ -1070,6 +1089,10 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool3.hpp:
 
 neuwindow_export.h:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.inl:
+
+D:/CppPrograms/NeuVulkanRender/include/Camera.h:
+
 D:/CppPrograms/NeuVulkanRender/include/GBuffer.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/integer.hpp:
@@ -1186,7 +1209,11 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/format.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_fixes.hpp:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_projection.inl:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_vectorize.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_constants.inl:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/compute_common.hpp:
 
@@ -1250,7 +1277,9 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec3.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.inl:
+D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_h265std.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_clip_space.inl:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_double2x2_precision.hpp:
 
@@ -1302,6 +1331,12 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x2.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x3_precision.hpp:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_transform.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_transform.inl:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_constants.hpp:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_int_sized.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool2.hpp:
@@ -1338,6 +1373,14 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/fwd.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/geometric.hpp:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat4x2.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/constants.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/constants.inl:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/matrix_transform.inl:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat2x2.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat2x3.hpp:
@@ -1345,8 +1388,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat2x3.hpp:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat3x3.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat3x4.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat4x2.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/vector_relational.hpp:
 
@@ -1365,8 +1406,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h:
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/tweakme.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_h264std_encode.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_h265std.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_h265std_encode.h:
 
