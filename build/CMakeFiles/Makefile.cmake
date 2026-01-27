@@ -103,6 +103,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/NeuWindowLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuImGuiBackendLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuGUILib.dir/DependInfo.cmake"
+  "CMakeFiles/ImGuizmo.dir/DependInfo.cmake"
   "CMakeFiles/NeuRenderCoreLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuVulkanRender.dir/DependInfo.cmake"
   )

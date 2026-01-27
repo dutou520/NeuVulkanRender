@@ -30,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 103,
+				"line" : 124,
 				"parent" : 0
 			},
 			{
@@ -42,13 +42,13 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 104,
+				"line" : 125,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 80,
+				"line" : 100,
 				"parent" : 0
 			}
 		]
@@ -117,6 +117,18 @@
 				},
 				{
 					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/tinygltf"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/ImGuizmo"
+				},
+				{
+					"backtrace" : 3,
 					"isSystem" : true,
 					"path" : "D:/vcpkg/installed/x64-mingw-dynamic/include"
 				}
@@ -156,6 +168,10 @@
 		},
 		{
 			"backtrace" : 3,
+			"id" : "ImGuizmo::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df"
 		}
 	],
@@ -189,22 +205,7 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libimguid.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libvulkan-1.dll.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
 				"fragment" : "libNeuWindowLib.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libSDL3.dll.a",
 				"role" : "libraries"
 			},
 			{
@@ -225,6 +226,26 @@
 			{
 				"backtrace" : 4,
 				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libglm.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "libImGuizmo.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libimguid.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libvulkan-1.dll.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libSDL3.dll.a",
 				"role" : "libraries"
 			},
 			{

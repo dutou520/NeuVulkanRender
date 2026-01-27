@@ -263,6 +263,9 @@ CMAKE_TOOLCHAIN_FILE:STRING=D:/vcpkg/scripts/buildsystems/vcpkg.cmake
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Dependencies for the target
+ImGuizmo_LIB_DEPENDS:STATIC=general;imgui::imgui;
+
+//Dependencies for the target
 NeuGUILib_LIB_DEPENDS:STATIC=general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;spdlog::spdlog;general;fmt::fmt;
 
 //Dependencies for the target
@@ -272,7 +275,7 @@ NeuImGuiBackendLib_LIB_DEPENDS:STATIC=general;imgui::imgui;general;SDL3::SDL3;ge
 NeuLogLib_LIB_DEPENDS:STATIC=general;spdlog::spdlog;general;fmt::fmt;
 
 //Dependencies for the target
-NeuRenderCoreLib_LIB_DEPENDS:STATIC=general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;
+NeuRenderCoreLib_LIB_DEPENDS:STATIC=general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;ImGuizmo;
 
 //Value Computed by CMake
 NeuVulkanRender_BINARY_DIR:STATIC=D:/CppPrograms/NeuVulkanRender/build

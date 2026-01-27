@@ -1434,6 +1434,18 @@
 			"value" : "[D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libvulkan-1.dll.a][D:/vcpkg/installed/x64-mingw-dynamic/include][cfound components: glslc glslangValidator ][v1.4.328()]"
 		},
 		{
+			"name" : "ImGuizmo_LIB_DEPENDS",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Dependencies for the target"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "general;imgui::imgui;"
+		},
+		{
 			"name" : "NeuGUILib_LIB_DEPENDS",
 			"properties" : 
 			[
@@ -1479,7 +1491,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;"
+			"value" : "general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;ImGuizmo;"
 		},
 		{
 			"name" : "NeuVulkanRender_BINARY_DIR",

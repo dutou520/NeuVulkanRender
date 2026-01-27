@@ -30,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 70,
+				"line" : 86,
 				"parent" : 0
 			},
 			{
@@ -42,25 +42,25 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 80,
+				"line" : 100,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 95,
+				"line" : 116,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 72,
+				"line" : 92,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 1,
-				"line" : 73,
+				"line" : 93,
 				"parent" : 0
 			}
 		]
@@ -133,6 +133,18 @@
 				},
 				{
 					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/tinygltf"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "D:/CppPrograms/NeuVulkanRender/ThirParty/ImGuizmo"
+				},
+				{
+					"backtrace" : 3,
 					"isSystem" : true,
 					"path" : "D:/vcpkg/installed/x64-mingw-dynamic/include"
 				}
@@ -171,6 +183,10 @@
 		{
 			"backtrace" : 3,
 			"id" : "NeuGUILib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "ImGuizmo::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df",

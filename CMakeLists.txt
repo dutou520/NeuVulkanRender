@@ -55,6 +55,9 @@ add_library(ThirPartyLib INTERFACE)
 target_include_directories(ThirPartyLib INTERFACE 
     "${CMAKE_SOURCE_DIR}/ThirParty/stb"
     "${CMAKE_SOURCE_DIR}/ThirParty/tinyobjloader"
+    "${CMAKE_SOURCE_DIR}/ThirParty/nlohmann-json"
+    "${CMAKE_SOURCE_DIR}/ThirParty/tinygltf"
+    "${CMAKE_SOURCE_DIR}/ThirParty/ImGuizmo"
 )
 
 # 为 stb_image 创建单独的接口库（header-only）
@@ -65,9 +68,26 @@ target_include_directories(stb_image INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/st
 add_library(tinyobjloader INTERFACE)
 target_include_directories(tinyobjloader INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/tinyobjloader")
 
+# 为 nlohmann-json 创建单独的接口库（header-only）
+add_library(nlohmann_json INTERFACE)
+target_include_directories(nlohmann_json INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/nlohmann-json")
+
+# 为 tinygltf 创建单独的接口库（header-only）
+add_library(tinygltf INTERFACE)
+target_include_directories(tinygltf INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/tinygltf")
+
+# 为 ImGuizmo 创建单独的接口库（包含源文件）
+add_library(ImGuizmo STATIC source/ImGuizmo.cpp)
+target_include_directories(ImGuizmo PUBLIC "${CMAKE_SOURCE_DIR}/ThirParty/ImGuizmo")
+target_link_libraries(ImGuizmo PUBLIC imgui::imgui)
+
 
 # 5. NeuRenderCoreLib
-add_library(NeuRenderCoreLib STATIC source/RenderCore.cpp source/GBuffer.cpp source/Camera.cpp)
+add_library(NeuRenderCoreLib STATIC 
+    source/RenderCore.cpp 
+    source/GBuffer.cpp 
+    source/Camera.cpp
+)
 generate_export_header(NeuRenderCoreLib EXPORT_MACRO_NAME NEURENDERCORE_API BASE_NAME NeuRenderCore)
 target_compile_definitions(NeuRenderCoreLib PUBLIC NEURENDERCORE_STATIC_DEFINE)
 target_include_directories(NeuRenderCoreLib PUBLIC 
@@ -89,6 +109,7 @@ target_link_libraries(NeuRenderCoreLib PUBLIC
     fmt::fmt
     glm::glm
     ThirPartyLib
+    ImGuizmo
 )
 #定义debug模式
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

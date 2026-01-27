@@ -20,7 +20,8 @@
 						2,
 						3,
 						4,
-						5
+						5,
+						6
 					]
 				}
 			],
@@ -40,12 +41,20 @@
 						2,
 						3,
 						4,
-						5
+						5,
+						6
 					]
 				}
 			],
 			"targets" : 
 			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ImGuizmo::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ImGuizmo-Debug-051c2030efda7ee6d4b9.json",
+					"name" : "ImGuizmo",
+					"projectIndex" : 0
+				},
 				{
 					"directoryIndex" : 0,
 					"id" : "NeuGUILib::@6890427a1f51a3e7e1df",
@@ -70,14 +79,14 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-NeuRenderCoreLib-Debug-8a6834b94b0a562719d2.json",
+					"jsonFile" : "target-NeuRenderCoreLib-Debug-e2d1230091dce0806fa1.json",
 					"name" : "NeuRenderCoreLib",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "NeuVulkanRender::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-NeuVulkanRender-Debug-4760d4fdb8a1c324f4e8.json",
+					"jsonFile" : "target-NeuVulkanRender-Debug-e4b6858d2e6b3e61c397.json",
 					"name" : "NeuVulkanRender",
 					"projectIndex" : 0
 				},
