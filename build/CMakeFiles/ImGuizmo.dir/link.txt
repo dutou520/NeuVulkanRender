@@ -1,2 +1,0 @@
-C:\msys64\mingw64\bin\ar.exe qc libImGuizmo.a CMakeFiles/ImGuizmo.dir/source/ImGuizmo.cpp.obj
-C:\msys64\mingw64\bin\ranlib.exe libImGuizmo.a

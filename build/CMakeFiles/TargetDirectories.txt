@@ -2,6 +2,9 @@ D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuLogLib.dir
 D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuWindowLib.dir
 D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuImGuiBackendLib.dir
 D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuGUILib.dir
+D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuCoreLib.dir
+D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuAssetLib.dir
+D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuSceneLib.dir
 D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuRenderCoreLib.dir
 D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuVulkanRender.dir
 D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/edit_cache.dir

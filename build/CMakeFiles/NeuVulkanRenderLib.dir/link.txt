@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\NeuVulkanRenderLib.dir/objects.a
-C:\msys64\mingw64\bin\ar.exe qc CMakeFiles\NeuVulkanRenderLib.dir/objects.a @CMakeFiles\NeuVulkanRenderLib.dir\objects1.rsp
-C:\msys64\mingw64\bin\g++.exe -g -shared -o libNeuVulkanRenderLib.dll -Wl,--out-implib,libNeuVulkanRenderLib.dll.a -Wl,--major-image-version,0,--minor-image-version,0 -Wl,--whole-archive CMakeFiles\NeuVulkanRenderLib.dir/objects.a -Wl,--no-whole-archive @CMakeFiles\NeuVulkanRenderLib.dir\linkLibs.rsp

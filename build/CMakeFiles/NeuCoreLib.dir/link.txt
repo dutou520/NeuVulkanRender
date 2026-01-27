@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libNeuCoreLib.a CMakeFiles/NeuCoreLib.dir/source/Object.cpp.obj CMakeFiles/NeuCoreLib.dir/source/UUID.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libNeuCoreLib.a

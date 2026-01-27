@@ -76,6 +76,61 @@ target_include_directories(nlohmann_json INTERFACE "${CMAKE_SOURCE_DIR}/ThirPart
 add_library(tinygltf INTERFACE)
 target_include_directories(tinygltf INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/tinygltf")
 
+# ========== 文件系统相关库 ==========
+
+# NeuCoreLib (Object, UUID 基础类)
+add_library(NeuCoreLib STATIC 
+    source/Object.cpp 
+    source/UUID.cpp
+)
+generate_export_header(NeuCoreLib EXPORT_MACRO_NAME NEUCORE_API BASE_NAME NeuCore)
+target_compile_definitions(NeuCoreLib PUBLIC NEUCORE_STATIC_DEFINE)
+target_include_directories(NeuCoreLib PUBLIC 
+    "${CMAKE_SOURCE_DIR}/include" 
+    "${CMAKE_CURRENT_BINARY_DIR}"
+)
+target_link_libraries(NeuCoreLib PUBLIC glm::glm)
+
+# NeuAssetLib (AssetManager, MetaFile, ModelImporter)
+add_library(NeuAssetLib STATIC 
+    source/AssetManager.cpp 
+    source/MetaFile.cpp 
+    source/ModelImporter.cpp
+)
+generate_export_header(NeuAssetLib EXPORT_MACRO_NAME NEUASSET_API BASE_NAME NeuAsset)
+target_compile_definitions(NeuAssetLib PUBLIC NEUASSET_STATIC_DEFINE)
+target_include_directories(NeuAssetLib PUBLIC 
+    "${CMAKE_SOURCE_DIR}/include" 
+    "${CMAKE_CURRENT_BINARY_DIR}"
+)
+target_link_libraries(NeuAssetLib PUBLIC 
+    NeuCoreLib 
+    NeuLogLib 
+    ThirPartyLib
+    glm::glm
+)
+
+# NeuSceneLib (Scene, Project, Node, MeshNode)
+add_library(NeuSceneLib STATIC 
+    source/Scene.cpp 
+    source/Project.cpp 
+    source/Node.cpp
+    source/MeshNode.cpp
+)
+generate_export_header(NeuSceneLib EXPORT_MACRO_NAME NEUSCENE_API BASE_NAME NeuScene)
+target_compile_definitions(NeuSceneLib PUBLIC NEUSCENE_STATIC_DEFINE)
+target_include_directories(NeuSceneLib PUBLIC 
+    "${CMAKE_SOURCE_DIR}/include" 
+    "${CMAKE_CURRENT_BINARY_DIR}"
+)
+target_link_libraries(NeuSceneLib PUBLIC 
+    NeuCoreLib 
+    NeuAssetLib
+    NeuLogLib
+    ThirPartyLib
+    glm::glm
+)
+
 
 
 # 5. NeuRenderCoreLib
@@ -101,6 +156,9 @@ target_link_libraries(NeuRenderCoreLib PUBLIC
     NeuWindowLib 
     NeuImGuiBackendLib 
     NeuGUILib
+    NeuCoreLib
+    NeuAssetLib
+    NeuSceneLib
     spdlog::spdlog
     fmt::fmt
     glm::glm

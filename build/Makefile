@@ -168,6 +168,45 @@ NeuGUILib/fast:
 .PHONY : NeuGUILib/fast
 
 #=============================================================================
+# Target rules for targets named NeuCoreLib
+
+# Build rule for target.
+NeuCoreLib: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NeuCoreLib
+.PHONY : NeuCoreLib
+
+# fast build rule for target.
+NeuCoreLib/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/build
+.PHONY : NeuCoreLib/fast
+
+#=============================================================================
+# Target rules for targets named NeuAssetLib
+
+# Build rule for target.
+NeuAssetLib: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NeuAssetLib
+.PHONY : NeuAssetLib
+
+# fast build rule for target.
+NeuAssetLib/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/build
+.PHONY : NeuAssetLib/fast
+
+#=============================================================================
+# Target rules for targets named NeuSceneLib
+
+# Build rule for target.
+NeuSceneLib: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NeuSceneLib
+.PHONY : NeuSceneLib
+
+# fast build rule for target.
+NeuSceneLib/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/build
+.PHONY : NeuSceneLib/fast
+
+#=============================================================================
 # Target rules for targets named NeuRenderCoreLib
 
 # Build rule for target.
@@ -192,6 +231,30 @@ NeuVulkanRender: cmake_check_build_system
 NeuVulkanRender/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/build
 .PHONY : NeuVulkanRender/fast
+
+source/AssetManager.obj: source/AssetManager.cpp.obj
+.PHONY : source/AssetManager.obj
+
+# target to build an object file
+source/AssetManager.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj
+.PHONY : source/AssetManager.cpp.obj
+
+source/AssetManager.i: source/AssetManager.cpp.i
+.PHONY : source/AssetManager.i
+
+# target to preprocess a source file
+source/AssetManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.i
+.PHONY : source/AssetManager.cpp.i
+
+source/AssetManager.s: source/AssetManager.cpp.s
+.PHONY : source/AssetManager.s
+
+# target to generate assembly for a file
+source/AssetManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.s
+.PHONY : source/AssetManager.cpp.s
 
 source/Camera.obj: source/Camera.cpp.obj
 .PHONY : source/Camera.obj
@@ -265,6 +328,150 @@ source/Main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.s
 .PHONY : source/Main.cpp.s
 
+source/MeshNode.obj: source/MeshNode.cpp.obj
+.PHONY : source/MeshNode.obj
+
+# target to build an object file
+source/MeshNode.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.obj
+.PHONY : source/MeshNode.cpp.obj
+
+source/MeshNode.i: source/MeshNode.cpp.i
+.PHONY : source/MeshNode.i
+
+# target to preprocess a source file
+source/MeshNode.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.i
+.PHONY : source/MeshNode.cpp.i
+
+source/MeshNode.s: source/MeshNode.cpp.s
+.PHONY : source/MeshNode.s
+
+# target to generate assembly for a file
+source/MeshNode.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.s
+.PHONY : source/MeshNode.cpp.s
+
+source/MetaFile.obj: source/MetaFile.cpp.obj
+.PHONY : source/MetaFile.obj
+
+# target to build an object file
+source/MetaFile.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj
+.PHONY : source/MetaFile.cpp.obj
+
+source/MetaFile.i: source/MetaFile.cpp.i
+.PHONY : source/MetaFile.i
+
+# target to preprocess a source file
+source/MetaFile.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.i
+.PHONY : source/MetaFile.cpp.i
+
+source/MetaFile.s: source/MetaFile.cpp.s
+.PHONY : source/MetaFile.s
+
+# target to generate assembly for a file
+source/MetaFile.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.s
+.PHONY : source/MetaFile.cpp.s
+
+source/ModelImporter.obj: source/ModelImporter.cpp.obj
+.PHONY : source/ModelImporter.obj
+
+# target to build an object file
+source/ModelImporter.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj
+.PHONY : source/ModelImporter.cpp.obj
+
+source/ModelImporter.i: source/ModelImporter.cpp.i
+.PHONY : source/ModelImporter.i
+
+# target to preprocess a source file
+source/ModelImporter.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.i
+.PHONY : source/ModelImporter.cpp.i
+
+source/ModelImporter.s: source/ModelImporter.cpp.s
+.PHONY : source/ModelImporter.s
+
+# target to generate assembly for a file
+source/ModelImporter.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.s
+.PHONY : source/ModelImporter.cpp.s
+
+source/Node.obj: source/Node.cpp.obj
+.PHONY : source/Node.obj
+
+# target to build an object file
+source/Node.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Node.cpp.obj
+.PHONY : source/Node.cpp.obj
+
+source/Node.i: source/Node.cpp.i
+.PHONY : source/Node.i
+
+# target to preprocess a source file
+source/Node.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Node.cpp.i
+.PHONY : source/Node.cpp.i
+
+source/Node.s: source/Node.cpp.s
+.PHONY : source/Node.s
+
+# target to generate assembly for a file
+source/Node.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Node.cpp.s
+.PHONY : source/Node.cpp.s
+
+source/Object.obj: source/Object.cpp.obj
+.PHONY : source/Object.obj
+
+# target to build an object file
+source/Object.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/source/Object.cpp.obj
+.PHONY : source/Object.cpp.obj
+
+source/Object.i: source/Object.cpp.i
+.PHONY : source/Object.i
+
+# target to preprocess a source file
+source/Object.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/source/Object.cpp.i
+.PHONY : source/Object.cpp.i
+
+source/Object.s: source/Object.cpp.s
+.PHONY : source/Object.s
+
+# target to generate assembly for a file
+source/Object.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/source/Object.cpp.s
+.PHONY : source/Object.cpp.s
+
+source/Project.obj: source/Project.cpp.obj
+.PHONY : source/Project.obj
+
+# target to build an object file
+source/Project.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj
+.PHONY : source/Project.cpp.obj
+
+source/Project.i: source/Project.cpp.i
+.PHONY : source/Project.i
+
+# target to preprocess a source file
+source/Project.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Project.cpp.i
+.PHONY : source/Project.cpp.i
+
+source/Project.s: source/Project.cpp.s
+.PHONY : source/Project.s
+
+# target to generate assembly for a file
+source/Project.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Project.cpp.s
+.PHONY : source/Project.cpp.s
+
 source/RenderCore.obj: source/RenderCore.cpp.obj
 .PHONY : source/RenderCore.obj
 
@@ -288,6 +495,54 @@ source/RenderCore.s: source/RenderCore.cpp.s
 source/RenderCore.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.s
 .PHONY : source/RenderCore.cpp.s
+
+source/Scene.obj: source/Scene.cpp.obj
+.PHONY : source/Scene.obj
+
+# target to build an object file
+source/Scene.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Scene.cpp.obj
+.PHONY : source/Scene.cpp.obj
+
+source/Scene.i: source/Scene.cpp.i
+.PHONY : source/Scene.i
+
+# target to preprocess a source file
+source/Scene.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Scene.cpp.i
+.PHONY : source/Scene.cpp.i
+
+source/Scene.s: source/Scene.cpp.s
+.PHONY : source/Scene.s
+
+# target to generate assembly for a file
+source/Scene.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Scene.cpp.s
+.PHONY : source/Scene.cpp.s
+
+source/UUID.obj: source/UUID.cpp.obj
+.PHONY : source/UUID.obj
+
+# target to build an object file
+source/UUID.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/source/UUID.cpp.obj
+.PHONY : source/UUID.cpp.obj
+
+source/UUID.i: source/UUID.cpp.i
+.PHONY : source/UUID.i
+
+# target to preprocess a source file
+source/UUID.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/source/UUID.cpp.i
+.PHONY : source/UUID.cpp.i
+
+source/UUID.s: source/UUID.cpp.s
+.PHONY : source/UUID.s
+
+# target to generate assembly for a file
+source/UUID.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/source/UUID.cpp.s
+.PHONY : source/UUID.cpp.s
 
 source/Window.obj: source/Window.cpp.obj
 .PHONY : source/Window.obj
@@ -417,12 +672,18 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
+	@echo ... NeuAssetLib
+	@echo ... NeuCoreLib
 	@echo ... NeuGUILib
 	@echo ... NeuImGuiBackendLib
 	@echo ... NeuLogLib
 	@echo ... NeuRenderCoreLib
+	@echo ... NeuSceneLib
 	@echo ... NeuVulkanRender
 	@echo ... NeuWindowLib
+	@echo ... source/AssetManager.obj
+	@echo ... source/AssetManager.i
+	@echo ... source/AssetManager.s
 	@echo ... source/Camera.obj
 	@echo ... source/Camera.i
 	@echo ... source/Camera.s
@@ -432,9 +693,33 @@ help:
 	@echo ... source/Main.obj
 	@echo ... source/Main.i
 	@echo ... source/Main.s
+	@echo ... source/MeshNode.obj
+	@echo ... source/MeshNode.i
+	@echo ... source/MeshNode.s
+	@echo ... source/MetaFile.obj
+	@echo ... source/MetaFile.i
+	@echo ... source/MetaFile.s
+	@echo ... source/ModelImporter.obj
+	@echo ... source/ModelImporter.i
+	@echo ... source/ModelImporter.s
+	@echo ... source/Node.obj
+	@echo ... source/Node.i
+	@echo ... source/Node.s
+	@echo ... source/Object.obj
+	@echo ... source/Object.i
+	@echo ... source/Object.s
+	@echo ... source/Project.obj
+	@echo ... source/Project.i
+	@echo ... source/Project.s
 	@echo ... source/RenderCore.obj
 	@echo ... source/RenderCore.i
 	@echo ... source/RenderCore.s
+	@echo ... source/Scene.obj
+	@echo ... source/Scene.i
+	@echo ... source/Scene.s
+	@echo ... source/UUID.obj
+	@echo ... source/UUID.i
+	@echo ... source/UUID.s
 	@echo ... source/Window.obj
 	@echo ... source/Window.i
 	@echo ... source/Window.s

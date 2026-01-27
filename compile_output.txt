@@ -1,0 +1,183 @@
+﻿"C:\Program Files\CMake\bin\cmake.exe" -SD:\CppPrograms\NeuVulkanRender -BD:\CppPrograms\NeuVulkanRender\build --check-build-system CMakeFiles\Makefile.cmake 0
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_progress_start D:\CppPrograms\NeuVulkanRender\build\CMakeFiles D:\CppPrograms\NeuVulkanRender\build\\CMakeFiles\progress.marks
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\Makefile2 all
+mingw32-make[1]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuLogLib.dir\build.make CMakeFiles/NeuLogLib.dir/depend
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build\CMakeFiles\NeuLogLib.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuLogLib.dir\build.make CMakeFiles/NeuLogLib.dir/build
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+mingw32-make[2]: Nothing to be done for 'CMakeFiles/NeuLogLib.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+[ 13%] Built target NeuLogLib
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuWindowLib.dir\build.make CMakeFiles/NeuWindowLib.dir/depend
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build\CMakeFiles\NeuWindowLib.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuWindowLib.dir\build.make CMakeFiles/NeuWindowLib.dir/build
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+mingw32-make[2]: Nothing to be done for 'CMakeFiles/NeuWindowLib.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+[ 26%] Built target NeuWindowLib
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuImGuiBackendLib.dir\build.make CMakeFiles/NeuImGuiBackendLib.dir/depend
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build\CMakeFiles\NeuImGuiBackendLib.dir\DependInfo.cmake "--color="
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuImGuiBackendLib.dir\build.make CMakeFiles/NeuImGuiBackendLib.dir/build
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+mingw32-make[2]: Nothing to be done for 'CMakeFiles/NeuImGuiBackendLib.dir/build'.
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+[ 46%] Built target NeuImGuiBackendLib
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuGUILib.dir\build.make CMakeFiles/NeuGUILib.dir/depend
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_depends "MinGW Makefiles" D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build D:\CppPrograms\NeuVulkanRender\build\CMakeFiles\NeuGUILib.dir\DependInfo.cmake "--color="
+Dependencies file "CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj.d" is newer than depends file "D:/CppPrograms/NeuVulkanRender/build/CMakeFiles/NeuGUILib.dir/compiler_depend.internal".
+Consolidate compiler generated dependencies of target NeuGUILib
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+C:/msys64/mingw64/bin/mingw32-make.exe  -f CMakeFiles\NeuGUILib.dir\build.make CMakeFiles/NeuGUILib.dir/build
+mingw32-make[2]: Entering directory 'D:/CppPrograms/NeuVulkanRender/build'
+[ 53%] Building CXX object CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj
+C:\msys64\mingw64\bin\g++.exe -DFMT_SHARED -DNEUGUI_STATIC_DEFINE -DNEULOG_STATIC_DEFINE -DNEUWINDOW_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuGUILib.dir/includes_CXX.rsp -g -std=gnu++17 -MD -MT CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj -MF CMakeFiles\NeuGUILib.dir\source\neuGUI.cpp.obj.d -o CMakeFiles\NeuGUILib.dir\source\neuGUI.cpp.obj -c D:\CppPrograms\NeuVulkanRender\source\neuGUI.cpp
+mingw32-make : In file included from D:\Cp
+pPrograms\NeuVulkanRender\source\neuGUI.cp
+p:4:
+所在位置 行:1 字符: 92
++ ... bj -ErrorAction SilentlyContinue; mi
+ngw32-make VERBOSE=1 2>&1 | Out-F ...
++                                       ~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecifie 
+   d: (In file include...e\neuGUI.cpp:4:  
+  :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComma 
+   ndError
+ 
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:122:19: error: variable or f
+ield 'SetDrawlist' declared void
+  122 |    IMGUI_API void SetDrawlist(ImDr
+awList* drawlist = nullptr);
+      |                   ^~~~~~~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:122:31: error: 'ImDrawList' 
+was not declared in this scope
+  122 |    IMGUI_API void SetDrawlist(ImDr
+awList* drawlist = nullptr);
+      |                               ^~~~
+~~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:122:43: error: 'drawlist' wa
+s not declared in this scope
+  122 |    IMGUI_API void SetDrawlist(ImDr
+awList* drawlist = nullptr);
+      |                                   
+        ^~~~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:131:19: error: variable or f
+ield 'SetImGuiContext' declared void
+  131 |    IMGUI_API void SetImGuiContext(
+ImGuiContext* ctx);
+      |                   ^~~~~~~~~~~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:131:35: error: 'ImGuiContext
+' was not declared in this scope
+  131 |    IMGUI_API void SetImGuiContext(
+ImGuiContext* ctx);
+      |                                   
+^~~~~~~~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:131:49: error: 'ctx' was not
+ declared in this scope
+  131 |    IMGUI_API void SetImGuiContext(
+ImGuiContext* ctx);
+      |                                   
+              ^~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:214:61: error: 'ImVec2' has 
+not been declared
+  214 |    IMGUI_API void ViewManipulate(f
+loat* view, float length, ImVec2 position,
+ ImVec2 size, ImU32 backgroundColor);
+      |                                   
+                          ^~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:214:78: error: 'ImVec2' has 
+not been declared
+  214 |    IMGUI_API void ViewManipulate(f
+loat* view, float length, ImVec2 position,
+ ImVec2 size, ImU32 backgroundColor);
+      |                                   
+                                          
+ ^~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:214:91: error: 'ImU32' has n
+ot been declared
+  214 |    IMGUI_API void ViewManipulate(f
+loat* view, float length, ImVec2 position,
+ ImVec2 size, ImU32 backgroundColor);
+      |                                   
+                                          
+              ^~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:217:133: error: 'ImVec2' has
+ not been declared
+  217 |    IMGUI_API void ViewManipulate(f
+loat* view, const float* projection, OPERA
+TION operation, MODE mode, float* matrix, 
+float length, ImVec2 position, ImVec2 size
+, ImU32 backgroundColor);
+      |                                   
+                                          
+                                          
+              ^~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:217:150: error: 'ImVec2' has
+ not been declared
+  217 |    IMGUI_API void ViewManipulate(f
+loat* view, const float* projection, OPERA
+TION operation, MODE mode, float* matrix, 
+float length, ImVec2 position, ImVec2 size
+, ImU32 backgroundColor);
+      |                                   
+                                          
+                                          
+                               ^~~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:217:163: error: 'ImU32' has 
+not been declared
+  217 |    IMGUI_API void ViewManipulate(f
+loat* view, const float* projection, OPERA
+TION operation, MODE mode, float* matrix, 
+float length, ImVec2 position, ImVec2 size
+, ImU32 backgroundColor);
+      |                                   
+                                          
+                                          
+                                          
+  ^~~~~
+D:/vcpkg/installed/x64-mingw-dynamic/inclu
+de/ImGuizmo.h:268:7: error: 'ImVec4' does 
+not name a type
+  268 |       ImVec4 Colors[COLOR::COUNT];
+      |       ^~~~~~
+D:\CppPrograms\NeuVulkanRender\source\neuG
+UI.cpp: In static member function 'static 
+void neurender::neuGUI::Render(const glm::
+mat4&, const glm::mat4&)':
+D:\CppPrograms\NeuVulkanRender\source\neuG
+UI.cpp:82:13: error: 'SetDrawlist' is not 
+a member of 'ImGuizmo'
+   82 |   ImGuizmo::SetDrawlist(ImGui::Get
+ForegroundDrawList());
+      |             ^~~~~~~~~~~
+mingw32-make[2]: *** [CMakeFiles\NeuGUILib
+.dir\build.make:76: CMakeFiles/NeuGUILib.d
+ir/source/neuGUI.cpp.obj] Error 1
+mingw32-make[2]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+mingw32-make[1]: *** [CMakeFiles\Makefile2
+:171: CMakeFiles/NeuGUILib.dir/all] Error 
+2
+mingw32-make[1]: Leaving directory 'D:/CppPrograms/NeuVulkanRender/build'
+mingw32-make: *** [Makefile:90: all] Error
+ 2
