@@ -1,0 +1,64 @@
+; SPIR-V
+; Version: 1.5
+; Generator: NVIDIA Slang Compiler; 0
+; Bound: 31
+; Schema: 0
+               OpCapability Shader
+               OpExtension "SPV_KHR_storage_buffer_storage_class"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %computeMain "main" %result %buffer0 %buffer1 %gl_GlobalInvocationID
+               OpExecutionMode %computeMain LocalSize 1 1 1
+               OpSource Slang 1
+               OpName %index "index"
+               OpName %RWStructuredBuffer "RWStructuredBuffer"
+               OpName %result "result"
+               OpName %StructuredBuffer "StructuredBuffer"
+               OpName %buffer0 "buffer0"
+               OpName %buffer1 "buffer1"
+               OpName %computeMain "computeMain"
+               OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+               OpDecorate %_ptr_StorageBuffer_float ArrayStride 4
+               OpDecorate %_runtimearr_float ArrayStride 4
+               OpDecorate %RWStructuredBuffer Block
+               OpMemberDecorate %RWStructuredBuffer 0 Offset 0
+               OpDecorate %result Binding 2
+               OpDecorate %result DescriptorSet 0
+               OpDecorate %StructuredBuffer Block
+               OpMemberDecorate %StructuredBuffer 0 Offset 0
+               OpDecorate %buffer0 Binding 0
+               OpDecorate %buffer0 DescriptorSet 0
+               OpDecorate %buffer0 NonWritable
+               OpDecorate %buffer1 Binding 1
+               OpDecorate %buffer1 DescriptorSet 0
+               OpDecorate %buffer1 NonWritable
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+      %float = OpTypeFloat 32
+%_ptr_StorageBuffer_float = OpTypePointer StorageBuffer %float
+%_runtimearr_float = OpTypeRuntimeArray %float
+%RWStructuredBuffer = OpTypeStruct %_runtimearr_float
+%_ptr_StorageBuffer_RWStructuredBuffer = OpTypePointer StorageBuffer %RWStructuredBuffer
+%StructuredBuffer = OpTypeStruct %_runtimearr_float
+%_ptr_StorageBuffer_StructuredBuffer = OpTypePointer StorageBuffer %StructuredBuffer
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input
+     %result = OpVariable %_ptr_StorageBuffer_RWStructuredBuffer StorageBuffer
+    %buffer0 = OpVariable %_ptr_StorageBuffer_StructuredBuffer StorageBuffer
+    %buffer1 = OpVariable %_ptr_StorageBuffer_StructuredBuffer StorageBuffer
+%computeMain = OpFunction %void None %3
+          %4 = OpLabel
+          %7 = OpLoad %v3uint %gl_GlobalInvocationID
+      %index = OpCompositeExtract %uint %7 0
+         %15 = OpAccessChain %_ptr_StorageBuffer_float %result %int_0 %index
+         %20 = OpAccessChain %_ptr_StorageBuffer_float %buffer0 %int_0 %index
+         %24 = OpLoad %float %20
+         %25 = OpAccessChain %_ptr_StorageBuffer_float %buffer1 %int_0 %index
+         %27 = OpLoad %float %25
+         %28 = OpFAdd %float %24 %27
+               OpStore %15 %28
+               OpReturn
+               OpFunctionEnd

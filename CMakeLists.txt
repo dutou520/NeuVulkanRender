@@ -67,7 +67,7 @@ target_include_directories(tinyobjloader INTERFACE "${CMAKE_SOURCE_DIR}/ThirPart
 
 
 # 5. NeuRenderCoreLib
-add_library(NeuRenderCoreLib STATIC source/RenderCore.cpp)
+add_library(NeuRenderCoreLib STATIC source/RenderCore.cpp source/GBuffer.cpp)
 generate_export_header(NeuRenderCoreLib EXPORT_MACRO_NAME NEURENDERCORE_API BASE_NAME NeuRenderCore)
 target_compile_definitions(NeuRenderCoreLib PUBLIC NEURENDERCORE_STATIC_DEFINE)
 target_include_directories(NeuRenderCoreLib PUBLIC 
@@ -103,4 +103,10 @@ target_link_libraries(NeuVulkanRenderLib INTERFACE NeuRenderCoreLib)
 add_executable(NeuVulkanRender source/Main.cpp)
 target_link_libraries(NeuVulkanRender PRIVATE NeuRenderCoreLib)
 
-
+# 复制资源文件到构建目录
+add_custom_command(TARGET NeuVulkanRender POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/resource"
+    "$<TARGET_FILE_DIR:NeuVulkanRender>/resource"
+    COMMENT "Copying resource folder to build directory"
+)

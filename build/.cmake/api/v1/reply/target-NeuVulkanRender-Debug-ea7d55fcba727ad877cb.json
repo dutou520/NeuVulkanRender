@@ -148,15 +148,15 @@
 		},
 		{
 			"backtrace" : 3,
+			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
 			"id" : "NeuGUILib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
-			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "NeuVulkanRender::@6890427a1f51a3e7e1df",

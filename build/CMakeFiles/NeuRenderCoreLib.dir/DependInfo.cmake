@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "D:/CppPrograms/NeuVulkanRender/source/GBuffer.cpp" "CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj" "gcc" "CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/RenderCore.cpp" "CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj" "gcc" "CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj.d"
   )
 

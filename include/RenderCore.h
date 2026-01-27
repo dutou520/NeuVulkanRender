@@ -1,6 +1,10 @@
 #pragma once
+#include "GBuffer.h"
+#include "Vertex.h"
 #include "neurendercore_export.h"
+#include <glm/glm.hpp>
 #include <imgui.h>
+#include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
 
@@ -8,13 +12,15 @@ namespace neurender {
 class NEURENDERCORE_API RenderCore {
 public:
   static void Init();
-  static void Shutdown(); // Added Shutdown
-  static void
-  DrawFrame(); // Renamed from Render to DrawFrame to match standard naming
+  static void Shutdown();
+  static void DrawFrame();
 
-  // Getters if needed
+  // Getters for external access
   static VkDevice GetDevice() { return m_Device; }
   static VkInstance GetInstance() { return m_Instance; }
+  static VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
+  static VkCommandPool GetCommandPool() { return m_CommandPool; }
+  static VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
 
 private:
   static void CreateInstance();
@@ -37,6 +43,29 @@ private:
 
   static void RecordCommandBuffer(VkCommandBuffer commandBuffer,
                                   uint32_t imageIndex);
+
+  // ========== 延迟渲染新增方法 ==========
+  static void CreateGBuffer();
+  static void CreateGBufferRenderPass();
+  static void CreateCompositionRenderPass();
+  static void CreateGeometryPipeline();
+  static void CreateCompositionPipeline();
+  static void CreateDescriptorSetLayouts();
+  static void CreateUniformBuffers();
+  static void CreateDescriptorSets();
+  static void CreateTestGeometry();
+  static void UpdateUniformBuffer(uint32_t currentImage);
+
+  // ========== 辅助函数 ==========
+  static VkShaderModule CreateShaderModule(const std::vector<char> &code);
+  static std::vector<char> ReadShaderFile(const std::string &filename);
+  static void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+                           VkMemoryPropertyFlags properties, VkBuffer &buffer,
+                           VkDeviceMemory &bufferMemory);
+  static uint32_t FindMemoryType(uint32_t typeFilter,
+                                 VkMemoryPropertyFlags properties);
+  static void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer,
+                         VkDeviceSize size);
 
   // Vulkan Members
 
@@ -145,5 +174,52 @@ private:
   // 帧缓冲大小是否已调整：标记窗口是否被 resize，触发交换链重建
   // 窗口尺寸变化时，需重新创建交换链、帧缓冲等与尺寸相关的资源，该标志用于触发重建逻辑
   static bool m_FramebufferResized;
+
+  // ============================== 延迟渲染系统 ==============================
+  // GBuffer 系统
+  static GBuffer m_GBuffer;
+
+  // 渲染通道
+  static VkRenderPass m_GBufferRenderPass;
+  static VkRenderPass m_CompositionRenderPass;
+
+  // 图形管线
+  static VkPipeline m_GeometryPipeline;
+  static VkPipelineLayout m_GeometryPipelineLayout;
+  static VkPipeline m_CompositionPipeline;
+  static VkPipelineLayout m_CompositionPipelineLayout;
+
+  // 描述符布局
+  static VkDescriptorSetLayout m_GeometryDescriptorSetLayout;
+  static VkDescriptorSetLayout m_CompositionGBufferDescriptorSetLayout;
+  static VkDescriptorSetLayout m_CompositionLightDescriptorSetLayout;
+
+  // 描述符集
+  static std::vector<VkDescriptorSet> m_GeometryDescriptorSets;
+  static std::vector<VkDescriptorSet> m_CompositionGBufferDescriptorSets;
+  static std::vector<VkDescriptorSet> m_CompositionLightDescriptorSets;
+
+  // Uniform Buffers (MVP矩阵)
+  static std::vector<VkBuffer> m_UniformBuffers;
+  static std::vector<VkDeviceMemory> m_UniformBuffersMemory;
+  static std::vector<void *> m_UniformBuffersMapped;
+
+  // 光照 Uniform Buffers
+  static std::vector<VkBuffer> m_LightUniformBuffers;
+  static std::vector<VkDeviceMemory> m_LightUniformBuffersMemory;
+  static std::vector<void *> m_LightUniformBuffersMapped;
+
+  // 测试几何体 (立方体)
+  static VkBuffer m_VertexBuffer;
+  static VkDeviceMemory m_VertexBufferMemory;
+  static VkBuffer m_IndexBuffer;
+  static VkDeviceMemory m_IndexBufferMemory;
+  static uint32_t m_IndexCount;
+
+  // Composition Framebuffer (用于最终合成)
+  static std::vector<VkFramebuffer> m_CompositionFramebuffers;
+
+  // GBuffer Sampler
+  static VkSampler m_GBufferSampler;
 };
 } // namespace neurender
