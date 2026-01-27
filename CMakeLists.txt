@@ -18,6 +18,7 @@ find_package(SDL3 CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
 # 1. NeuLogLib
 add_library(NeuLogLib STATIC source/neuLog.cpp)
@@ -48,6 +49,23 @@ target_compile_definitions(NeuGUILib PUBLIC NEUGUI_STATIC_DEFINE)
 target_include_directories(NeuGUILib PUBLIC "${CMAKE_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(NeuGUILib PUBLIC imgui::imgui NeuLogLib NeuWindowLib spdlog::spdlog fmt::fmt)
 
+# ThirParty 库配置（在使用前定义）
+# 创建一个接口库来管理第三方头文件库
+add_library(ThirPartyLib INTERFACE)
+target_include_directories(ThirPartyLib INTERFACE 
+    "${CMAKE_SOURCE_DIR}/ThirParty/stb"
+    "${CMAKE_SOURCE_DIR}/ThirParty/tinyobjloader"
+)
+
+# 为 stb_image 创建单独的接口库（header-only）
+add_library(stb_image INTERFACE)
+target_include_directories(stb_image INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/stb")
+
+# 为 tinyobjloader 创建单独的接口库（header-only）
+add_library(tinyobjloader INTERFACE)
+target_include_directories(tinyobjloader INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/tinyobjloader")
+
+
 # 5. NeuRenderCoreLib
 add_library(NeuRenderCoreLib STATIC source/RenderCore.cpp)
 generate_export_header(NeuRenderCoreLib EXPORT_MACRO_NAME NEURENDERCORE_API BASE_NAME NeuRenderCore)
@@ -69,6 +87,8 @@ target_link_libraries(NeuRenderCoreLib PUBLIC
     NeuGUILib
     spdlog::spdlog
     fmt::fmt
+    glm::glm
+    ThirPartyLib
 )
 #定义debug模式
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -82,3 +102,5 @@ target_link_libraries(NeuVulkanRenderLib INTERFACE NeuRenderCoreLib)
 # 7. 创建主程序并链接
 add_executable(NeuVulkanRender source/Main.cpp)
 target_link_libraries(NeuVulkanRender PRIVATE NeuRenderCoreLib)
+
+

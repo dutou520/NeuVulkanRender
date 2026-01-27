@@ -1,0 +1,105 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "NeuVulkanRender",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuGUILib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuGUILib-Debug-523a56e14379b9d265f9.json",
+					"name" : "NeuGUILib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuImGuiBackendLib-Debug-3518cad4b3f013a1227f.json",
+					"name" : "NeuImGuiBackendLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuLogLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuLogLib-Debug-2a44b11b63db7776778e.json",
+					"name" : "NeuLogLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuRenderCoreLib-Debug-171de416ea537bba132f.json",
+					"name" : "NeuRenderCoreLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuVulkanRender::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuVulkanRender-Debug-724dc604732a72796f97.json",
+					"name" : "NeuVulkanRender",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuWindowLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuWindowLib-Debug-910ff37a80df19d9137f.json",
+					"name" : "NeuWindowLib",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/CppPrograms/NeuVulkanRender/build",
+		"source" : "D:/CppPrograms/NeuVulkanRender"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

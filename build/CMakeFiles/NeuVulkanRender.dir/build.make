@@ -102,6 +102,7 @@ NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libSDL3.dll.
 NeuVulkanRender.exe: libNeuLogLib.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libspdlogd.dll.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libfmtd.dll.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libglm.a
 NeuVulkanRender.exe: CMakeFiles/NeuVulkanRender.dir/linkLibs.rsp
 NeuVulkanRender.exe: CMakeFiles/NeuVulkanRender.dir/objects1.rsp
 NeuVulkanRender.exe: CMakeFiles/NeuVulkanRender.dir/link.txt

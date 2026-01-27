@@ -1,1 +1,1 @@
--ID:/CppPrograms/NeuVulkanRender/include -ID:/CppPrograms/NeuVulkanRender/build -isystem "D:/vcpkg/installed/x64-mingw-dynamic/include"
+-ID:/CppPrograms/NeuVulkanRender/include -ID:/CppPrograms/NeuVulkanRender/build -ID:/CppPrograms/NeuVulkanRender/ThirParty/stb -ID:/CppPrograms/NeuVulkanRender/ThirParty/tinyobjloader -isystem "D:/vcpkg/installed/x64-mingw-dynamic/include"

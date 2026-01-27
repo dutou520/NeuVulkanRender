@@ -1,0 +1,2 @@
+C:\msys64\mingw64\bin\ar.exe qc libNeuNodeLib.a CMakeFiles/NeuNodeLib.dir/source/Node.cpp.obj CMakeFiles/NeuNodeLib.dir/source/Geometry.cpp.obj CMakeFiles/NeuNodeLib.dir/source/LightNode.cpp.obj CMakeFiles/NeuNodeLib.dir/source/PointLightNode.cpp.obj CMakeFiles/NeuNodeLib.dir/source/DirectionalLightNode.cpp.obj CMakeFiles/NeuNodeLib.dir/source/CameraNode.cpp.obj
+C:\msys64\mingw64\bin\ranlib.exe libNeuNodeLib.a

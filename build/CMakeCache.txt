@@ -272,7 +272,7 @@ NeuImGuiBackendLib_LIB_DEPENDS:STATIC=general;imgui::imgui;general;SDL3::SDL3;ge
 NeuLogLib_LIB_DEPENDS:STATIC=general;spdlog::spdlog;general;fmt::fmt;
 
 //Dependencies for the target
-NeuRenderCoreLib_LIB_DEPENDS:STATIC=general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;
+NeuRenderCoreLib_LIB_DEPENDS:STATIC=general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;
 
 //Value Computed by CMake
 NeuVulkanRender_BINARY_DIR:STATIC=D:/CppPrograms/NeuVulkanRender/build
@@ -355,6 +355,9 @@ _VCPKG_INSTALLED_DIR:PATH=D:/vcpkg/installed
 
 //The directory containing a CMake configuration file for fmt.
 fmt_DIR:PATH=D:/vcpkg/installed/x64-mingw-dynamic/share/fmt
+
+//The directory containing a CMake configuration file for glm.
+glm_DIR:PATH=D:/vcpkg/installed/x64-mingw-dynamic/share/glm
 
 //The directory containing a CMake configuration file for imgui.
 imgui_DIR:PATH=D:/vcpkg/installed/x64-mingw-dynamic/share/imgui
