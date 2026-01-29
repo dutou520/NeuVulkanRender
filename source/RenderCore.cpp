@@ -88,6 +88,11 @@ float RenderCore::m_LastMouseX = 640.0f;
 float RenderCore::m_LastMouseY = 360.0f;
 bool RenderCore::m_FirstMouse = true;
 
+// ========== 自定义几何体静态成员定义 ==========
+std::vector<Vertex> RenderCore::m_CustomVertices;
+std::vector<uint32_t> RenderCore::m_CustomIndices;
+bool RenderCore::m_UseCustomGeometry = false;
+
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 // Helper function to check validation layer support
@@ -1679,120 +1684,134 @@ void RenderCore::CreateCompositionPipeline() {
 }
 
 void RenderCore::CreateTestGeometry() {
-  // 创建一个简单的立方体用于测试
-  std::vector<Vertex> vertices = {
-      // Front face (Z+)
-      {{-0.5f, -0.5f, 0.5f},
-       {0.0f, 0.0f, 1.0f},
-       {0.0f, 0.0f},
-       {1.0f, 0.0f, 0.0f, 1.0f}},
-      {{0.5f, -0.5f, 0.5f},
-       {0.0f, 0.0f, 1.0f},
-       {1.0f, 0.0f},
-       {0.0f, 1.0f, 0.0f, 1.0f}},
-      {{0.5f, 0.5f, 0.5f},
-       {0.0f, 0.0f, 1.0f},
-       {1.0f, 1.0f},
-       {0.0f, 0.0f, 1.0f, 1.0f}},
-      {{-0.5f, 0.5f, 0.5f},
-       {0.0f, 0.0f, 1.0f},
-       {0.0f, 1.0f},
-       {1.0f, 1.0f, 0.0f, 1.0f}},
-      // Back face (Z-)
-      {{0.5f, -0.5f, -0.5f},
-       {0.0f, 0.0f, -1.0f},
-       {0.0f, 0.0f},
-       {1.0f, 0.0f, 1.0f, 1.0f}},
-      {{-0.5f, -0.5f, -0.5f},
-       {0.0f, 0.0f, -1.0f},
-       {1.0f, 0.0f},
-       {0.0f, 1.0f, 1.0f, 1.0f}},
-      {{-0.5f, 0.5f, -0.5f},
-       {0.0f, 0.0f, -1.0f},
-       {1.0f, 1.0f},
-       {0.5f, 0.5f, 0.5f, 1.0f}},
-      {{0.5f, 0.5f, -0.5f},
-       {0.0f, 0.0f, -1.0f},
-       {0.0f, 1.0f},
-       {1.0f, 0.5f, 0.0f, 1.0f}},
-      // Top face (Y+)
-      {{-0.5f, 0.5f, 0.5f},
-       {0.0f, 1.0f, 0.0f},
-       {0.0f, 0.0f},
-       {0.8f, 0.8f, 0.8f, 1.0f}},
-      {{0.5f, 0.5f, 0.5f},
-       {0.0f, 1.0f, 0.0f},
-       {1.0f, 0.0f},
-       {0.8f, 0.8f, 0.8f, 1.0f}},
-      {{0.5f, 0.5f, -0.5f},
-       {0.0f, 1.0f, 0.0f},
-       {1.0f, 1.0f},
-       {0.8f, 0.8f, 0.8f, 1.0f}},
-      {{-0.5f, 0.5f, -0.5f},
-       {0.0f, 1.0f, 0.0f},
-       {0.0f, 1.0f},
-       {0.8f, 0.8f, 0.8f, 1.0f}},
-      // Bottom face (Y-)
-      {{-0.5f, -0.5f, -0.5f},
-       {0.0f, -1.0f, 0.0f},
-       {0.0f, 0.0f},
-       {0.3f, 0.3f, 0.3f, 1.0f}},
-      {{0.5f, -0.5f, -0.5f},
-       {0.0f, -1.0f, 0.0f},
-       {1.0f, 0.0f},
-       {0.3f, 0.3f, 0.3f, 1.0f}},
-      {{0.5f, -0.5f, 0.5f},
-       {0.0f, -1.0f, 0.0f},
-       {1.0f, 1.0f},
-       {0.3f, 0.3f, 0.3f, 1.0f}},
-      {{-0.5f, -0.5f, 0.5f},
-       {0.0f, -1.0f, 0.0f},
-       {0.0f, 1.0f},
-       {0.3f, 0.3f, 0.3f, 1.0f}},
-      // Right face (X+)
-      {{0.5f, -0.5f, 0.5f},
-       {1.0f, 0.0f, 0.0f},
-       {0.0f, 0.0f},
-       {0.9f, 0.2f, 0.2f, 1.0f}},
-      {{0.5f, -0.5f, -0.5f},
-       {1.0f, 0.0f, 0.0f},
-       {1.0f, 0.0f},
-       {0.9f, 0.2f, 0.2f, 1.0f}},
-      {{0.5f, 0.5f, -0.5f},
-       {1.0f, 0.0f, 0.0f},
-       {1.0f, 1.0f},
-       {0.9f, 0.2f, 0.2f, 1.0f}},
-      {{0.5f, 0.5f, 0.5f},
-       {1.0f, 0.0f, 0.0f},
-       {0.0f, 1.0f},
-       {0.9f, 0.2f, 0.2f, 1.0f}},
-      // Left face (X-)
-      {{-0.5f, -0.5f, -0.5f},
-       {-1.0f, 0.0f, 0.0f},
-       {0.0f, 0.0f},
-       {0.2f, 0.2f, 0.9f, 1.0f}},
-      {{-0.5f, -0.5f, 0.5f},
-       {-1.0f, 0.0f, 0.0f},
-       {1.0f, 0.0f},
-       {0.2f, 0.2f, 0.9f, 1.0f}},
-      {{-0.5f, 0.5f, 0.5f},
-       {-1.0f, 0.0f, 0.0f},
-       {1.0f, 1.0f},
-       {0.2f, 0.2f, 0.9f, 1.0f}},
-      {{-0.5f, 0.5f, -0.5f},
-       {-1.0f, 0.0f, 0.0f},
-       {0.0f, 1.0f},
-       {0.2f, 0.2f, 0.9f, 1.0f}},
-  };
+  std::vector<Vertex> vertices;
+  std::vector<uint32_t> indices;
 
-  std::vector<uint32_t> indices = {
-      0,  1,  2,  2,  3,  0,  // Front
-      4,  5,  6,  6,  7,  4,  // Back
-      8,  9,  10, 10, 11, 8,  // Top
-      12, 13, 14, 14, 15, 12, // Bottom
-      16, 17, 18, 18, 19, 16, // Right
-      20, 21, 22, 22, 23, 20  // Left
-  };
+  // 检查是否使用自定义几何体数据
+  if (m_UseCustomGeometry && !m_CustomVertices.empty() &&
+      !m_CustomIndices.empty()) {
+    vertices = m_CustomVertices;
+    indices = m_CustomIndices;
+    LOG_I("Using custom geometry: {} vertices, {} indices", vertices.size(),
+          indices.size());
+  } else {
+    // 使用默认的立方体几何体
+    vertices = {
+        // Front face (Z+)
+        {{-0.5f, -0.5f, 0.5f},
+         {0.0f, 0.0f, 1.0f},
+         {0.0f, 0.0f},
+         {1.0f, 0.0f, 0.0f, 1.0f}},
+        {{0.5f, -0.5f, 0.5f},
+         {0.0f, 0.0f, 1.0f},
+         {1.0f, 0.0f},
+         {0.0f, 1.0f, 0.0f, 1.0f}},
+        {{0.5f, 0.5f, 0.5f},
+         {0.0f, 0.0f, 1.0f},
+         {1.0f, 1.0f},
+         {0.0f, 0.0f, 1.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.5f},
+         {0.0f, 0.0f, 1.0f},
+         {0.0f, 1.0f},
+         {1.0f, 1.0f, 0.0f, 1.0f}},
+        // Back face (Z-)
+        {{0.5f, -0.5f, -0.5f},
+         {0.0f, 0.0f, -1.0f},
+         {0.0f, 0.0f},
+         {1.0f, 0.0f, 1.0f, 1.0f}},
+        {{-0.5f, -0.5f, -0.5f},
+         {0.0f, 0.0f, -1.0f},
+         {1.0f, 0.0f},
+         {0.0f, 1.0f, 1.0f, 1.0f}},
+        {{-0.5f, 0.5f, -0.5f},
+         {0.0f, 0.0f, -1.0f},
+         {1.0f, 1.0f},
+         {0.5f, 0.5f, 0.5f, 1.0f}},
+        {{0.5f, 0.5f, -0.5f},
+         {0.0f, 0.0f, -1.0f},
+         {0.0f, 1.0f},
+         {1.0f, 0.5f, 0.0f, 1.0f}},
+        // Top face (Y+)
+        {{-0.5f, 0.5f, 0.5f},
+         {0.0f, 1.0f, 0.0f},
+         {0.0f, 0.0f},
+         {0.8f, 0.8f, 0.8f, 1.0f}},
+        {{0.5f, 0.5f, 0.5f},
+         {0.0f, 1.0f, 0.0f},
+         {1.0f, 0.0f},
+         {0.8f, 0.8f, 0.8f, 1.0f}},
+        {{0.5f, 0.5f, -0.5f},
+         {0.0f, 1.0f, 0.0f},
+         {1.0f, 1.0f},
+         {0.8f, 0.8f, 0.8f, 1.0f}},
+        {{-0.5f, 0.5f, -0.5f},
+         {0.0f, 1.0f, 0.0f},
+         {0.0f, 1.0f},
+         {0.8f, 0.8f, 0.8f, 1.0f}},
+        // Bottom face (Y-)
+        {{-0.5f, -0.5f, -0.5f},
+         {0.0f, -1.0f, 0.0f},
+         {0.0f, 0.0f},
+         {0.3f, 0.3f, 0.3f, 1.0f}},
+        {{0.5f, -0.5f, -0.5f},
+         {0.0f, -1.0f, 0.0f},
+         {1.0f, 0.0f},
+         {0.3f, 0.3f, 0.3f, 1.0f}},
+        {{0.5f, -0.5f, 0.5f},
+         {0.0f, -1.0f, 0.0f},
+         {1.0f, 1.0f},
+         {0.3f, 0.3f, 0.3f, 1.0f}},
+        {{-0.5f, -0.5f, 0.5f},
+         {0.0f, -1.0f, 0.0f},
+         {0.0f, 1.0f},
+         {0.3f, 0.3f, 0.3f, 1.0f}},
+        // Right face (X+)
+        {{0.5f, -0.5f, 0.5f},
+         {1.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f},
+         {0.9f, 0.2f, 0.2f, 1.0f}},
+        {{0.5f, -0.5f, -0.5f},
+         {1.0f, 0.0f, 0.0f},
+         {1.0f, 0.0f},
+         {0.9f, 0.2f, 0.2f, 1.0f}},
+        {{0.5f, 0.5f, -0.5f},
+         {1.0f, 0.0f, 0.0f},
+         {1.0f, 1.0f},
+         {0.9f, 0.2f, 0.2f, 1.0f}},
+        {{0.5f, 0.5f, 0.5f},
+         {1.0f, 0.0f, 0.0f},
+         {0.0f, 1.0f},
+         {0.9f, 0.2f, 0.2f, 1.0f}},
+        // Left face (X-)
+        {{-0.5f, -0.5f, -0.5f},
+         {-1.0f, 0.0f, 0.0f},
+         {0.0f, 0.0f},
+         {0.2f, 0.2f, 0.9f, 1.0f}},
+        {{-0.5f, -0.5f, 0.5f},
+         {-1.0f, 0.0f, 0.0f},
+         {1.0f, 0.0f},
+         {0.2f, 0.2f, 0.9f, 1.0f}},
+        {{-0.5f, 0.5f, 0.5f},
+         {-1.0f, 0.0f, 0.0f},
+         {1.0f, 1.0f},
+         {0.2f, 0.2f, 0.9f, 1.0f}},
+        {{-0.5f, 0.5f, -0.5f},
+         {-1.0f, 0.0f, 0.0f},
+         {0.0f, 1.0f},
+         {0.2f, 0.2f, 0.9f, 1.0f}},
+    };
+
+    indices = {
+        0,  1,  2,  2,  3,  0,  // Front
+        4,  5,  6,  6,  7,  4,  // Back
+        8,  9,  10, 10, 11, 8,  // Top
+        12, 13, 14, 14, 15, 12, // Bottom
+        16, 17, 18, 18, 19, 16, // Right
+        20, 21, 22, 22, 23, 20  // Left
+    };
+
+    LOG_I("Using default cube geometry");
+  }
 
   m_IndexCount = static_cast<uint32_t>(indices.size());
 
@@ -1844,8 +1863,8 @@ void RenderCore::CreateTestGeometry() {
   vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
   vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
 
-  LOG_I("Test geometry (cube) created: {} vertices, {} indices",
-        vertices.size(), m_IndexCount);
+  LOG_I("Geometry created: {} vertices, {} indices ({} triangles)",
+        vertices.size(), m_IndexCount, m_IndexCount / 3);
 }
 
 void RenderCore::CreateUniformBuffers() {
@@ -2110,6 +2129,15 @@ void RenderCore::ProcessInput() {
       SDL_SetWindowRelativeMouseMode(Window::GetNativeWindow(), false);
     }
   }
+}
+
+void RenderCore::SetGeometryData(const std::vector<Vertex> &vertices,
+                                 const std::vector<uint32_t> &indices) {
+  m_CustomVertices = vertices;
+  m_CustomIndices = indices;
+  m_UseCustomGeometry = true;
+  LOG_I("Custom geometry data set: {} vertices, {} indices ({} triangles)",
+        vertices.size(), indices.size(), indices.size() / 3);
 }
 
 } // namespace neurender

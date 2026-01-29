@@ -164,6 +164,10 @@
 		},
 		{
 			"backtrace" : 3,
+			"id" : "NeuWindowLib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
 		},
 		{
@@ -172,19 +176,15 @@
 		},
 		{
 			"backtrace" : 3,
+			"id" : "NeuGUILib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "NeuSceneLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
 			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
-			"id" : "NeuGUILib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
-			"id" : "NeuWindowLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
