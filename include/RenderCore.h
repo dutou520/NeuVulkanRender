@@ -70,6 +70,8 @@ private:
   static void CreatePostProcessPipeline();
   static void CreateSSAOResources();
   static void CreateBloomResources();
+  static void CreateBloomRenderPass();
+  static void CreateBloomFramebuffers();
   static void CreateBloomPipelines();
   static void CreatePostProcessDescriptorSets();
 
@@ -273,6 +275,11 @@ private:
   static VkPipeline m_BloomBlurPipeline;
   static VkPipelineLayout m_BloomPipelineLayout;
   static VkRenderPass m_BloomRenderPass;
+
+  static VkDescriptorSetLayout m_SingleTextureDescriptorSetLayout;
+  static std::vector<VkDescriptorSet> m_BloomThresholdDescriptorSets;
+  static std::vector<VkDescriptorSet>
+      m_BloomBlurDescriptorSets; // [0]: Read Bright, [1]: Read Blur
 
   // SSAO资源
   static GBufferAttachment m_SSAONoise;

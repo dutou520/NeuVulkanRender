@@ -122,7 +122,12 @@ VkFramebuffer RenderCore::m_BloomBlurFramebuffer = VK_NULL_HANDLE;
 VkPipeline RenderCore::m_BloomThresholdPipeline = VK_NULL_HANDLE;
 VkPipeline RenderCore::m_BloomBlurPipeline = VK_NULL_HANDLE;
 VkPipelineLayout RenderCore::m_BloomPipelineLayout = VK_NULL_HANDLE;
+
 VkRenderPass RenderCore::m_BloomRenderPass = VK_NULL_HANDLE;
+VkDescriptorSetLayout RenderCore::m_SingleTextureDescriptorSetLayout =
+    VK_NULL_HANDLE;
+std::vector<VkDescriptorSet> RenderCore::m_BloomThresholdDescriptorSets;
+std::vector<VkDescriptorSet> RenderCore::m_BloomBlurDescriptorSets;
 
 // SSAO资源
 GBufferAttachment RenderCore::m_SSAONoise;
@@ -233,8 +238,11 @@ void RenderCore::Init() {
   CreateBloomResources();    // 创建Bloom资源
 
   // ========== 延迟渲染逻辑初始化 ==========
-  CreateGBufferRenderPass();     // 创建 GBuffer 渲染通道
+  CreateGBufferRenderPass(); // 创建 GBuffer 渲染通道
+
   CreateCompositionRenderPass(); // 创建 合成渲染通道
+  CreateBloomRenderPass();       // 创建 Bloom 渲染通道
+  CreateBloomFramebuffers();     // 创建 Bloom 帧缓冲
   CreateDescriptorSetLayouts();  // 创建描述符集布局
   CreateGeometryPipeline();      // 创建几何管线
   CreateCompositionPipeline();   // 创建合成管线
@@ -301,6 +309,10 @@ void RenderCore::Shutdown() {
     vkDestroyDescriptorSetLayout(m_Device, m_GeometryDescriptorSetLayout,
                                  nullptr);
   }
+  if (m_SingleTextureDescriptorSetLayout != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(m_Device, m_SingleTextureDescriptorSetLayout,
+                                 nullptr);
+  }
   if (m_CompositionGBufferDescriptorSetLayout != VK_NULL_HANDLE) {
     vkDestroyDescriptorSetLayout(
         m_Device, m_CompositionGBufferDescriptorSetLayout, nullptr);
@@ -323,6 +335,15 @@ void RenderCore::Shutdown() {
   if (m_CompositionPipelineLayout != VK_NULL_HANDLE) {
     vkDestroyPipelineLayout(m_Device, m_CompositionPipelineLayout, nullptr);
   }
+  if (m_BloomThresholdPipeline != VK_NULL_HANDLE) {
+    vkDestroyPipeline(m_Device, m_BloomThresholdPipeline, nullptr);
+  }
+  if (m_BloomBlurPipeline != VK_NULL_HANDLE) {
+    vkDestroyPipeline(m_Device, m_BloomBlurPipeline, nullptr);
+  }
+  if (m_BloomPipelineLayout != VK_NULL_HANDLE) {
+    vkDestroyPipelineLayout(m_Device, m_BloomPipelineLayout, nullptr);
+  }
 
   // 销毁 Composition Framebuffers
   for (auto framebuffer : m_CompositionFramebuffers) {
@@ -335,6 +356,15 @@ void RenderCore::Shutdown() {
   }
   if (m_CompositionRenderPass != VK_NULL_HANDLE) {
     vkDestroyRenderPass(m_Device, m_CompositionRenderPass, nullptr);
+  }
+  if (m_BloomRenderPass != VK_NULL_HANDLE) {
+    vkDestroyRenderPass(m_Device, m_BloomRenderPass, nullptr);
+  }
+  if (m_BloomBrightFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBrightFramebuffer, nullptr);
+  }
+  if (m_BloomBlurFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBlurFramebuffer, nullptr);
   }
 
   // 销毁 GBuffer
@@ -1157,6 +1187,107 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     vkCmdEndRenderPass(commandBuffer);
   }
 
+  // ========== Pass 3.5: Bloom Pass ==========
+  if (m_PostProcessSettings.enableBloom) {
+    VkRenderPassBeginInfo bloomPassInfo{};
+    bloomPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    bloomPassInfo.renderPass = m_BloomRenderPass;
+    bloomPassInfo.renderArea.offset = {0, 0};
+    bloomPassInfo.renderArea.extent = {m_SwapchainExtent.width / 2,
+                                       m_SwapchainExtent.height / 2};
+    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    bloomPassInfo.clearValueCount = 1;
+    bloomPassInfo.pClearValues = &clearColor;
+
+    // 1. Threshold (Scene -> Bright)
+    bloomPassInfo.framebuffer = m_BloomBrightFramebuffer;
+    vkCmdBeginRenderPass(commandBuffer, &bloomPassInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      m_BloomThresholdPipeline);
+
+    VkViewport viewport{};
+    viewport.width = (float)m_SwapchainExtent.width / 2.0f;
+    viewport.height = (float)m_SwapchainExtent.height / 2.0f;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.extent = {m_SwapchainExtent.width / 2,
+                      m_SwapchainExtent.height / 2};
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    vkCmdBindDescriptorSets(
+        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_BloomPipelineLayout,
+        0, 1, &m_BloomThresholdDescriptorSets[m_CurrentFrame], 0, nullptr);
+
+    struct {
+      float threshold;
+      float softThreshold;
+      glm::vec2 pad;
+    } dbParams;
+    dbParams.threshold = m_PostProcessSettings.bloomThreshold;
+    dbParams.softThreshold = 0.5f;
+    vkCmdPushConstants(commandBuffer, m_BloomPipelineLayout,
+                       VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(dbParams),
+                       &dbParams);
+
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdEndRenderPass(commandBuffer);
+
+    // 2. Blur Horizontal (Bright -> Blur)
+    bloomPassInfo.framebuffer = m_BloomBlurFramebuffer;
+    vkCmdBeginRenderPass(commandBuffer, &bloomPassInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      m_BloomBlurPipeline);
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    vkCmdBindDescriptorSets(
+        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_BloomPipelineLayout,
+        0, 1, &m_BloomBlurDescriptorSets[m_CurrentFrame * 2 + 0], 0, nullptr);
+
+    struct BlurParams {
+      glm::vec2 direction;
+      glm::vec2 texelSize;
+    } blurParams;
+    blurParams.direction = {1.0f, 0.0f};
+    blurParams.texelSize = {1.0f / (m_SwapchainExtent.width / 2.0f),
+                            1.0f / (m_SwapchainExtent.height / 2.0f)};
+    vkCmdPushConstants(commandBuffer, m_BloomPipelineLayout,
+                       VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(blurParams),
+                       &blurParams);
+
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdEndRenderPass(commandBuffer);
+
+    // 3. Blur Vertical (Blur -> Bright)
+    bloomPassInfo.framebuffer = m_BloomBrightFramebuffer;
+    vkCmdBeginRenderPass(commandBuffer, &bloomPassInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      m_BloomBlurPipeline);
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    vkCmdBindDescriptorSets(
+        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_BloomPipelineLayout,
+        0, 1, &m_BloomBlurDescriptorSets[m_CurrentFrame * 2 + 1], 0, nullptr);
+
+    blurParams.direction = {0.0f, 1.0f};
+    vkCmdPushConstants(commandBuffer, m_BloomPipelineLayout,
+                       VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(blurParams),
+                       &blurParams);
+
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdEndRenderPass(commandBuffer);
+  }
+
   // ========== Pass 4: PostProcess Pass (Final Output) ==========
   {
     VkRenderPassBeginInfo ppPassInfo{};
@@ -1658,6 +1789,28 @@ void RenderCore::CreateDescriptorSetLayouts() {
       VK_SUCCESS) {
     throw std::runtime_error(
         "Failed to create composition GBuffer descriptor set layout!");
+  }
+
+  // Single Texture Descriptor Set Layout (For Bloom)
+  VkDescriptorSetLayoutBinding singleTextureBinding{};
+  singleTextureBinding.binding = 0;
+  singleTextureBinding.descriptorType =
+      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  singleTextureBinding.descriptorCount = 1;
+  singleTextureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  singleTextureBinding.pImmutableSamplers = nullptr;
+
+  VkDescriptorSetLayoutCreateInfo singleTextureLayoutInfo{};
+  singleTextureLayoutInfo.sType =
+      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  singleTextureLayoutInfo.bindingCount = 1;
+  singleTextureLayoutInfo.pBindings = &singleTextureBinding;
+
+  if (vkCreateDescriptorSetLayout(m_Device, &singleTextureLayoutInfo, nullptr,
+                                  &m_SingleTextureDescriptorSetLayout) !=
+      VK_SUCCESS) {
+    throw std::runtime_error(
+        "Failed to create single texture descriptor set layout!");
   }
 
   // Post-Process Descriptor Set Layout (Set 0)
@@ -2395,6 +2548,85 @@ void RenderCore::CreateDescriptorSets() {
   }
 
   LOG_I("Descriptor sets created successfully");
+
+  // Allocate Bloom descriptor sets
+  std::vector<VkDescriptorSetLayout> bloomLayouts(
+      MAX_FRAMES_IN_FLIGHT, m_SingleTextureDescriptorSetLayout);
+
+  // Threshold Sets
+  allocInfo.pSetLayouts = bloomLayouts.data();
+  m_BloomThresholdDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  if (vkAllocateDescriptorSets(m_Device, &allocInfo,
+                               m_BloomThresholdDescriptorSets.data()) !=
+      VK_SUCCESS) {
+    throw std::runtime_error(
+        "Failed to allocate bloom threshold descriptor sets!");
+  }
+
+  // Blur Sets (2 sets per frame: one for H, one for V)
+  std::vector<VkDescriptorSetLayout> blurLayouts(
+      MAX_FRAMES_IN_FLIGHT * 2, m_SingleTextureDescriptorSetLayout);
+  allocInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT * 2;
+  allocInfo.pSetLayouts = blurLayouts.data();
+
+  m_BloomBlurDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT * 2);
+  if (vkAllocateDescriptorSets(m_Device, &allocInfo,
+                               m_BloomBlurDescriptorSets.data()) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("Failed to allocate bloom blur descriptor sets!");
+  }
+
+  // Update Bloom sets
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    // Threshold Set: Input SceneColor
+    VkDescriptorImageInfo sceneInfo{};
+    sceneInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    sceneInfo.imageView = m_SceneColor.view;
+    sceneInfo.sampler = m_GBufferSampler;
+
+    VkWriteDescriptorSet sceneWrite{};
+    sceneWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sceneWrite.dstSet = m_BloomThresholdDescriptorSets[i];
+    sceneWrite.dstBinding = 0;
+    sceneWrite.dstArrayElement = 0;
+    sceneWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    sceneWrite.descriptorCount = 1;
+    sceneWrite.pImageInfo = &sceneInfo;
+
+    vkUpdateDescriptorSets(m_Device, 1, &sceneWrite, 0, nullptr);
+
+    // Blur Set 0 (Horizontal): Input Bright
+    VkDescriptorImageInfo brightInfo{};
+    brightInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    brightInfo.imageView = m_BloomBrightTexture.view;
+    brightInfo.sampler = m_GBufferSampler;
+
+    VkWriteDescriptorSet brightWrite{};
+    brightWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    brightWrite.dstSet = m_BloomBlurDescriptorSets[i * 2 + 0];
+    brightWrite.dstBinding = 0;
+    brightWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    brightWrite.descriptorCount = 1;
+    brightWrite.pImageInfo = &brightInfo;
+
+    vkUpdateDescriptorSets(m_Device, 1, &brightWrite, 0, nullptr);
+
+    // Blur Set 1 (Vertical): Input Blur
+    VkDescriptorImageInfo blurInfo{};
+    blurInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    blurInfo.imageView = m_BloomBlurTexture.view;
+    blurInfo.sampler = m_GBufferSampler;
+
+    VkWriteDescriptorSet blurWrite{};
+    blurWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    blurWrite.dstSet = m_BloomBlurDescriptorSets[i * 2 + 1];
+    blurWrite.dstBinding = 0;
+    blurWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    blurWrite.descriptorCount = 1;
+    blurWrite.pImageInfo = &blurInfo;
+
+    vkUpdateDescriptorSets(m_Device, 1, &blurWrite, 0, nullptr);
+  }
 }
 
 void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
@@ -3282,9 +3514,215 @@ void RenderCore::CreateBloomResources() {
   LOG_I("Bloom resources created: {}x{}", bloomWidth, bloomHeight);
 }
 
+void RenderCore::CreateBloomRenderPass() {
+  VkAttachmentDescription colorAttachment{};
+  colorAttachment.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+  colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+  colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+  colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+  colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+  VkAttachmentReference colorAttachmentRef{};
+  colorAttachmentRef.attachment = 0;
+  colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+  VkSubpassDescription subpass{};
+  subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  subpass.colorAttachmentCount = 1;
+  subpass.pColorAttachments = &colorAttachmentRef;
+
+  VkSubpassDependency dependency{};
+  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass = 0;
+  dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.srcAccessMask = 0;
+  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+  VkRenderPassCreateInfo renderPassInfo{};
+  renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+  renderPassInfo.attachmentCount = 1;
+  renderPassInfo.pAttachments = &colorAttachment;
+  renderPassInfo.subpassCount = 1;
+  renderPassInfo.pSubpasses = &subpass;
+  renderPassInfo.dependencyCount = 1;
+  renderPassInfo.pDependencies = &dependency;
+
+  if (vkCreateRenderPass(m_Device, &renderPassInfo, nullptr,
+                         &m_BloomRenderPass) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create Bloom render pass!");
+  }
+}
+
+void RenderCore::CreateBloomFramebuffers() {
+  auto createFramebuffer = [&](GBufferAttachment &attachment,
+                               VkFramebuffer &framebuffer) {
+    VkImageView attachments[] = {attachment.view};
+    VkFramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.renderPass = m_BloomRenderPass;
+    framebufferInfo.attachmentCount = 1;
+    framebufferInfo.pAttachments = attachments;
+    framebufferInfo.width = m_SwapchainExtent.width / 2;
+    framebufferInfo.height = m_SwapchainExtent.height / 2;
+    framebufferInfo.layers = 1;
+
+    if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr,
+                            &framebuffer) != VK_SUCCESS) {
+      throw std::runtime_error("Failed to create bloom framebuffer!");
+    }
+  };
+
+  createFramebuffer(m_BloomBrightTexture, m_BloomBrightFramebuffer);
+  createFramebuffer(m_BloomBlurTexture, m_BloomBlurFramebuffer);
+}
+
 void RenderCore::CreateBloomPipelines() {
-  // 简化实现：Bloom暂时留空，后续可以扩展downsample/upsample pass
-  LOG_I("Bloom pipelines creation - disabled for now");
+  auto vertShaderCode =
+      ReadShaderFile("resource/shaders/compiled/composition.vert.spv");
+  auto thresholdFragCode =
+      ReadShaderFile("resource/shaders/compiled/bloom_threshold.frag.spv");
+  auto blurFragCode =
+      ReadShaderFile("resource/shaders/compiled/bloom_blur.frag.spv");
+
+  VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
+  VkShaderModule thresholdFragModule = CreateShaderModule(thresholdFragCode);
+  VkShaderModule blurFragModule = CreateShaderModule(blurFragCode);
+
+  VkPipelineShaderStageCreateInfo vertStageInfo{};
+  vertStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  vertStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+  vertStageInfo.module = vertShaderModule;
+  vertStageInfo.pName = "main";
+
+  VkPipelineShaderStageCreateInfo thresholdFragStageInfo{};
+  thresholdFragStageInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  thresholdFragStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  thresholdFragStageInfo.module = thresholdFragModule;
+  thresholdFragStageInfo.pName = "main";
+
+  VkPipelineShaderStageCreateInfo blurFragStageInfo{};
+  blurFragStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  blurFragStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  blurFragStageInfo.module = blurFragModule;
+  blurFragStageInfo.pName = "main";
+
+  VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+  vertexInputInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+  inputAssembly.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = (float)m_SwapchainExtent.width / 2.0f;
+  viewport.height = (float)m_SwapchainExtent.height / 2.0f;
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  VkRect2D scissor{};
+  scissor.offset = {0, 0};
+  scissor.extent = {m_SwapchainExtent.width / 2, m_SwapchainExtent.height / 2};
+
+  VkPipelineViewportStateCreateInfo viewportState{};
+  viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewportState.viewportCount = 1;
+  viewportState.pViewports = &viewport;
+  viewportState.scissorCount = 1;
+  viewportState.pScissors = &scissor;
+
+  VkPipelineRasterizationStateCreateInfo rasterizer{};
+  rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+  rasterizer.depthClampEnable = VK_FALSE;
+  rasterizer.rasterizerDiscardEnable = VK_FALSE;
+  rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+  rasterizer.lineWidth = 1.0f;
+  rasterizer.cullMode = VK_CULL_MODE_NONE;
+  rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+  VkPipelineMultisampleStateCreateInfo multisampling{};
+  multisampling.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+  multisampling.sampleShadingEnable = VK_FALSE;
+  multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+  VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+  colorBlendAttachment.colorWriteMask =
+      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  colorBlendAttachment.blendEnable = VK_FALSE;
+
+  VkPipelineColorBlendStateCreateInfo colorBlending{};
+  colorBlending.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+  colorBlending.logicOpEnable = VK_FALSE;
+  colorBlending.attachmentCount = 1;
+  colorBlending.pAttachments = &colorBlendAttachment;
+
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  pushConstantRange.offset = 0;
+  pushConstantRange.size = sizeof(float) * 4;
+
+  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+  pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipelineLayoutInfo.setLayoutCount = 1;
+  pipelineLayoutInfo.pSetLayouts = &m_SingleTextureDescriptorSetLayout;
+  pipelineLayoutInfo.pushConstantRangeCount = 1;
+  pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+  if (vkCreatePipelineLayout(m_Device, &pipelineLayoutInfo, nullptr,
+                             &m_BloomPipelineLayout) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create bloom pipeline layout!");
+  }
+
+  // Create Threshold Pipeline
+  VkPipelineShaderStageCreateInfo thresholdStages[] = {vertStageInfo,
+                                                       thresholdFragStageInfo};
+  VkGraphicsPipelineCreateInfo pipelineInfo{};
+  pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+  pipelineInfo.stageCount = 2;
+  pipelineInfo.pStages = thresholdStages;
+  pipelineInfo.pVertexInputState = &vertexInputInfo;
+  pipelineInfo.pInputAssemblyState = &inputAssembly;
+  pipelineInfo.pViewportState = &viewportState;
+  pipelineInfo.pRasterizationState = &rasterizer;
+  pipelineInfo.pMultisampleState = &multisampling;
+  pipelineInfo.pColorBlendState = &colorBlending;
+  pipelineInfo.layout = m_BloomPipelineLayout;
+  pipelineInfo.renderPass = m_BloomRenderPass;
+  pipelineInfo.subpass = 0;
+
+  if (vkCreateGraphicsPipelines(m_Device, VK_NULL_HANDLE, 1, &pipelineInfo,
+                                nullptr,
+                                &m_BloomThresholdPipeline) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create bloom threshold pipeline!");
+  }
+
+  // Create Blur Pipeline
+  VkPipelineShaderStageCreateInfo blurStages[] = {vertStageInfo,
+                                                  blurFragStageInfo};
+  pipelineInfo.pStages = blurStages;
+
+  if (vkCreateGraphicsPipelines(m_Device, VK_NULL_HANDLE, 1, &pipelineInfo,
+                                nullptr, &m_BloomBlurPipeline) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create bloom blur pipeline!");
+  }
+
+  vkDestroyShaderModule(m_Device, blurFragModule, nullptr);
+  vkDestroyShaderModule(m_Device, thresholdFragModule, nullptr);
+  vkDestroyShaderModule(m_Device, vertShaderModule, nullptr);
+
+  LOG_I("Bloom pipelines created successfully");
 }
 
 void RenderCore::CreatePostProcessDescriptorSets() {
@@ -3340,7 +3778,9 @@ void RenderCore::CreatePostProcessDescriptorSets() {
 
     VkDescriptorImageInfo bloomInfo{};
     bloomInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    bloomInfo.imageView = m_BloomBlurTexture.view;
+    bloomInfo.imageView =
+        m_BloomBrightTexture
+            .view; // Use BrightTexture as it's the output of final V-Blur
     bloomInfo.sampler = m_GBufferSampler;
 
     VkDescriptorImageInfo ssaoNoiseInfo{};
