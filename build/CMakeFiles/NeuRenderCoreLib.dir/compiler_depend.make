@@ -578,6 +578,8 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: D:/CppPrograms/NeuVul
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_funcs.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_types.h \
+  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h \
+  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multiset.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_pair.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
@@ -637,6 +639,7 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: D:/CppPrograms/NeuVul
   C:/msys64/mingw64/include/c++/14.1.0/iosfwd \
   C:/msys64/mingw64/include/c++/14.1.0/istream \
   C:/msys64/mingw64/include/c++/14.1.0/limits \
+  C:/msys64/mingw64/include/c++/14.1.0/map \
   C:/msys64/mingw64/include/c++/14.1.0/memory \
   C:/msys64/mingw64/include/c++/14.1.0/mutex \
   C:/msys64/mingw64/include/c++/14.1.0/new \
@@ -730,12 +733,14 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: D:/CppPrograms/NeuVul
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stddef.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/syslimits.h \
+  D:/CppPrograms/NeuVulkanRender/ThirParty/tinyobjloader/tiny_obj_loader.h \
   neugui_export.h \
   neulog_export.h \
   neurendercore_export.h \
   neuwindow_export.h \
   D:/CppPrograms/NeuVulkanRender/include/Camera.h \
   D:/CppPrograms/NeuVulkanRender/include/GBuffer.h \
+  D:/CppPrograms/NeuVulkanRender/include/Material.h \
   D:/CppPrograms/NeuVulkanRender/include/RenderCore.h \
   D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
   D:/CppPrograms/NeuVulkanRender/include/Window.h \
@@ -1109,6 +1114,8 @@ C:/msys64/mingw64/include/c++/14.1.0/cstdint:
 D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_video.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_guid.h:
+
+C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/compare:
 
@@ -1718,6 +1725,8 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_forced.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_init_exception.h:
 
+C:/msys64/mingw64/include/c++/14.1.0/map:
+
 C:/msys64/mingw64/include/c++/14.1.0/bits/nested_exception.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg.h:
@@ -1870,6 +1879,8 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets.tcc:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/ostream.tcc:
 
+C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_audio.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multiset.h:
@@ -1902,11 +1913,15 @@ C:/msys64/mingw64/include/stdarg.h:
 
 C:/msys64/mingw64/include/wctype.h:
 
+D:/CppPrograms/NeuVulkanRender/ThirParty/tinyobjloader/tiny_obj_loader.h:
+
 neugui_export.h:
 
 D:/CppPrograms/NeuVulkanRender/include/neuGUI.h:
 
 neurendercore_export.h:
+
+D:/CppPrograms/NeuVulkanRender/include/Material.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Vertex.h:
 

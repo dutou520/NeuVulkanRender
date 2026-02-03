@@ -109,6 +109,7 @@ target_link_libraries(NeuAssetLib PUBLIC
     ThirPartyLib
     glm::glm
 )
+# Note: NeuAssetLib and NeuSceneLib have circular dependency due to ModelImporter::ImportToScene
 
 # NeuSceneLib (Scene, Project, Node, MeshNode)
 add_library(NeuSceneLib STATIC 
@@ -157,8 +158,8 @@ target_link_libraries(NeuRenderCoreLib PUBLIC
     NeuImGuiBackendLib 
     NeuGUILib
     NeuCoreLib
-    NeuAssetLib
-    NeuSceneLib
+    # Use linker group to handle circular dependency between NeuAssetLib and NeuSceneLib
+    $<LINK_GROUP:RESCAN,NeuAssetLib,NeuSceneLib>
     spdlog::spdlog
     fmt::fmt
     glm::glm
@@ -176,7 +177,11 @@ target_link_libraries(NeuVulkanRenderLib INTERFACE NeuRenderCoreLib)
 
 # 7. 创建主程序并链接
 add_executable(NeuVulkanRender source/Main.cpp)
-target_link_libraries(NeuVulkanRender PRIVATE NeuRenderCoreLib)
+# Note: explicit link to NeuSceneLib after NeuAssetLib to resolve circular dependency
+target_link_libraries(NeuVulkanRender PRIVATE 
+    NeuRenderCoreLib
+    NeuSceneLib  # Explicit re-link to resolve circular dependency with NeuAssetLib
+)
 
 # 复制资源文件到构建目录
 add_custom_command(TARGET NeuVulkanRender POST_BUILD

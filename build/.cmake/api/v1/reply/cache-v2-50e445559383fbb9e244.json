@@ -1503,7 +1503,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;NeuCoreLib;general;NeuAssetLib;general;NeuSceneLib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;imguizmo::imguizmo;"
+			"value" : "general;Vulkan::Vulkan;general;SDL3::SDL3;general;imgui::imgui;general;NeuLogLib;general;NeuWindowLib;general;NeuImGuiBackendLib;general;NeuGUILib;general;NeuCoreLib;general;spdlog::spdlog;general;fmt::fmt;general;glm::glm;general;imguizmo::imguizmo;"
 		},
 		{
 			"name" : "NeuSceneLib_LIB_DEPENDS",

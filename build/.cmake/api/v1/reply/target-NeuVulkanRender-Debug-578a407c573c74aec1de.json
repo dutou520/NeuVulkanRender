@@ -30,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 178,
+				"line" : 179,
 				"parent" : 0
 			},
 			{
@@ -42,13 +42,13 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 179,
+				"line" : 181,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 151,
+				"line" : 152,
 				"parent" : 0
 			}
 		]
@@ -160,6 +160,14 @@
 	[
 		{
 			"backtrace" : 3,
+			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "NeuGUILib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "NeuLogLib::@6890427a1f51a3e7e1df"
 		},
 		{
@@ -168,15 +176,11 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
 			"id" : "NeuAssetLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuGUILib::@6890427a1f51a3e7e1df"
+			"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
@@ -184,11 +188,7 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
-			"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df"
+			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "NeuVulkanRender::@6890427a1f51a3e7e1df",
@@ -207,6 +207,11 @@
 			{
 				"backtrace" : 3,
 				"fragment" : "libNeuRenderCoreLib.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "libNeuSceneLib.a",
 				"role" : "libraries"
 			},
 			{
@@ -241,7 +246,12 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "libNeuSceneLib.a",
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libimguizmo.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-Wl,--start-group",
 				"role" : "libraries"
 			},
 			{
@@ -250,13 +260,18 @@
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 4,
-				"fragment" : "libNeuLogLib.a",
+				"backtrace" : 3,
+				"fragment" : "libNeuSceneLib.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "libNeuCoreLib.a",
+				"fragment" : "-Wl,--end-group",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "libNeuLogLib.a",
 				"role" : "libraries"
 			},
 			{
@@ -271,12 +286,12 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libglm.a",
+				"fragment" : "libNeuCoreLib.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libimguizmo.a",
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libglm.a",
 				"role" : "libraries"
 			},
 			{

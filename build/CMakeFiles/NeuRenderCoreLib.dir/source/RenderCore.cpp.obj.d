@@ -280,15 +280,7 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_vp9std.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_vp9std_decode.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_vp9std.h \
- D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
- D:/CppPrograms/NeuVulkanRender/build/neurendercore_export.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/imgui.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/imconfig.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
- C:/msys64/mingw64/include/stdarg.h \
- C:/msys64/mingw64/include/_mingw_stdarg.h \
- C:/msys64/mingw64/include/string.h \
- C:/msys64/mingw64/include/sec_api/string_s.h \
+ D:/CppPrograms/NeuVulkanRender/include/Material.h \
  C:/msys64/mingw64/include/c++/14.1.0/string \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stringfwd.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/char_traits.h \
@@ -318,6 +310,15 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/cerrno \
  C:/msys64/mingw64/include/c++/14.1.0/bits/charconv.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.tcc \
+ D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
+ D:/CppPrograms/NeuVulkanRender/build/neurendercore_export.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/imgui.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/imconfig.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
+ C:/msys64/mingw64/include/stdarg.h \
+ C:/msys64/mingw64/include/_mingw_stdarg.h \
+ C:/msys64/mingw64/include/string.h \
+ C:/msys64/mingw64/include/sec_api/string_s.h \
  D:/CppPrograms/NeuVulkanRender/include/Window.h \
  D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \
@@ -452,6 +453,11 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg_buffer.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h \
+ D:/CppPrograms/NeuVulkanRender/ThirParty/tinyobjloader/tiny_obj_loader.h \
+ C:/msys64/mingw64/include/c++/14.1.0/map \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tree.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_vulkan.h \
  C:/msys64/mingw64/include/c++/14.1.0/algorithm \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
@@ -486,7 +492,6 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/imgui_impl_sdl3.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/imgui_impl_vulkan.h \
  C:/msys64/mingw64/include/c++/14.1.0/set \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tree.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_set.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multiset.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/vulkan/vulkan_core.h

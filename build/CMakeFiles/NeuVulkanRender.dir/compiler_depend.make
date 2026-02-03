@@ -229,6 +229,7 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: D:/CppPrograms/NeuVulkanRend
   neuwindow_export.h \
   D:/CppPrograms/NeuVulkanRender/include/Camera.h \
   D:/CppPrograms/NeuVulkanRender/include/GBuffer.h \
+  D:/CppPrograms/NeuVulkanRender/include/Material.h \
   D:/CppPrograms/NeuVulkanRender/include/RenderCore.h \
   D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
   D:/CppPrograms/NeuVulkanRender/include/Window.h \
@@ -1094,6 +1095,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.inl:
 D:/CppPrograms/NeuVulkanRender/include/Camera.h:
 
 D:/CppPrograms/NeuVulkanRender/include/GBuffer.h:
+
+D:/CppPrograms/NeuVulkanRender/include/Material.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/integer.hpp:
 

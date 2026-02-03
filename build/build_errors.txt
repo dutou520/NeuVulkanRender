@@ -1,0 +1,10 @@
+﻿[ 12%] Built target NeuImGuiBackendLib
+[ 20%] Built target NeuLogLib
+[ 28%] Built target NeuWindowLib
+[ 40%] Built target NeuCoreLib
+[ 56%] Built target NeuAssetLib
+[ 64%] Built target NeuGUILib
+[ 84%] Built target NeuSceneLib
+[ 88%] Building CXX object CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj
+[ 92%] Linking CXX static library libNeuRenderCoreLib.a
+[100%] Built target NeuRenderCoreLib

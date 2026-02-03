@@ -1,11 +1,15 @@
 #version 450
 
-// MVP 矩阵 Uniform Buffer
+// MVP 矩阵 Uniform Buffer (View + Proj)
 layout(binding = 0) uniform UniformBufferObject {
-    mat4 model;
     mat4 view;
     mat4 proj;
 } ubo;
+
+// Push Constants for Model Matrix
+layout(push_constant) uniform PushConstants {
+    mat4 model;
+} pc;
 
 // 顶点输入
 layout(location = 0) in vec3 inPosition;
@@ -21,14 +25,14 @@ layout(location = 3) out vec4 fragColor;
 
 void main() {
     // 世界空间位置
-    vec4 worldPos = ubo.model * vec4(inPosition, 1.0);
+    vec4 worldPos = pc.model * vec4(inPosition, 1.0);
     fragPosition = worldPos.xyz;
     
     // 裁剪空间位置
     gl_Position = ubo.proj * ubo.view * worldPos;
     
     // 法线变换到世界空间 (使用法线矩阵的近似)
-    fragNormal = mat3(transpose(inverse(ubo.model))) * inNormal;
+    fragNormal = mat3(transpose(inverse(pc.model))) * inNormal;
     
     // 传递纹理坐标和颜色
     fragTexCoord = inTexCoord;

@@ -1,0 +1,80 @@
+﻿[  7%] Built target NeuLogLib
+[ 14%] Built target NeuWindowLib
+[ 22%] Built target NeuGUILib
+[ 33%] Built target NeuCoreLib
+[ 48%] Built target NeuAssetLib
+[ 59%] Built target NeuImGuiBackendLib
+[ 77%] Built target NeuSceneLib
+[ 92%] Built target NeuRenderCoreLib
+[ 96%] Linking CXX executable NeuVulkanRender.exe
+mingw32-make : C:/msys64/mingw64/bi
+n/../lib/gcc/x86_64-w64-mingw32/14.
+1.0/../../../../x86_64-w64-mingw32/
+bin/ld.exe: libNeuAssetLib.a(ModelI
+mporter.cpp.obj): in function `neur
+ender::ModelImporter::ImportToScene
+(std::__cxx11::basic_string<char, s
+td::char_traits<char>, std::allocat
+or<char> > const&, std::__cxx11::ba
+sic_string<char, std::char_traits<c
+har>, std::allocator<char> > const&
+, neurender::Scene&)':
+所在位置 行:1 字符: 1
++ mingw32-make NeuVulkanRender 2>&1
+ | out-file -encoding utf8 build_re
+s ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotS 
+   pecified: (C:/msys64/mingw...n  
+  der::Scene&)'::String) [], Rem   
+ oteException
+    + FullyQualifiedErrorId : Nati 
+   veCommandError
+ 
+D:/CppPrograms/NeuVulkanRender/sour
+ce/ModelImporter.cpp:66:(.text+0x4e
+687): undefined reference to `neure
+nder::Scene::AddNode(std::unique_pt
+r<neurender::Node, std::default_del
+ete<neurender::Node> >)'
+C:/msys64/mingw64/bin/../lib/gcc/x8
+6_64-w64-mingw32/14.1.0/../../../..
+/x86_64-w64-mingw32/bin/ld.exe: lib
+NeuAssetLib.a(ModelImporter.cpp.obj
+): in function `std::__detail::_Mak
+eUniq<neurender::MeshNode>::__singl
+e_object std::make_unique<neurender
+::MeshNode, std::__cxx11::basic_str
+ing<char, std::char_traits<char>, s
+td::allocator<char> >&>(std::__cxx1
+1::basic_string<char, std::char_tra
+its<char>, std::allocator<char> >&)
+':
+C:/msys64/mingw64/include/c++/14.1.
+0/bits/unique_ptr.h:1076:(.text$_ZS
+t11make_uniqueIN9neurender8MeshNode
+EJRNSt7__cxx1112basic_stringIcSt11c
+har_traitsIcESaIcEEEEENSt8__detail9
+_MakeUniqIT_E15__single_objectEDpOT
+0_[_ZSt11make_uniqueIN9neurender8Me
+shNodeEJRNSt7__cxx1112basic_stringI
+cSt11char_traitsIcESaIcEEEEENSt8__d
+etail9_MakeUniqIT_E15__single_objec
+tEDpOT0_]+0x3a): undefined referenc
+e to `neurender::MeshNode::MeshNode
+(std::__cxx11::basic_string<char, s
+td::char_traits<char>, std::allocat
+or<char> > const&)'
+collect2.exe: error: ld returned 1 
+exit status
+mingw32-make[3]: *** [CMakeFiles\Ne
+uVulkanRender.dir\build.make:114: N
+euVulkanRender.exe] Error 1
+mingw32-make[2]: *** [CMakeFiles\Ma
+kefile2:323: CMakeFiles/NeuVulkanRe
+nder.dir/all] Error 2
+mingw32-make[1]: *** [CMakeFiles\Ma
+kefile2:330: CMakeFiles/NeuVulkanRe
+nder.dir/rule] Error 2
+mingw32-make: *** [Makefile:227: Ne
+uVulkanRender] Error 2

@@ -230,6 +230,7 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj
  D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h
  D:/CppPrograms/NeuVulkanRender/include/Camera.h
  D:/CppPrograms/NeuVulkanRender/include/GBuffer.h
+ D:/CppPrograms/NeuVulkanRender/include/Material.h
  D:/CppPrograms/NeuVulkanRender/include/RenderCore.h
  D:/CppPrograms/NeuVulkanRender/include/Vertex.h
  D:/CppPrograms/NeuVulkanRender/include/Window.h

@@ -1,0 +1,11 @@
+﻿[ 11%] Built target NeuCoreLib
+[ 18%] Built target NeuLogLib
+[ 33%] Built target NeuAssetLib
+[ 51%] Built target NeuSceneLib
+[ 59%] Built target NeuWindowLib
+[ 70%] Built target NeuImGuiBackendLib
+[ 77%] Built target NeuGUILib
+[ 92%] Built target NeuRenderCoreLib
+[ 96%] Linking CXX executable NeuVulkanRender.exe
+Copying resource folder to build directory
+[100%] Built target NeuVulkanRender

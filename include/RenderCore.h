@@ -1,6 +1,7 @@
 #pragma once
 #include "Camera.h"
 #include "GBuffer.h"
+#include "Material.h"
 #include "Vertex.h"
 #include "neurendercore_export.h"
 #include <glm/glm.hpp>
@@ -45,7 +46,7 @@ private:
   static void RecordCommandBuffer(VkCommandBuffer commandBuffer,
                                   uint32_t imageIndex);
 
-  // ========== 延迟渲染新增方法 ==========
+  // ========== 延迟渲染方法 ==========
   static void CreateGBuffer();
   static void CreateGBufferRenderPass();
   static void CreateCompositionRenderPass();
@@ -56,6 +57,25 @@ private:
   static void CreateDescriptorSets();
   static void CreateTestGeometry();
   static void UpdateUniformBuffer(uint32_t currentImage);
+  static void CreateSampler();
+
+  // ========== 前向渲染管线方法 ==========
+  static void CreateForwardRenderPass();
+  static void CreateForwardPipeline();
+  static void SortTransparentObjects();
+
+  // ========== 后处理管线方法 ==========
+  static void CreateSceneRenderTarget();
+  static void CreatePostProcessRenderPass();
+  static void CreatePostProcessPipeline();
+  static void CreateSSAOResources();
+  static void CreateBloomResources();
+  static void CreateBloomPipelines();
+  static void CreatePostProcessDescriptorSets();
+
+  // ========== 场景设置方法 ==========
+  static void SetupBunnyTestScene();
+  static void LoadBunnyModel();
 
   // ========== 辅助函数 ==========
   static VkShaderModule CreateShaderModule(const std::vector<char> &code);
@@ -223,6 +243,80 @@ private:
   // GBuffer Sampler
   static VkSampler m_GBufferSampler;
 
+  // ============================== 前向渲染系统 (半透明物体)
+  // ==============================
+  static VkRenderPass m_ForwardRenderPass;
+  static VkPipeline m_ForwardPipeline;
+  static VkPipelineLayout m_ForwardPipelineLayout;
+  static VkDescriptorSetLayout m_ForwardDescriptorSetLayout;
+  static std::vector<VkDescriptorSet> m_ForwardDescriptorSets;
+
+  // ============================== 后处理系统 ==============================
+  // 场景HDR渲染目标
+  static GBufferAttachment m_SceneColor;
+  static VkFramebuffer m_SceneFramebuffer;
+  static VkRenderPass m_SceneRenderPass;
+
+  // 后处理通道
+  static VkRenderPass m_PostProcessRenderPass;
+  static VkPipeline m_PostProcessPipeline;
+  static VkPipelineLayout m_PostProcessPipelineLayout;
+  static VkDescriptorSetLayout m_PostProcessDescriptorSetLayout;
+  static std::vector<VkDescriptorSet> m_PostProcessDescriptorSets;
+
+  // Bloom资源
+  static GBufferAttachment m_BloomBrightTexture;
+  static GBufferAttachment m_BloomBlurTexture;
+  static VkFramebuffer m_BloomBrightFramebuffer;
+  static VkFramebuffer m_BloomBlurFramebuffer;
+  static VkPipeline m_BloomThresholdPipeline;
+  static VkPipeline m_BloomBlurPipeline;
+  static VkPipelineLayout m_BloomPipelineLayout;
+  static VkRenderPass m_BloomRenderPass;
+
+  // SSAO资源
+  static GBufferAttachment m_SSAONoise;
+  static VkBuffer m_SSAOKernelBuffer;
+  static VkDeviceMemory m_SSAOKernelMemory;
+
+  // 相机Uniform Buffer (用于后处理)
+  static std::vector<VkBuffer> m_CameraUniformBuffers;
+  static std::vector<VkDeviceMemory> m_CameraUniformBuffersMemory;
+  static std::vector<void *> m_CameraUniformBuffersMapped;
+
+  // 后处理设置
+  struct PostProcessSettings {
+    uint32_t enableSSAO = 1;
+    uint32_t enableBloom = 1;
+    uint32_t enableToneMapping = 1;
+    uint32_t enableGamma = 1;
+    float bloomIntensity = 1.0f;
+    float bloomThreshold = 0.8f;
+    float ssaoRadius = 0.5f;
+    float ssaoStrength = 1.5f;
+  };
+  static PostProcessSettings m_PostProcessSettings;
+
+  // ============================== 场景对象管理 ==============================
+  // 渲染对象
+  struct RenderObject {
+    glm::mat4 modelMatrix;
+    Material material;
+    VkBuffer vertexBuffer;
+    VkBuffer indexBuffer;
+    uint32_t indexCount;
+    float distanceToCamera; // 用于透明物体排序
+  };
+
+  static std::vector<RenderObject> m_RenderObjects;
+
+  // 斯坦福兔子资源
+  static VkBuffer m_BunnyVertexBuffer;
+  static VkDeviceMemory m_BunnyVertexBufferMemory;
+  static VkBuffer m_BunnyIndexBuffer;
+  static VkDeviceMemory m_BunnyIndexBufferMemory;
+  static uint32_t m_BunnyIndexCount;
+
   // ============================== 相机系统 ==============================
   static Camera m_Camera;
   static float m_DeltaTime;
@@ -240,5 +334,31 @@ public:
     m_CameraControlEnabled = enabled;
   }
   static bool IsCameraControlEnabled() { return m_CameraControlEnabled; }
+
+  // ========== 后处理设置接口 ==========
+  static PostProcessSettings &GetPostProcessSettings() {
+    return m_PostProcessSettings;
+  }
+
+  // ========== 自定义几何体接口 ==========
+  /**
+   * @brief 设置自定义几何体数据
+   * @param vertices 顶点数据
+   * @param indices 索引数据
+   * @note 必须在 RenderCore::Init() 之前调用
+   */
+  static void SetGeometryData(const std::vector<Vertex> &vertices,
+                              const std::vector<uint32_t> &indices);
+
+  /**
+   * @brief 检查是否已设置自定义几何体
+   */
+  static bool HasCustomGeometry() { return m_UseCustomGeometry; }
+
+private:
+  // 自定义几何体数据
+  static std::vector<Vertex> m_CustomVertices;
+  static std::vector<uint32_t> m_CustomIndices;
+  static bool m_UseCustomGeometry;
 };
 } // namespace neurender

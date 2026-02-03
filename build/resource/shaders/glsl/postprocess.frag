@@ -1,0 +1,147 @@
+#version 450
+
+// 输入纹理
+layout(set = 0, binding = 0) uniform sampler2D sceneColor;      // HDR场景颜色
+layout(set = 0, binding = 1) uniform sampler2D depthBuffer;     // 深度缓冲
+layout(set = 0, binding = 2) uniform sampler2D normalBuffer;    // 法线缓冲 (GBuffer3)
+layout(set = 0, binding = 3) uniform sampler2D bloomTexture;    // Bloom模糊结果
+layout(set = 0, binding = 4) uniform sampler2D ssaoNoise;       // SSAO噪声纹理
+
+// SSAO采样核
+layout(set = 0, binding = 5) uniform SSAOKernel {
+    vec4 samples[64];
+} ssaoKernel;
+
+// 视图矩阵用于SSAO
+layout(set = 1, binding = 0) uniform CameraData {
+    mat4 view;
+    mat4 projection;
+    mat4 invView;
+    mat4 invProjection;
+    vec2 viewportSize;
+    float nearPlane;
+    float farPlane;
+} camera;
+
+// 后处理设置 Push Constants
+layout(push_constant) uniform PostProcessSettings {
+    uint enableSSAO;
+    uint enableBloom;
+    uint enableToneMapping;
+    uint enableGamma;
+    float bloomIntensity;
+    float ssaoRadius;
+    float ssaoStrength;
+    float _pad;
+} settings;
+
+layout(location = 0) in vec2 fragTexCoord;
+layout(location = 0) out vec4 outColor;
+
+// ===================== SSAO =====================
+
+// 从深度重建视图空间位置
+vec3 reconstructViewPosition(vec2 uv, float depth) {
+    vec4 clipPos = vec4(uv * 2.0 - 1.0, depth, 1.0);
+    vec4 viewPos = camera.invProjection * clipPos;
+    return viewPos.xyz / viewPos.w;
+}
+
+float calculateSSAO(vec2 uv) {
+    float depth = texture(depthBuffer, uv).r;
+    if (depth >= 0.9999) return 1.0; // 天空区域
+    
+    vec3 fragPos = reconstructViewPosition(uv, depth);
+    
+    // 获取法线 (从GBuffer解码)
+    vec3 normal = texture(normalBuffer, uv).rgb * 2.0 - 1.0;
+    normal = mat3(camera.view) * normal; // 转换到视图空间
+    normal = normalize(normal);
+    
+    // 获取随机向量用于旋转采样核
+    vec2 noiseScale = camera.viewportSize / 4.0;
+    vec3 randomVec = texture(ssaoNoise, uv * noiseScale).xyz * 2.0 - 1.0;
+    
+    // 创建TBN矩阵
+    vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
+    vec3 bitangent = cross(normal, tangent);
+    mat3 TBN = mat3(tangent, bitangent, normal);
+    
+    // 采样核遍历
+    float occlusion = 0.0;
+    int sampleCount = 32; // 使用32个采样点
+    
+    for (int i = 0; i < sampleCount; ++i) {
+        // 获取采样点位置
+        vec3 samplePos = TBN * ssaoKernel.samples[i].xyz;
+        samplePos = fragPos + samplePos * settings.ssaoRadius;
+        
+        // 投影采样点到屏幕空间
+        vec4 offset = camera.projection * vec4(samplePos, 1.0);
+        offset.xy /= offset.w;
+        offset.xy = offset.xy * 0.5 + 0.5;
+        
+        // 获取采样点深度
+        float sampleDepth = texture(depthBuffer, offset.xy).r;
+        vec3 sampleViewPos = reconstructViewPosition(offset.xy, sampleDepth);
+        
+        // 范围检查和遮蔽计算
+        float rangeCheck = smoothstep(0.0, 1.0, settings.ssaoRadius / abs(fragPos.z - sampleViewPos.z));
+        occlusion += (sampleViewPos.z >= samplePos.z + 0.025 ? 1.0 : 0.0) * rangeCheck;
+    }
+    
+    occlusion = 1.0 - (occlusion / float(sampleCount));
+    return pow(occlusion, settings.ssaoStrength);
+}
+
+// ===================== 色调映射 =====================
+
+// ACES Filmic Tone Mapping
+vec3 ACESFilm(vec3 x) {
+    float a = 2.51;
+    float b = 0.03;
+    float c = 2.43;
+    float d = 0.59;
+    float e = 0.14;
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+// ===================== Gamma 校正 =====================
+
+vec3 gammaCorrect(vec3 color) {
+    return pow(color, vec3(1.0 / 2.2));
+}
+
+// ===================== 主函数 =====================
+
+void main() {
+    // 采样场景颜色 (HDR)
+    vec3 hdrColor = texture(sceneColor, fragTexCoord).rgb;
+    
+    // SSAO
+    float ao = 1.0;
+    if (settings.enableSSAO != 0) {
+        ao = calculateSSAO(fragTexCoord);
+        hdrColor *= ao;
+    }
+    
+    // Bloom
+    if (settings.enableBloom != 0) {
+        vec3 bloomColor = texture(bloomTexture, fragTexCoord).rgb;
+        hdrColor += bloomColor * settings.bloomIntensity;
+    }
+    
+    // 色调映射
+    vec3 mapped = hdrColor;
+    if (settings.enableToneMapping != 0) {
+        mapped = ACESFilm(hdrColor);
+    }
+    
+    // Gamma 校正
+    vec3 finalColor = mapped;
+    if (settings.enableGamma != 0) {
+        finalColor = gammaCorrect(mapped);
+    }
+    
+    outColor = vec4(finalColor, 1.0);
+}

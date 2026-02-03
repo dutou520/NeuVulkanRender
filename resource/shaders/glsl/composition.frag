@@ -175,9 +175,8 @@ void main() {
     float smoothness = g3.a;
     
     uint shadingId = uint(g4.r * 255.0);
-    float emissiveBrightness = g4.g;
-    float emissiveHue = g4.a;
-    vec3 emissive = getEmissiveColor(emissiveHue, emissiveBrightness);
+    // 直接读取自发光颜色 (GBA通道存储RGB)
+    vec3 emissive = vec3(g4.g, g4.b, g4.a);
     
     // 重建世界位置 (简化版, 实际应使用深度)
     // TODO: 从深度重建世界位置
