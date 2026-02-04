@@ -297,7 +297,7 @@ private:
     uint32_t enableBloom = 1;
     uint32_t enableToneMapping = 1;
     uint32_t enableGamma = 1;
-    float bloomIntensity = 1.0f;
+    float bloomIntensity = 0.5f;
     float bloomThreshold = 0.8f;
     float ssaoRadius = 0.5f;
     float ssaoStrength = 1.5f;
