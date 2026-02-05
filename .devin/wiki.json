@@ -1,0 +1,137 @@
+{
+  "repo_notes": [
+    {
+      "content": "应当使用简体中文作为书写的语言。写的应当容易被Vulkan的新手读懂。"
+    }
+  ],
+  "pages": [
+    {
+      "title": "NeuVulkanRender Overview",
+      "purpose": "High-level introduction to the NeuVulkanRender project, explaining its purpose as a Vulkan-based rendering engine and providing an architectural overview of its third-party dependencies (GLM for mathematics, spdlog for logging)",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Third-Party Dependencies",
+      "purpose": "Overview of the third-party libraries integrated into NeuVulkanRender, explaining why GLM and spdlog were chosen and how they complement the rendering engine's needs",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GLM (OpenGL Mathematics)",
+      "purpose": "Introduction to the GLM library, its role as the mathematical foundation for graphics operations, and overview of its modular architecture including core types, extensions, and SIMD optimizations",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Architecture and Configuration",
+      "purpose": "Detailed explanation of GLM's configuration system, including platform detection, compiler feature detection, SIMD architecture detection (SSE2/AVX/NEON), and the conditional compilation system that adapts GLM to different environments",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Core Type System",
+      "purpose": "Comprehensive documentation of GLM's fundamental types (vectors, matrices, quaternions), their template structure, memory layout (column-major for matrices), and the compositional design where matrices are built from vectors",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Type Precision and Sizing",
+      "purpose": "Documentation of GLM's precision qualifier system (highp, mediump, lowp) for GLSL compatibility and the explicit bit-width sizing system (i8vec, u32mat, etc.) for memory control and cross-platform consistency",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Common Mathematical Functions",
+      "purpose": "Documentation of GLM's common mathematical functions (min, max, abs, mix, clamp, etc.), their SIMD-optimized implementations, and the dispatch system that automatically selects optimized code paths based on vector types and available instruction sets",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Transformations and Projections",
+      "purpose": "Documentation of matrix transformation operations (translate, rotate, scale), view matrices (lookAt), projection matrices (ortho, perspective, frustum), Euler angle conversions (24 conventions), and quaternion-based rotations",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GLM Extensions System",
+      "purpose": "Explanation of GLM's three-tier extension system: GTC (stable core extensions), GTX (experimental extensions with the richest feature set), and EXT (standard stable extensions), including their stability contracts and when to use each",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "spdlog (Logging Framework)",
+      "purpose": "Introduction to spdlog as a fast, header-only C++ logging library, explaining its role in NeuVulkanRender for initialization logging, error reporting, performance metrics, and debugging with backtrace capabilities",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Architecture and Design",
+      "purpose": "Detailed explanation of spdlog's architecture including the Registry singleton pattern, logger lifecycle management, the factory pattern for logger creation, thread safety strategies (multi-threaded vs single-threaded sinks), and the distinction between synchronous and asynchronous logging",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Core Logging System",
+      "purpose": "Documentation of the core logger class, the log message flow from user code through formatters to sinks, logging levels and filtering, the backtrace system for debugging (circular buffer of recent messages), error handling and fault tolerance, and the global vs per-logger configuration system",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Sinks and Output Destinations",
+      "purpose": "Comprehensive documentation of the sink system including the base_sink template for thread safety, concrete sink implementations (stdout, stderr, file, colored console), the formatter system for message patterns, and how to create custom sinks for specialized output destinations",
+      "parent": "Third-Party Dependencies",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
