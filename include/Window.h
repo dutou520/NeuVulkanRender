@@ -21,6 +21,7 @@ public:
   static SDL_Window *GetNativeWindow() { return m_Window; }
   static int GetWidth() { return m_Width; }
   static int GetHeight() { return m_Height; }
+  static void Close() { m_ShouldClose = true; }
 
 private:
   static SDL_Window *m_Window;

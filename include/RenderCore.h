@@ -255,9 +255,7 @@ private:
 
   // ============================== 后处理系统 ==============================
   // 场景HDR渲染目标
-  static GBufferAttachment m_SceneColor;
-  static VkFramebuffer m_SceneFramebuffer;
-  static VkRenderPass m_SceneRenderPass;
+  static std::vector<GBufferAttachment> m_SceneColor;
 
   // 后处理通道
   static VkRenderPass m_PostProcessRenderPass;

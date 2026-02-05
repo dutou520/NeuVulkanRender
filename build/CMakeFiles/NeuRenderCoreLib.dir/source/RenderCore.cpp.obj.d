@@ -384,31 +384,72 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_version.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_oldnames.h \
  D:/CppPrograms/NeuVulkanRender/include/neuGUI.h \
- D:/CppPrograms/NeuVulkanRender/build/neugui_export.h \
- D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
- D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/common.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/null_mutex.h \
- C:/msys64/mingw64/include/c++/14.1.0/atomic \
- C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
- C:/msys64/mingw64/include/c++/14.1.0/utility \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/tweakme.h \
- C:/msys64/mingw64/include/c++/14.1.0/chrono \
- C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
- C:/msys64/mingw64/include/c++/14.1.0/ratio \
- C:/msys64/mingw64/include/c++/14.1.0/ctime \
+ D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
+ C:/msys64/mingw64/include/c++/14.1.0/iomanip \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/ios_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/atomicity.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr-default.h \
+ C:/msys64/mingw64/include/pthread.h C:/msys64/mingw64/include/signal.h \
+ C:/msys64/mingw64/include/pthread_signal.h \
  C:/msys64/mingw64/include/time.h C:/msys64/mingw64/include/sys/timeb.h \
  C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
  C:/msys64/mingw64/include/_timeval.h \
  C:/msys64/mingw64/include/pthread_time.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h \
+ C:/msys64/mingw64/include/pthread_compat.h \
+ C:/msys64/mingw64/include/pthread_unistd.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/atomic_word.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/system_error \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/error_constants.h \
+ C:/msys64/mingw64/include/c++/14.1.0/stdexcept \
  C:/msys64/mingw64/include/c++/14.1.0/exception \
  C:/msys64/mingw64/include/c++/14.1.0/bits/exception_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_init_exception.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/nested_exception.h \
+ C:/msys64/mingw64/include/c++/14.1.0/locale \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets.h \
+ C:/msys64/mingw64/include/c++/14.1.0/cwctype \
+ C:/msys64/mingw64/include/wctype.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/ctype_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/streambuf \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/streambuf.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/streambuf_iterator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/ctype_inline.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets_nonio.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ctime \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/time_members.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/messages_members.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/codecvt.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets_nonio.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_conv.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/quoted_string.h \
+ C:/msys64/mingw64/include/c++/14.1.0/sstream \
+ C:/msys64/mingw64/include/c++/14.1.0/istream \
+ C:/msys64/mingw64/include/c++/14.1.0/ios \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/basic_ios.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/basic_ios.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/ostream \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/ostream.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/istream.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/sstream.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/random \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/random.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/uniform_int_dist.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/opt_random.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/pmmintrin.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/emmintrin.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xmmintrin.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mmintrin.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mwaitintrin.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/random.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/numeric \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_numeric.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
+ D:/CppPrograms/NeuVulkanRender/build/neugui_export.h \
  C:/msys64/mingw64/include/c++/14.1.0/memory \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tempbuf.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
@@ -417,26 +458,29 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/allocated_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/atomicity.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr-default.h \
- C:/msys64/mingw64/include/pthread.h C:/msys64/mingw64/include/signal.h \
- C:/msys64/mingw64/include/pthread_signal.h \
- C:/msys64/mingw64/include/pthread_compat.h \
- C:/msys64/mingw64/include/pthread_unistd.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/atomic_word.h \
  C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_atomic.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
  C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
- C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
+ D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
+ D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/common.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/null_mutex.h \
+ C:/msys64/mingw64/include/c++/14.1.0/atomic \
+ C:/msys64/mingw64/include/c++/14.1.0/utility \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/tweakme.h \
+ C:/msys64/mingw64/include/c++/14.1.0/chrono \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ratio \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/fmt/fmt.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/format.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/base.h \
  C:/msys64/mingw64/include/c++/14.1.0/cstring \
- C:/msys64/mingw64/include/c++/14.1.0/stdexcept \
- C:/msys64/mingw64/include/c++/14.1.0/system_error \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/error_constants.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/registry.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/periodic_worker.h \
  C:/msys64/mingw64/include/c++/14.1.0/condition_variable \
@@ -463,29 +507,8 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_heap.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/uniform_int_dist.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_algorithm_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/fstream \
- C:/msys64/mingw64/include/c++/14.1.0/istream \
- C:/msys64/mingw64/include/c++/14.1.0/ios \
- C:/msys64/mingw64/include/c++/14.1.0/bits/ios_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/streambuf \
- C:/msys64/mingw64/include/c++/14.1.0/bits/streambuf.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/bits/basic_ios.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets.h \
- C:/msys64/mingw64/include/c++/14.1.0/cwctype \
- C:/msys64/mingw64/include/wctype.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/ctype_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/streambuf_iterator.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/ctype_inline.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/bits/basic_ios.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/ostream \
- C:/msys64/mingw64/include/c++/14.1.0/bits/ostream.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/bits/istream.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/bits/codecvt.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc \

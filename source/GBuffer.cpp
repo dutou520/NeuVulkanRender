@@ -5,47 +5,60 @@
 namespace neurender {
 
 void GBuffer::Create(VkDevice device, VkPhysicalDevice physicalDevice,
-                     uint32_t width, uint32_t height) {
+                     uint32_t width, uint32_t height, int framesInFlight) {
   m_Width = width;
   m_Height = height;
+  m_FramesInFlight = framesInFlight;
 
-  // GBuffer1: Albedo + MaterialFlags (sRGB)
-  CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_SRGB,
-                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                       VK_IMAGE_USAGE_SAMPLED_BIT,
-                   VK_IMAGE_ASPECT_COLOR_BIT, m_AlbedoMaterialFlags);
-  CreateSampler(device, m_AlbedoMaterialFlags);
+  // Resize vectors to hold resources for each frame
+  m_AlbedoMaterialFlags.resize(framesInFlight);
+  m_SpecularOcclusion.resize(framesInFlight);
+  m_NormalSmoothness.resize(framesInFlight);
+  m_ShadingIdEmissive.resize(framesInFlight);
+  m_Depth.resize(framesInFlight);
 
-  // GBuffer2: Specular + Occlusion (UNORM)
-  CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
-                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                       VK_IMAGE_USAGE_SAMPLED_BIT,
-                   VK_IMAGE_ASPECT_COLOR_BIT, m_SpecularOcclusion);
-  CreateSampler(device, m_SpecularOcclusion);
+  // Resize Framebuffers vector
+  m_Framebuffers.resize(framesInFlight);
 
-  // GBuffer3: Normal + Smoothness (UNORM)
-  CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
-                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                       VK_IMAGE_USAGE_SAMPLED_BIT,
-                   VK_IMAGE_ASPECT_COLOR_BIT, m_NormalSmoothness);
-  CreateSampler(device, m_NormalSmoothness);
+  for (int i = 0; i < framesInFlight; i++) {
+    // GBuffer1: Albedo + MaterialFlags (sRGB)
+    CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_SRGB,
+                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                         VK_IMAGE_USAGE_SAMPLED_BIT,
+                     VK_IMAGE_ASPECT_COLOR_BIT, m_AlbedoMaterialFlags[i]);
+    CreateSampler(device, m_AlbedoMaterialFlags[i]);
 
-  // GBuffer4: ShadingID + Emissive (UNORM)
-  CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
-                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                       VK_IMAGE_USAGE_SAMPLED_BIT,
-                   VK_IMAGE_ASPECT_COLOR_BIT, m_ShadingIdEmissive);
-  CreateSampler(device, m_ShadingIdEmissive);
+    // GBuffer2: Specular + Occlusion (UNORM)
+    CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
+                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                         VK_IMAGE_USAGE_SAMPLED_BIT,
+                     VK_IMAGE_ASPECT_COLOR_BIT, m_SpecularOcclusion[i]);
+    CreateSampler(device, m_SpecularOcclusion[i]);
 
-  // Depth: D32_SFLOAT
-  CreateAttachment(device, physicalDevice, VK_FORMAT_D32_SFLOAT,
-                   VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
-                       VK_IMAGE_USAGE_SAMPLED_BIT,
-                   VK_IMAGE_ASPECT_DEPTH_BIT, m_Depth);
-  CreateSampler(device, m_Depth);
+    // GBuffer3: Normal + Smoothness (UNORM)
+    CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
+                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                         VK_IMAGE_USAGE_SAMPLED_BIT,
+                     VK_IMAGE_ASPECT_COLOR_BIT, m_NormalSmoothness[i]);
+    CreateSampler(device, m_NormalSmoothness[i]);
+
+    // GBuffer4: ShadingID + Emissive (UNORM)
+    CreateAttachment(device, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
+                     VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                         VK_IMAGE_USAGE_SAMPLED_BIT,
+                     VK_IMAGE_ASPECT_COLOR_BIT, m_ShadingIdEmissive[i]);
+    CreateSampler(device, m_ShadingIdEmissive[i]);
+
+    // Depth: D32_SFLOAT
+    CreateAttachment(device, physicalDevice, VK_FORMAT_D32_SFLOAT,
+                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
+                         VK_IMAGE_USAGE_SAMPLED_BIT,
+                     VK_IMAGE_ASPECT_DEPTH_BIT, m_Depth[i]);
+    CreateSampler(device, m_Depth[i]);
+  }
 
   m_IsValid = true;
-  LOG_I("GBuffer created: {}x{}", width, height);
+  LOG_I("GBuffer created: {}x{} with {} frames", width, height, framesInFlight);
 }
 
 void GBuffer::Destroy(VkDevice device) {
@@ -71,16 +84,26 @@ void GBuffer::Destroy(VkDevice device) {
     }
   };
 
-  destroyAttachment(m_AlbedoMaterialFlags);
-  destroyAttachment(m_SpecularOcclusion);
-  destroyAttachment(m_NormalSmoothness);
-  destroyAttachment(m_ShadingIdEmissive);
-  destroyAttachment(m_Depth);
+  for (int i = 0; i < m_FramesInFlight; i++) {
+    destroyAttachment(m_AlbedoMaterialFlags[i]);
+    destroyAttachment(m_SpecularOcclusion[i]);
+    destroyAttachment(m_NormalSmoothness[i]);
+    destroyAttachment(m_ShadingIdEmissive[i]);
+    destroyAttachment(m_Depth[i]);
 
-  if (framebuffer != VK_NULL_HANDLE) {
-    vkDestroyFramebuffer(device, framebuffer, nullptr);
-    framebuffer = VK_NULL_HANDLE;
+    if (m_Framebuffers[i] != VK_NULL_HANDLE) {
+      vkDestroyFramebuffer(device, m_Framebuffers[i], nullptr);
+      m_Framebuffers[i] = VK_NULL_HANDLE;
+    }
   }
+
+  // Clear vectors
+  m_AlbedoMaterialFlags.clear();
+  m_SpecularOcclusion.clear();
+  m_NormalSmoothness.clear();
+  m_ShadingIdEmissive.clear();
+  m_Depth.clear();
+  m_Framebuffers.clear();
 
   if (renderPass != VK_NULL_HANDLE) {
     vkDestroyRenderPass(device, renderPass, nullptr);
@@ -91,9 +114,12 @@ void GBuffer::Destroy(VkDevice device) {
   LOG_I("GBuffer destroyed");
 }
 
-std::vector<VkImageView> GBuffer::GetColorAttachmentViews() const {
-  return {m_AlbedoMaterialFlags.view, m_SpecularOcclusion.view,
-          m_NormalSmoothness.view, m_ShadingIdEmissive.view};
+std::vector<VkImageView>
+GBuffer::GetColorAttachmentViews(int frameIndex) const {
+  return {m_AlbedoMaterialFlags[frameIndex].view,
+          m_SpecularOcclusion[frameIndex].view,
+          m_NormalSmoothness[frameIndex].view,
+          m_ShadingIdEmissive[frameIndex].view};
 }
 
 void GBuffer::CreateAttachment(VkDevice device, VkPhysicalDevice physicalDevice,

@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
   neurender::NeuLog::Init();
   LOG_I("Starting NeuVulkanRender...");
 
-  neurender::Window::Init(1280, 720, "NeuVulkanRender Engine");
+  neurender::Window::Init(1920, 1080, "NeuVulkanRender Engine");
 
   try {
     neurender::RenderCore::Init();

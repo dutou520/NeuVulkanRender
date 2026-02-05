@@ -190,7 +190,7 @@ CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_numeric.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
- D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/algorithm \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h \
@@ -226,6 +226,9 @@ CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/utility \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/abi_macros.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/forward_list \
  C:/msys64/mingw64/include/c++/14.1.0/bits/forward_list.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/forward_list.tcc \
@@ -243,12 +246,29 @@ CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/gslice_array.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/mask_array.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/indirect_array.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_scope.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/detected.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/version \
  C:/msys64/mingw64/include/c++/14.1.0/cassert \
  C:/msys64/mingw64/include/assert.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/cpp_future.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/type_traits.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iterator_traits.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/begin.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/end.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/cstring \
  C:/msys64/mingw64/include/string.h \
  C:/msys64/mingw64/include/sec_api/string_s.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/filesystem \
  C:/msys64/mingw64/include/c++/14.1.0/bits/fs_fwd.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
@@ -259,9 +279,35 @@ CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/fs_dir.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/fs_ops.h \
  C:/msys64/mingw64/include/c++/14.1.0/optional \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/byte_container_with_subtype.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/is_sax.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/parser.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/internal_iterator.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/primitive_iterator.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_custom_base_class.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_pointer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_ref.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/serializer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_chars.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/any \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
+ D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp \
  D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
  D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \

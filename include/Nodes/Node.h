@@ -1,12 +1,11 @@
 #pragma once
 #include "Core/Object.h"
-#include <functional>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <json.hpp>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <vector>
 
 namespace neurender {

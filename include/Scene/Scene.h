@@ -1,10 +1,9 @@
 #pragma once
 #include "Core/Object.h"
-#include <json.hpp>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-
 
 namespace neurender {
 
