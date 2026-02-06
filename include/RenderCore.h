@@ -6,11 +6,15 @@
 #include "neurendercore_export.h"
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <memory>
 #include <string>
 #include <vector>
 #include <vulkan/vulkan.h>
 
 namespace neurender {
+
+class Project;
+
 class NEURENDERCORE_API RenderCore {
 public:
   static void Init();
@@ -74,10 +78,6 @@ private:
   static void CreateBloomFramebuffers();
   static void CreateBloomPipelines();
   static void CreatePostProcessDescriptorSets();
-
-  // ========== 场景设置方法 ==========
-  static void SetupBunnyTestScene();
-  static void LoadBunnyModel();
 
   // ========== 辅助函数 ==========
   static VkShaderModule CreateShaderModule(const std::vector<char> &code);
@@ -315,13 +315,6 @@ private:
 
   static std::vector<RenderObject> m_RenderObjects;
 
-  // 斯坦福兔子资源
-  static VkBuffer m_BunnyVertexBuffer;
-  static VkDeviceMemory m_BunnyVertexBufferMemory;
-  static VkBuffer m_BunnyIndexBuffer;
-  static VkDeviceMemory m_BunnyIndexBufferMemory;
-  static uint32_t m_BunnyIndexCount;
-
   // ============================== 相机系统 ==============================
   static Camera m_Camera;
   static float m_DeltaTime;
@@ -345,6 +338,26 @@ public:
     return m_PostProcessSettings;
   }
 
+  // ========== 工程管理接口 ==========
+  static void SetCurrentProject(std::shared_ptr<Project> project) {
+    m_CurrentProject = project;
+  }
+  static std::shared_ptr<Project> GetCurrentProject() {
+    return m_CurrentProject;
+  }
+
+  // ========== 模型加载方法 ==========
+  /**
+   * @brief 从OBJ文件加载模型
+   * @param path 模型文件路径
+   * @param outVertices 输出顶点数据
+   * @param outIndices 输出索引数据
+   * @return 加载成功返回true
+   */
+  static bool LoadModelFromFile(const std::string &path,
+                                std::vector<Vertex> &outVertices,
+                                std::vector<uint32_t> &outIndices);
+
   // ========== 自定义几何体接口 ==========
   /**
    * @brief 设置自定义几何体数据
@@ -365,5 +378,8 @@ private:
   static std::vector<Vertex> m_CustomVertices;
   static std::vector<uint32_t> m_CustomIndices;
   static bool m_UseCustomGeometry;
+
+  // 工程管理
+  static std::shared_ptr<Project> m_CurrentProject;
 };
 } // namespace neurender

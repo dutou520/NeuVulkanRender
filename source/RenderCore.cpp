@@ -1,4 +1,5 @@
 #include "RenderCore.h"
+#include "Project/Project.h"
 #include "Window.h"
 #include "neuGUI.h"
 #include "neuLog.h"
@@ -95,6 +96,9 @@ std::vector<Vertex> RenderCore::m_CustomVertices;
 std::vector<uint32_t> RenderCore::m_CustomIndices;
 bool RenderCore::m_UseCustomGeometry = false;
 
+// ========== 工程管理静态成员定义 ==========
+std::shared_ptr<Project> RenderCore::m_CurrentProject = nullptr;
+
 // ========== 前向渲染系统静态成员定义 ==========
 VkRenderPass RenderCore::m_ForwardRenderPass = VK_NULL_HANDLE;
 VkPipeline RenderCore::m_ForwardPipeline = VK_NULL_HANDLE;
@@ -149,13 +153,6 @@ std::vector<VkDescriptorSet> g_PostProcessCameraDescriptorSets;
 
 // Global variable for Forward Framebuffer
 std::vector<VkFramebuffer> g_ForwardFramebuffers;
-
-// 斯坦福兔子资源
-VkBuffer RenderCore::m_BunnyVertexBuffer = VK_NULL_HANDLE;
-VkDeviceMemory RenderCore::m_BunnyVertexBufferMemory = VK_NULL_HANDLE;
-VkBuffer RenderCore::m_BunnyIndexBuffer = VK_NULL_HANDLE;
-VkDeviceMemory RenderCore::m_BunnyIndexBufferMemory = VK_NULL_HANDLE;
-uint32_t RenderCore::m_BunnyIndexCount = 0;
 
 const int MAX_FRAMES_IN_FLIGHT = 3;
 
@@ -265,7 +262,8 @@ void RenderCore::Init() {
   CreateSyncObjects();    // Create semaphores and fences
 
   // ========== 场景设置 ==========
-  SetupBunnyTestScene(); // 设置斯坦福兔子测试场景
+  // 不再设置默认测试场景，等待用户加载工程
+  // SetupBunnyTestScene();
 
   InitImGui(); // Initialize ImGui
 
@@ -370,7 +368,7 @@ void RenderCore::Shutdown() {
   vkDestroyRenderPass(m_Device, m_PostProcessRenderPass, nullptr);
   m_PostProcessRenderPass = VK_NULL_HANDLE;
 
-  // 6. 销毁 采样器与缓冲区
+  // 6. 采样器与缓冲区
   if (m_GBufferSampler != VK_NULL_HANDLE) {
     vkDestroySampler(m_Device, m_GBufferSampler, nullptr);
     m_GBufferSampler = VK_NULL_HANDLE;
@@ -1360,6 +1358,12 @@ void RenderCore::DrawFrame() {
     throw std::runtime_error("failed to acquire swap chain image!");
   }
 
+  // NOTE: If we used per-image fences (tutorial style), we would wait for them
+  // here. But since we use MAX_FRAMES_IN_FLIGHT fences and wait at the top,
+  // it should be safe for non-swapchain resources.
+  // For the semaphore reuse warning, we follow the advice to use separate
+  // semaphores if possible, or ensure the presentation is done.
+
   vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame]);
 
   // ImGui New Frame
@@ -1618,9 +1622,10 @@ void RenderCore::CreateGBufferRenderPass() {
   subpass.pColorAttachments = colorAttachmentRefs.data();
   subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
-  // Subpass dependencies
+  // 子通道依赖：处理 GBuffer 写入与外部读取的同步
   std::array<VkSubpassDependency, 2> dependencies{};
 
+  // 1. 外部 -> GBuffer 内容写入：确保之前的读取已完成
   dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
   dependencies[0].dstSubpass = 0;
   dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -1631,6 +1636,7 @@ void RenderCore::CreateGBufferRenderPass() {
                                   VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
   dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
+  // 2. GBuffer 写入 -> 外部读取 (Composition Pass)：确保布局转换完成且写入可见
   dependencies[1].srcSubpass = 0;
   dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
   dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
@@ -1705,13 +1711,28 @@ void RenderCore::CreateCompositionRenderPass() {
   subpass.colorAttachmentCount = 1;
   subpass.pColorAttachments = &colorAttachmentRef;
 
-  VkSubpassDependency dependency{};
-  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-  dependency.dstSubpass = 0;
-  dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.srcAccessMask = 0;
-  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  // 依赖项：合成阶段的读操作必须等 GBuffer 阶段的写操作完成
+  std::array<VkSubpassDependency, 2> dependencies{};
+
+  // 1. 等待 GBuffer 写入
+  dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependencies[0].dstSubpass = 0;
+  dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                 VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+  dependencies[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                  VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+  dependencies[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+  // 2. 合成完毕后的输出
+  dependencies[1].srcSubpass = 0;
+  dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+  dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
   VkRenderPassCreateInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -1719,8 +1740,8 @@ void RenderCore::CreateCompositionRenderPass() {
   renderPassInfo.pAttachments = &colorAttachment;
   renderPassInfo.subpassCount = 1;
   renderPassInfo.pSubpasses = &subpass;
-  renderPassInfo.dependencyCount = 1;
-  renderPassInfo.pDependencies = &dependency;
+  renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+  renderPassInfo.pDependencies = dependencies.data();
 
   if (vkCreateRenderPass(m_Device, &renderPassInfo, nullptr,
                          &m_CompositionRenderPass) != VK_SUCCESS) {
@@ -3181,13 +3202,26 @@ void RenderCore::CreatePostProcessRenderPass() {
   subpass.colorAttachmentCount = 1;
   subpass.pColorAttachments = &colorAttachmentRef;
 
-  VkSubpassDependency dependency{};
-  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-  dependency.dstSubpass = 0;
-  dependency.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  // 依赖项：后处理需要等之前的 HDR 颜色和 Bloom/SSAO 写入完成
+  std::array<VkSubpassDependency, 2> dependencies{};
+
+  // 1. 等待之前的所有写入 (FB, Bloom, GBuffer etc.)
+  dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependencies[0].dstSubpass = 0;
+  dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependencies[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependencies[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+  // 2. 最终输出到交换链
+  dependencies[1].srcSubpass = 0;
+  dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+  dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+  dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependencies[1].dstAccessMask = 0;
+  dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
   VkRenderPassCreateInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -3195,8 +3229,8 @@ void RenderCore::CreatePostProcessRenderPass() {
   renderPassInfo.pAttachments = &colorAttachment;
   renderPassInfo.subpassCount = 1;
   renderPassInfo.pSubpasses = &subpass;
-  renderPassInfo.dependencyCount = 1;
-  renderPassInfo.pDependencies = &dependency;
+  renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+  renderPassInfo.pDependencies = dependencies.data();
 
   if (vkCreateRenderPass(m_Device, &renderPassInfo, nullptr,
                          &m_PostProcessRenderPass) != VK_SUCCESS) {
@@ -3958,41 +3992,48 @@ void RenderCore::CreatePostProcessDescriptorSets() {
   LOG_I("Post-process descriptor sets created successfully");
 }
 
-// ========== 场景设置实现 ==========
+// ========== 模型加载实现 ==========
 
-void RenderCore::LoadBunnyModel() {
-  // 使用tinyobjloader加载bunny.obj
+bool RenderCore::LoadModelFromFile(const std::string &path,
+                                   std::vector<Vertex> &outVertices,
+                                   std::vector<uint32_t> &outIndices) {
+  // 使用tinyobjloader加载OBJ文件
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
   std::string warn;
 
-  std::string modelPath = "resource/models/bunny.obj";
-
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, modelPath.c_str(),
+  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, path.c_str(),
                         nullptr, true)) {
-    throw std::runtime_error("Failed to load bunny model: " + warn);
+    LOG_E("Failed to load model from {}: {}", path, warn);
+    return false;
   }
 
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
+  outVertices.clear();
+  outIndices.clear();
 
+  // 遍历所有形状并提取顶点数据
   for (const auto &shape : shapes) {
     for (const auto &index : shape.mesh.indices) {
       Vertex vertex{};
 
-      vertex.position = {attrib.vertices[3 * index.vertex_index + 0],
-                         attrib.vertices[3 * index.vertex_index + 1],
-                         attrib.vertices[3 * index.vertex_index + 2]};
+      // 位置
+      if (index.vertex_index >= 0) {
+        vertex.position = {attrib.vertices[3 * index.vertex_index + 0],
+                           attrib.vertices[3 * index.vertex_index + 1],
+                           attrib.vertices[3 * index.vertex_index + 2]};
+      }
 
+      // 法线
       if (index.normal_index >= 0) {
         vertex.normal = {attrib.normals[3 * index.normal_index + 0],
                          attrib.normals[3 * index.normal_index + 1],
                          attrib.normals[3 * index.normal_index + 2]};
       } else {
-        vertex.normal = {0.0f, 1.0f, 0.0f};
+        vertex.normal = {0.0f, 1.0f, 0.0f}; // 默认法线
       }
 
+      // 纹理坐标
       if (index.texcoord_index >= 0) {
         vertex.texCoord = {attrib.texcoords[2 * index.texcoord_index + 0],
                            1.0f -
@@ -4001,110 +4042,17 @@ void RenderCore::LoadBunnyModel() {
         vertex.texCoord = {0.0f, 0.0f};
       }
 
-      vertex.color = {0.8f, 0.8f, 0.8f, 1.0f}; // 默认灰色
+      // 默认颜色
+      vertex.color = {0.8f, 0.8f, 0.8f, 1.0f};
 
-      indices.push_back(static_cast<uint32_t>(vertices.size()));
-      vertices.push_back(vertex);
+      outIndices.push_back(static_cast<uint32_t>(outVertices.size()));
+      outVertices.push_back(vertex);
     }
   }
 
-  m_BunnyIndexCount = static_cast<uint32_t>(indices.size());
-
-  // 创建顶点缓冲
-  VkDeviceSize vertexBufferSize = sizeof(Vertex) * vertices.size();
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  CreateBuffer(vertexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
-
-  void *data;
-  vkMapMemory(m_Device, stagingBufferMemory, 0, vertexBufferSize, 0, &data);
-  memcpy(data, vertices.data(), vertexBufferSize);
-  vkUnmapMemory(m_Device, stagingBufferMemory);
-
-  CreateBuffer(vertexBufferSize,
-               VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_BunnyVertexBuffer,
-               m_BunnyVertexBufferMemory);
-  CopyBuffer(stagingBuffer, m_BunnyVertexBuffer, vertexBufferSize);
-
-  vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
-  vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
-
-  // 创建索引缓冲
-  VkDeviceSize indexBufferSize = sizeof(uint32_t) * indices.size();
-  CreateBuffer(indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
-
-  vkMapMemory(m_Device, stagingBufferMemory, 0, indexBufferSize, 0, &data);
-  memcpy(data, indices.data(), indexBufferSize);
-  vkUnmapMemory(m_Device, stagingBufferMemory);
-
-  CreateBuffer(indexBufferSize,
-               VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                   VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_BunnyIndexBuffer,
-               m_BunnyIndexBufferMemory);
-  CopyBuffer(stagingBuffer, m_BunnyIndexBuffer, indexBufferSize);
-
-  vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
-  vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
-
-  LOG_I("Bunny model loaded: {} vertices, {} indices", vertices.size(),
-        indices.size());
-}
-
-void RenderCore::SetupBunnyTestScene() {
-  LoadBunnyModel();
-
-  // 清除现有物体
-  m_RenderObjects.clear();
-
-  // 兔子1: 自发光 (左边)
-  RenderObject emissiveBunny{};
-  emissiveBunny.modelMatrix =
-      glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f));
-
-  emissiveBunny.modelMatrix =
-      glm::scale(emissiveBunny.modelMatrix, glm::vec3(1.0f));
-  emissiveBunny.material =
-      Material::CreateEmissive(glm::vec3(1.0f, 0.2f, 0.2f), 2.0f); // 红色发光
-  emissiveBunny.vertexBuffer = m_BunnyVertexBuffer;
-  emissiveBunny.indexBuffer = m_BunnyIndexBuffer;
-  emissiveBunny.indexCount = m_BunnyIndexCount;
-  m_RenderObjects.push_back(emissiveBunny);
-
-  // 兔子2: 粗糙不透明 (中间)
-  RenderObject roughBunny{};
-  roughBunny.modelMatrix =
-      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-  roughBunny.modelMatrix = glm::scale(roughBunny.modelMatrix, glm::vec3(1.0f));
-  roughBunny.material =
-      Material::CreateOpaque(glm::vec3(0.8f, 0.8f, 0.8f), 0.9f); // 灰色粗糙
-  roughBunny.vertexBuffer = m_BunnyVertexBuffer;
-  roughBunny.indexBuffer = m_BunnyIndexBuffer;
-  roughBunny.indexCount = m_BunnyIndexCount;
-  m_RenderObjects.push_back(roughBunny);
-
-  // 兔子3: 粗糙半透明 (右边)
-  RenderObject transparentBunny{};
-  transparentBunny.modelMatrix =
-      glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
-  transparentBunny.modelMatrix =
-      glm::scale(transparentBunny.modelMatrix, glm::vec3(1.0f));
-  transparentBunny.material = Material::CreateTransparent(
-      glm::vec3(0.2f, 0.2f, 1.0f), 0.5f, 0.3f); // 蓝色半透明
-  transparentBunny.vertexBuffer = m_BunnyVertexBuffer;
-  transparentBunny.indexBuffer = m_BunnyIndexBuffer;
-  transparentBunny.indexCount = m_BunnyIndexCount;
-  m_RenderObjects.push_back(transparentBunny);
-
-  LOG_I("Bunny test scene setup: {} objects", m_RenderObjects.size());
+  LOG_I("Loaded model from {}: {} vertices, {} indices", path,
+        outVertices.size(), outIndices.size());
+  return true;
 }
 
 } // namespace neurender

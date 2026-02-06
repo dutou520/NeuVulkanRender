@@ -47,27 +47,42 @@ private:
   // 菜单功能
   static void MenuFile();
   static void MenuCreate();
+  static void MenuDelete();
   static void MenuDebug();
 
-  // 创建节点
+  // 创建节点和场景
+  static void CreateScene();
+  static void CreateEmptyNode();
   static void CreateCube();
   static void CreateSphere();
   static void CreatePlane();
   static void CreatePointLight();
   static void CreateDirectionalLight();
   static void CreateCamera();
+  static void DeleteSelectedNode();
+
+  // 工程管理
+  static void CreateNewProject();
+  static void LoadProject();
+  static void SaveProject();
+  static std::string ShowFileDialog(bool isOpen, const char *filter);
+  static void CreateFolder();
 
   // 纵向Tab实现
   static bool VerticalTab(const char *label, bool selected, const ImVec2 &size);
 
   // 状态
-  static std::shared_ptr<Scene> s_CurrentScene;
+  static std::vector<std::shared_ptr<Scene>> s_Scenes; // 工程中的所有场景
+  static int s_ActiveSceneIndex;                       // 当前激活的场景索引
+  static std::shared_ptr<Scene> s_CurrentScene; // 当前编辑的场景 (为兼容性保留)
   static Node *s_SelectedNode;
   static int s_CurrentInspectorTab; // 当前选中的Inspector Tab
 
   // 文件浏览器状态
   static std::string s_CurrentPath;
   static std::string s_SelectedFile;
+  static bool s_ShowNewFolderDialog;
+  static char s_NewFolderName[256];
 
   // 渲染模式
   enum class RenderMode { Shaded, Wireframe, Albedo, Normal, Depth };

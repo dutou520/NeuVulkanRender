@@ -1,0 +1,115 @@
+{
+  "name": "DefaultScene",
+  "rootNode": {
+    "active": true,
+    "children": [
+      {
+        "active": true,
+        "children": [],
+        "name": "Cube",
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "type": "Node",
+        "uuid": "96518d54a53e77d0"
+      },
+      {
+        "active": true,
+        "children": [],
+        "name": "Sphere",
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "type": "Node",
+        "uuid": "ae0eb9a448c3adc0"
+      },
+      {
+        "active": true,
+        "children": [],
+        "name": "Camera",
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "type": "Node",
+        "uuid": "159f3ac1e4bda893"
+      },
+      {
+        "active": true,
+        "children": [],
+        "name": "Point Light",
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "type": "Node",
+        "uuid": "7ce3d384c786f2a4"
+      }
+    ],
+    "name": "Root",
+    "position": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "type": "Node",
+    "uuid": "9f9e5aad92005636"
+  },
+  "uuid": "6c8f978078b6c29a"
+}

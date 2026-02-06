@@ -1,6 +1,7 @@
 #include "Scene/Scene.h"
 #include "Nodes/Node.h"
 #include "neuLog.h"
+#include <filesystem>
 #include <fstream>
 
 namespace neurender {
@@ -39,6 +40,18 @@ std::shared_ptr<Scene> Scene::Load(const std::string &filePath) {
 }
 
 bool Scene::Save(const std::string &filePath) const {
+  // Create parent directories if they don't exist
+  std::filesystem::path p(filePath);
+  if (p.has_parent_path()) {
+    std::error_code ec;
+    std::filesystem::create_directories(p.parent_path(), ec);
+    if (ec) {
+      LOG_E("Failed to create directory {}: {}", p.parent_path().string(),
+            ec.message());
+      return false;
+    }
+  }
+
   std::ofstream file(filePath);
   if (!file.is_open()) {
     LOG_E("Failed to save scene file: {}", filePath);
