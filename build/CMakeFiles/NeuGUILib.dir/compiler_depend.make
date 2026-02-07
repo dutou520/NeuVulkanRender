@@ -113,10 +113,12 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: D:/CppPrograms/NeuVulkanRender/s
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_types.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h \
+  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multiset.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_numeric.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_pair.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
+  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_set.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tempbuf.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tree.h \
   C:/msys64/mingw64/include/c++/14.1.0/bits/stl_uninitialized.h \
@@ -196,6 +198,7 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: D:/CppPrograms/NeuVulkanRender/s
   C:/msys64/mingw64/include/c++/14.1.0/pstl/pstl_config.h \
   C:/msys64/mingw64/include/c++/14.1.0/random \
   C:/msys64/mingw64/include/c++/14.1.0/ratio \
+  C:/msys64/mingw64/include/c++/14.1.0/set \
   C:/msys64/mingw64/include/c++/14.1.0/sstream \
   C:/msys64/mingw64/include/c++/14.1.0/stdexcept \
   C:/msys64/mingw64/include/c++/14.1.0/stdlib.h \
@@ -538,8 +541,9 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: D:/CppPrograms/NeuVulkanRender/s
   neugui_export.h \
   neulog_export.h \
   neurendercore_export.h \
-  neuwindow_export.h \
+  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
+  D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/ModelImporter.h \
   D:/CppPrograms/NeuVulkanRender/include/Camera.h \
   D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
@@ -554,68 +558,8 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: D:/CppPrograms/NeuVulkanRender/s
   D:/CppPrograms/NeuVulkanRender/include/RenderCore.h \
   D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h \
   D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
-  D:/CppPrograms/NeuVulkanRender/include/Window.h \
   D:/CppPrograms/NeuVulkanRender/include/neuGUI.h \
   D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_assert.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_asyncio.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_atomic.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_audio.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_begin_code.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_bits.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_blendmode.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_camera.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_clipboard.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_close_code.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_cpuinfo.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_dialog.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_endian.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_error.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_events.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_filesystem.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gamepad.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gpu.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_guid.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_haptic.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hidapi.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hints.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_init.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_iostream.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_joystick.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keyboard.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keycode.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_loadso.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_locale.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_log.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_messagebox.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_metal.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_misc.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mouse.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mutex.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_oldnames.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pen.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pixels.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform_defines.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_power.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_process.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_properties.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_rect.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_render.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_scancode.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_sensor.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_stdinc.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_storage.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_surface.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_system.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_thread.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_time.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_timer.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_touch.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_tray.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_version.h \
-  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_video.h \
   D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/base.h \
   D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/format.h \
   D:/vcpkg/installed/x64-mingw-dynamic/include/glm/common.hpp \
@@ -877,8 +821,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: D:/CppPrograms/NeuVulkanRender/s
   D:/vcpkg/installed/x64-mingw-dynamic/include/vulkan/vulkan_core.h
 
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_version.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512bf16intrin.h:
@@ -919,8 +861,6 @@ C:/msys64/mingw64/include/_mingw_secapi.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512bf16vlintrin.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_render.h:
-
 C:/msys64/mingw64/include/windef.h:
 
 C:/msys64/mingw64/include/_mingw.h:
@@ -937,8 +877,6 @@ C:/msys64/mingw64/include/c++/14.1.0/string_view:
 
 C:/msys64/mingw64/include/c++/14.1.0/bit:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pen.h:
-
 C:/msys64/mingw64/include/combaseapi.h:
 
 C:/msys64/mingw64/include/_mingw_off_t.h:
@@ -946,6 +884,8 @@ C:/msys64/mingw64/include/_mingw_off_t.h:
 C:/msys64/mingw64/include/c++/14.1.0/array:
 
 C:/msys64/mingw64/include/_mingw_stat64.h:
+
+D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/algorithm:
 
@@ -988,8 +928,6 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/functional_hash.h:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/exponential.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/streambuf:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_stdinc.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/vaesintrin.h:
 
@@ -1279,8 +1217,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avxneconvertintrin.h
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/imconfig.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keyboard.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/slice_array.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/specfun.h:
@@ -1290,8 +1226,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/constants.hpp:
 C:/msys64/mingw64/include/c++/14.1.0/bits/sstream.tcc:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/logger.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_storage.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/std_abs.h:
 
@@ -1331,8 +1265,6 @@ C:/msys64/mingw64/include/shobjidl.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/vec2.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_sensor.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_construct.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_function.h:
@@ -1351,8 +1283,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec1.inl:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_funcs.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_endian.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_types.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512vbmiintrin.h:
@@ -1363,17 +1293,17 @@ C:/msys64/mingw64/include/winefs.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/json_reverse_iterator.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_video.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/compare:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_guid.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/vpclmulqdqintrin.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsavesintrin.h:
+
+C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multiset.h:
 
 C:/msys64/mingw64/include/wchar.h:
 
@@ -1390,6 +1320,14 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h:
 C:/msys64/mingw64/include/rpcnsip.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h:
+
+C:/msys64/mingw64/include/wtypes.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp:
+
+C:/msys64/mingw64/include/c++/14.1.0/bits/stl_set.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec1.hpp:
 
@@ -1455,8 +1393,6 @@ C:/msys64/mingw64/include/ole2.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_mat4x2.inl:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_tray.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_after.h:
 
 C:/msys64/mingw64/include/urlmon.h:
@@ -1490,10 +1426,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_matrix.inl:
 C:/msys64/mingw64/include/c++/14.1.0/cerrno:
 
 C:/msys64/mingw64/include/c++/14.1.0/cfloat:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/norm.inl:
 
@@ -1543,8 +1475,6 @@ C:/msys64/mingw64/include/c++/14.1.0/unordered_map:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512vlintrin.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_power.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/debug/assertions.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_int4_sized.hpp:
@@ -1587,8 +1517,6 @@ C:/msys64/mingw64/include/c++/14.1.0/istream:
 
 C:/msys64/mingw64/include/c++/14.1.0/iterator:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/sm4intrin.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/limits:
 
 C:/msys64/mingw64/include/c++/14.1.0/locale:
@@ -1598,8 +1526,6 @@ C:/msys64/mingw64/include/processthreadsapi.h:
 C:/msys64/mingw64/include/c++/14.1.0/memory:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gamepad.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/numeric:
 
@@ -1627,6 +1553,8 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/bmi2intrin.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/pstl/pstl_config.h:
 
+C:/msys64/mingw64/include/c++/14.1.0/set:
+
 C:/msys64/mingw64/include/c++/14.1.0/stdexcept:
 
 C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/ctype_inline.h:
@@ -1640,8 +1568,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_double4.hpp:
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/fxsrintrin.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/string:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_bits.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/system_error:
 
@@ -1672,8 +1598,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/cmpccxaddintrin.h:
 C:/msys64/mingw64/include/c++/14.1.0/tr1/special_function_util.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/amxfp16intrin.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_messagebox.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/tuple:
 
@@ -1819,8 +1743,6 @@ C:/msys64/mingw64/include/libloaderapi.h:
 
 C:/msys64/mingw64/include/signal.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_events.h:
-
 C:/msys64/mingw64/include/mcx.h:
 
 C:/msys64/mingw64/include/locale.h:
@@ -1854,8 +1776,6 @@ C:/msys64/mingw64/include/mmsyscom.h:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/integer.hpp:
 
 C:/msys64/mingw64/include/mmsystem.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gpu.h:
 
 C:/msys64/mingw64/include/windows.h:
 
@@ -2055,8 +1975,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/popcntintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float3x3.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_cpuinfo.h:
-
 C:/msys64/mingw64/include/winperf.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/packing.hpp:
@@ -2066,8 +1984,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_common.inl:
 C:/msys64/mingw64/include/winsock.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512vbmivlintrin.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_atomic.h:
 
 C:/msys64/mingw64/include/winsvc.h:
 
@@ -2079,8 +1995,6 @@ C:/msys64/mingw64/include/winver.h:
 
 C:/msys64/mingw64/include/wnnc.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_clipboard.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/f16cintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/component_wise.hpp:
@@ -2088,8 +2002,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/component_wise.hpp:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_float2.hpp:
 
 C:/msys64/mingw64/include/wow64apiset.h:
-
-C:/msys64/mingw64/include/wtypes.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512erintrin.h:
 
@@ -2129,8 +2041,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avxifmaintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avxvnniint8intrin.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_iostream.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/bmiintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp:
@@ -2150,8 +2060,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/fmaintrin.h:
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/gfniintrin.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_dialog.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/limits.h:
 
@@ -2173,7 +2081,13 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/sgxintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/shaintrin.h:
 
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/sm4intrin.h:
+
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/smmintrin.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h:
 
@@ -2203,10 +2117,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsavecintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_common.inl:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_time.h:
-
-D:/CppPrograms/NeuVulkanRender/include/Window.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsaveintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp:
@@ -2215,17 +2125,13 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_uint2_sized.hpp:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsaveoptintrin.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsavesintrin.h:
-
 neugui_export.h:
 
 neulog_export.h:
 
 neurendercore_export.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool3.hpp:
-
-neuwindow_export.h:
+D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.inl:
 
@@ -2252,90 +2158,6 @@ D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h:
 D:/CppPrograms/NeuVulkanRender/include/Vertex.h:
 
 D:/CppPrograms/NeuVulkanRender/include/neuGUI.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_assert.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/synchronous_factory.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_asyncio.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_audio.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_begin_code.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_blendmode.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_camera.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_close_code.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_error.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_filesystem.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_haptic.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hidapi.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hints.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_mat2x2.inl:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_init.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_joystick.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_log.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keycode.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_loadso.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_locale.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_metal.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_misc.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mouse.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mutex.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/matrix.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_oldnames.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_uint_sized.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pixels.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform_defines.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_process.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_properties.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_rect.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_scancode.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_surface.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_system.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_thread.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_timer.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_touch.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/base.h:
 
@@ -2370,6 +2192,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/qualifier.hpp:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/setup.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_mat2x2.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_mat2x2.inl:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_mat2x3.hpp:
 
@@ -2483,7 +2307,11 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_constants.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_int_sized.hpp:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_uint_sized.hpp:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool2.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool3.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp:
 
@@ -2547,6 +2375,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat3x4.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/mat4x2.hpp:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/matrix.hpp:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codecs_common.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/trigonometric.hpp:
@@ -2571,15 +2401,13 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp:
 
@@ -2599,6 +2427,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp:
@@ -2610,6 +2440,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/circular_q.h:
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg_buffer.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/registry.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/synchronous_factory.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h:
 

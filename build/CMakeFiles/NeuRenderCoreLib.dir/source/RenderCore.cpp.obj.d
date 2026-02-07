@@ -492,7 +492,6 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
- D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/PointLightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h \

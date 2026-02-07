@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/UUID.h"
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 
 namespace neurender {

@@ -1,5 +1,4 @@
 #include "Asset/MetaFile.h"
-#include <chrono>
 #include <fstream>
 
 namespace neurender {

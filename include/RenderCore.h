@@ -317,6 +317,8 @@ private:
     float bloomThreshold = 0.8f;
     float ssaoRadius = 0.5f;
     float ssaoStrength = 1.5f;
+    uint32_t debugMode =
+        0; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth
   };
   static PostProcessSettings m_PostProcessSettings;
 

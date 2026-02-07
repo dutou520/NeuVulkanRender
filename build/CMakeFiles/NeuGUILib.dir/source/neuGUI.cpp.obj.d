@@ -1,46 +1,109 @@
 CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:\CppPrograms\NeuVulkanRender\source\neuGUI.cpp \
  D:/CppPrograms/NeuVulkanRender/include/neuGUI.h \
- D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
- C:/msys64/mingw64/include/c++/14.1.0/cstdint \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++config.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/os_defines.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/cpu_defines.h \
- C:/msys64/mingw64/include/c++/14.1.0/pstl/pstl_config.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
- C:/msys64/mingw64/include/stdint.h C:/msys64/mingw64/include/crtdefs.h \
+ D:/CppPrograms/NeuVulkanRender/build/neugui_export.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/imgui.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/imconfig.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/float.h \
+ C:/msys64/mingw64/include/float.h C:/msys64/mingw64/include/crtdefs.h \
  C:/msys64/mingw64/include/corecrt.h C:/msys64/mingw64/include/_mingw.h \
  C:/msys64/mingw64/include/_mingw_mac.h \
  C:/msys64/mingw64/include/_mingw_secapi.h \
  C:/msys64/mingw64/include/vadefs.h \
  C:/msys64/mingw64/include/sdks/_mingw_ddk.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
+ C:/msys64/mingw64/include/stdarg.h \
+ C:/msys64/mingw64/include/_mingw_stdarg.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stddef.h \
- C:/msys64/mingw64/include/stddef.h \
- C:/msys64/mingw64/include/c++/14.1.0/iomanip \
- C:/msys64/mingw64/include/c++/14.1.0/bits/requires_hosted.h \
- C:/msys64/mingw64/include/c++/14.1.0/iosfwd \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stringfwd.h \
+ C:/msys64/mingw64/include/stddef.h C:/msys64/mingw64/include/string.h \
+ C:/msys64/mingw64/include/sec_api/string_s.h \
+ C:/msys64/mingw64/include/assert.h \
+ C:/msys64/mingw64/include/c++/14.1.0/stdlib.h \
+ C:/msys64/mingw64/include/c++/14.1.0/cstdlib \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++config.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/os_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/cpu_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/pstl_config.h \
+ C:/msys64/mingw64/include/stdlib.h \
+ C:/msys64/mingw64/include/corecrt_wstdlib.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/limits.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/syslimits.h \
+ C:/msys64/mingw64/include/limits.h \
+ C:/msys64/mingw64/include/sec_api/stdlib_s.h \
+ C:/msys64/mingw64/include/malloc.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mm_malloc.h \
+ C:/msys64/mingw64/include/errno.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/std_abs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/memory \
  C:/msys64/mingw64/include/c++/14.1.0/bits/memoryfwd.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/allocator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++allocator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/new_allocator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/new \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/exception.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/version.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/functexcept.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/exception_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/move.h \
+ C:/msys64/mingw64/include/c++/14.1.0/type_traits \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tempbuf.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_construct.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_types.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_funcs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/concept_check.h \
+ C:/msys64/mingw64/include/c++/14.1.0/debug/assertions.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_pair.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/utility.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/numeric_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/cpp_type_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/type_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_uninitialized.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algobase.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/ptr_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/debug/debug.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/predefined_ops.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bit \
+ C:/msys64/mingw64/include/c++/14.1.0/concepts \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/alloc_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/alloc_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/align.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
+ C:/msys64/mingw64/include/stdint.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/uses_allocator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/unique_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/tuple \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/invoke.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_function.h \
+ C:/msys64/mingw64/include/c++/14.1.0/backward/binders.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/functional_hash.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/hash_bytes.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/iosfwd \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/requires_hosted.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stringfwd.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/postypes.h \
  C:/msys64/mingw64/include/c++/14.1.0/cwchar \
  C:/msys64/mingw64/include/wchar.h \
  C:/msys64/mingw64/include/corecrt_stdio_config.h \
- C:/msys64/mingw64/include/corecrt_wstdlib.h \
  C:/msys64/mingw64/include/_mingw_off_t.h \
  C:/msys64/mingw64/include/_mingw_stat64.h \
  C:/msys64/mingw64/include/swprintf.inl \
  C:/msys64/mingw64/include/sec_api/wchar_s.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/ios_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/typeinfo \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/allocated_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/refwrap.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/aligned_buffer.h \
  C:/msys64/mingw64/include/c++/14.1.0/ext/atomicity.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr-default.h \
- C:/msys64/mingw64/include/pthread.h C:/msys64/mingw64/include/errno.h \
+ C:/msys64/mingw64/include/pthread.h \
  C:/msys64/mingw64/include/sys/types.h \
  C:/msys64/mingw64/include/process.h \
  C:/msys64/mingw64/include/corecrt_startup.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/limits.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/syslimits.h \
- C:/msys64/mingw64/include/limits.h C:/msys64/mingw64/include/signal.h \
+ C:/msys64/mingw64/include/signal.h \
  C:/msys64/mingw64/include/pthread_signal.h \
  C:/msys64/mingw64/include/time.h C:/msys64/mingw64/include/sys/timeb.h \
  C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
@@ -49,6 +112,19 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/pthread_compat.h \
  C:/msys64/mingw64/include/pthread_unistd.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/atomic_word.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h \
+ C:/msys64/mingw64/include/c++/14.1.0/exception \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/exception_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_init_exception.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/nested_exception.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_atomic.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/string \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/char_traits.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/localefwd.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++locale.h \
  C:/msys64/mingw64/include/c++/14.1.0/clocale \
@@ -56,77 +132,36 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/sec_api/stdio_s.h \
  C:/msys64/mingw64/include/c++/14.1.0/cctype \
  C:/msys64/mingw64/include/ctype.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.h \
- C:/msys64/mingw64/include/c++/14.1.0/string \
- C:/msys64/mingw64/include/c++/14.1.0/bits/char_traits.h \
- C:/msys64/mingw64/include/c++/14.1.0/type_traits \
- C:/msys64/mingw64/include/c++/14.1.0/bits/version.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/allocator.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++allocator.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/new_allocator.h \
- C:/msys64/mingw64/include/c++/14.1.0/new \
- C:/msys64/mingw64/include/c++/14.1.0/bits/exception.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/functexcept.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/exception_defines.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/move.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/cpp_type_traits.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/ostream_insert.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_forced.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_funcs.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/concept_check.h \
- C:/msys64/mingw64/include/c++/14.1.0/debug/assertions.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_types.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/type_traits.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/ptr_traits.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_function.h \
- C:/msys64/mingw64/include/c++/14.1.0/backward/binders.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/numeric_traits.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algobase.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_pair.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/utility.h \
- C:/msys64/mingw64/include/c++/14.1.0/debug/debug.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/predefined_ops.h \
- C:/msys64/mingw64/include/c++/14.1.0/bit \
- C:/msys64/mingw64/include/c++/14.1.0/concepts \
- C:/msys64/mingw64/include/c++/14.1.0/bits/refwrap.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/invoke.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/range_access.h \
  C:/msys64/mingw64/include/c++/14.1.0/initializer_list \
  C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/alloc_traits.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/alloc_traits.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_construct.h \
  C:/msys64/mingw64/include/c++/14.1.0/string_view \
- C:/msys64/mingw64/include/c++/14.1.0/bits/functional_hash.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/hash_bytes.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/string_view.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/ext/string_conversions.h \
- C:/msys64/mingw64/include/c++/14.1.0/cstdlib \
- C:/msys64/mingw64/include/stdlib.h \
- C:/msys64/mingw64/include/sec_api/stdlib_s.h \
- C:/msys64/mingw64/include/c++/14.1.0/stdlib.h \
- C:/msys64/mingw64/include/malloc.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mm_malloc.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/std_abs.h \
  C:/msys64/mingw64/include/c++/14.1.0/cstdio \
  C:/msys64/mingw64/include/c++/14.1.0/cerrno \
  C:/msys64/mingw64/include/c++/14.1.0/bits/charconv.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/bits/memory_resource.h \
  C:/msys64/mingw64/include/c++/14.1.0/cstddef \
- C:/msys64/mingw64/include/c++/14.1.0/bits/uses_allocator.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/uses_allocator_args.h \
- C:/msys64/mingw64/include/c++/14.1.0/tuple \
+ C:/msys64/mingw64/include/c++/14.1.0/vector \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_vector.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_bvector.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
+ D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
+ C:/msys64/mingw64/include/c++/14.1.0/cstdint \
+ C:/msys64/mingw64/include/c++/14.1.0/iomanip \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/ios_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/system_error \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/error_constants.h \
  C:/msys64/mingw64/include/c++/14.1.0/stdexcept \
- C:/msys64/mingw64/include/c++/14.1.0/exception \
- C:/msys64/mingw64/include/c++/14.1.0/bits/exception_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_init_exception.h \
- C:/msys64/mingw64/include/c++/14.1.0/typeinfo \
- C:/msys64/mingw64/include/c++/14.1.0/bits/nested_exception.h \
  C:/msys64/mingw64/include/c++/14.1.0/locale \
  C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets.h \
  C:/msys64/mingw64/include/c++/14.1.0/cwctype \
@@ -172,11 +207,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/poly_laguerre.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/riemann_zeta.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/bits/random.h \
- C:/msys64/mingw64/include/c++/14.1.0/vector \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_uninitialized.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_vector.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_bvector.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/bits/uniform_int_dist.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/opt_random.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/pmmintrin.h \
@@ -188,33 +218,103 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/numeric \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_numeric.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
- C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
- D:/CppPrograms/NeuVulkanRender/build/neugui_export.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/imgui.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/imconfig.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/float.h \
- C:/msys64/mingw64/include/float.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
- C:/msys64/mingw64/include/stdarg.h \
- C:/msys64/mingw64/include/_mingw_stdarg.h \
- C:/msys64/mingw64/include/string.h \
- C:/msys64/mingw64/include/sec_api/string_s.h \
- C:/msys64/mingw64/include/assert.h \
- C:/msys64/mingw64/include/c++/14.1.0/memory \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tempbuf.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/align.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/unique_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/allocated_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/aligned_buffer.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_atomic.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
- C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/algorithm \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_heap.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_algorithm_defs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/functional \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/std_function.h \
+ C:/msys64/mingw64/include/c++/14.1.0/unordered_map \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/unordered_map.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable_policy.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
+ C:/msys64/mingw64/include/c++/14.1.0/array \
+ C:/msys64/mingw64/include/c++/14.1.0/compare \
+ C:/msys64/mingw64/include/c++/14.1.0/iterator \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stream_iterator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/utility \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/abi_macros.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/forward_list \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/forward_list.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/forward_list.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/map \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tree.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h \
+ C:/msys64/mingw64/include/c++/14.1.0/valarray \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_array.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_array.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_before.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/slice_array.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_after.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/gslice.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/gslice_array.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/mask_array.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/indirect_array.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_scope.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/detected.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/version \
+ C:/msys64/mingw64/include/c++/14.1.0/cassert \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/cpp_future.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/type_traits.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iterator_traits.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/begin.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/end.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/cstring \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/filesystem \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_fwd.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ratio \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_path.h \
+ C:/msys64/mingw64/include/c++/14.1.0/codecvt \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_dir.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_ops.h \
+ C:/msys64/mingw64/include/c++/14.1.0/optional \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/byte_container_with_subtype.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/is_sax.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/parser.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/internal_iterator.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/primitive_iterator.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_custom_base_class.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_pointer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_ref.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/serializer.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_chars.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/any \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Asset/ModelImporter.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h \
@@ -222,7 +322,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/glm.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_fixes.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/setup.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/cassert \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/simd/platform.h \
  C:/msys64/mingw64/include/c++/14.1.0/climits \
  C:/msys64/mingw64/include/c++/14.1.0/cfloat \
@@ -251,17 +350,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec3.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec3.inl \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/compute_vector_decl.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/functional \
- C:/msys64/mingw64/include/c++/14.1.0/bits/std_function.h \
- C:/msys64/mingw64/include/c++/14.1.0/unordered_map \
- C:/msys64/mingw64/include/c++/14.1.0/bits/unordered_map.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable_policy.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
- C:/msys64/mingw64/include/c++/14.1.0/array \
- C:/msys64/mingw64/include/c++/14.1.0/compare \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_vectorize.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool3_precision.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_float3.hpp \
@@ -416,91 +504,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_common.inl \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/norm.inl \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/quaternion.inl \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/algorithm \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_heap.h \
- C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_algorithm_defs.h \
- C:/msys64/mingw64/include/c++/14.1.0/iterator \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stream_iterator.h \
- C:/msys64/mingw64/include/c++/14.1.0/utility \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/abi_macros.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/forward_list \
- C:/msys64/mingw64/include/c++/14.1.0/bits/forward_list.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/forward_list.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/map \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tree.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h \
- C:/msys64/mingw64/include/c++/14.1.0/valarray \
- C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_array.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_array.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_before.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/slice_array.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_after.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/gslice.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/gslice_array.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/mask_array.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/indirect_array.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_scope.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/detected.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/version \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/cpp_future.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/type_traits.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iterator_traits.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/begin.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/end.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/cstring \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/filesystem \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_fwd.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
- C:/msys64/mingw64/include/c++/14.1.0/ratio \
- C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_path.h \
- C:/msys64/mingw64/include/c++/14.1.0/codecvt \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_dir.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_ops.h \
- C:/msys64/mingw64/include/c++/14.1.0/optional \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/byte_container_with_subtype.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/is_sax.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/parser.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/internal_iterator.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/primitive_iterator.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_custom_base_class.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_pointer.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_ref.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/serializer.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_chars.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/any \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/PointLightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h \
@@ -531,67 +534,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
  D:/CppPrograms/NeuVulkanRender/build/neurendercore_export.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
- D:/CppPrograms/NeuVulkanRender/include/Window.h \
- D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_stdinc.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform_defines.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_begin_code.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_close_code.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_assert.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_asyncio.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_atomic.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_audio.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_endian.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_error.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mutex.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_thread.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_properties.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_iostream.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_bits.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_blendmode.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_camera.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pixels.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_surface.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_rect.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_clipboard.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_cpuinfo.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_dialog.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_video.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_events.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gamepad.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_guid.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_joystick.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_power.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_sensor.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keyboard.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keycode.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_scancode.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mouse.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pen.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_touch.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_filesystem.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gpu.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_haptic.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hidapi.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hints.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_init.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_loadso.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_locale.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_log.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_messagebox.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_metal.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_misc.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_process.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_render.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_storage.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_system.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_time.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_timer.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_tray.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_version.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_oldnames.h \
  D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
  D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \
@@ -715,6 +657,9 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/prfchwintrin.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/keylockerintrin.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/amxfp16intrin.h \
+ C:/msys64/mingw64/include/c++/14.1.0/set \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_set.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multiset.h \
  C:/msys64/mingw64/include/shlobj.h \
  C:/msys64/mingw64/include/wtypesbase.h C:/msys64/mingw64/include/rpc.h \
  C:/msys64/mingw64/include/windows.h \

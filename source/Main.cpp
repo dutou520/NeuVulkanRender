@@ -1,7 +1,6 @@
 #include "RenderCore.h"
 #include "Window.h"
 #include "neuLog.h"
-#include <iostream>
 #include <spdlog/spdlog.h>
 
 int main(int argc, char *argv[]) {

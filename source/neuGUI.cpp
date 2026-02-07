@@ -1,19 +1,23 @@
 #include "neuGUI.h"
+#include "Asset/AssetManager.h"
 #include "Asset/ModelImporter.h"
+#include "Nodes/MeshNode.h"
 #include "Nodes/Node.h"
 #include "Nodes/PointLightNode.h"
 #include "Project/Project.h"
 #include "RenderCore.h"
 #include "Scene/Scene.h"
-#include "Window.h"
 #include "neuLog.h"
 #include <algorithm>
 #include <filesystem>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <nlohmann/json.hpp>
+#include <set>
 #include <shlobj.h>
 #include <windows.h>
 
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 namespace neurender {
 
 // 静态成员初始化
@@ -28,12 +32,11 @@ bool EditorGUI::s_ShowNewFolderDialog = false;
 char EditorGUI::s_NewFolderName[256] = "";
 EditorGUI::RenderMode EditorGUI::s_RenderMode = RenderMode::Shaded;
 bool EditorGUI::s_DockSpaceInitialized = false;
+std::string EditorGUI::s_ClipboardPath = "";
 
 void EditorGUI::Initialize() {
+  ImGui::GetIO().FontGlobalScale = 1.5f; // 全局 UI 字体放大 1.2-1.5 倍
   LOG_I("EditorGUI Initialized");
-
-  // 不再创建默认场景，等待用户加载或创建工程
-  // s_CurrentScene = Scene::Create("DefaultScene");
 }
 
 void EditorGUI::Shutdown() { LOG_I("EditorGUI Shutdown"); }
@@ -136,7 +139,6 @@ void EditorGUI::RenderMenuBar() {
   if (ImGui::BeginMainMenuBar()) {
     MenuFile();
     MenuCreate();
-    MenuDelete();
     MenuDebug();
 
     // 右侧显示FPS
@@ -152,26 +154,26 @@ void EditorGUI::RenderMenuBar() {
 }
 
 void EditorGUI::MenuFile() {
-  if (ImGui::BeginMenu("File")) {
+  if (ImGui::BeginMenu("文件")) {
     // 工程管理
-    if (ImGui::MenuItem("New Project...", "Ctrl+Shift+N")) {
+    if (ImGui::MenuItem("新项目...", "Ctrl+Shift+N")) {
       CreateNewProject();
     }
-    if (ImGui::MenuItem("Load Project...", "Ctrl+Shift+O")) {
+    if (ImGui::MenuItem("加载项目...", "Ctrl+Shift+O")) {
       LoadProject();
     }
 
     auto currentProject = RenderCore::GetCurrentProject();
     bool hasProject = (currentProject != nullptr);
 
-    if (ImGui::MenuItem("Save Project", "Ctrl+Shift+S", false, hasProject)) {
+    if (ImGui::MenuItem("保存项目", "Ctrl+Shift+S", false, hasProject)) {
       SaveProject();
     }
 
     ImGui::Separator();
 
     // 导入资源
-    if (ImGui::MenuItem("Import Model...", nullptr, false, hasProject)) {
+    if (ImGui::MenuItem("导入模型...", nullptr, false, hasProject)) {
       std::string modelFile = ShowFileDialog(
           true, "Model Files (*.obj;*.gltf;*.glb)\0*.obj;*.gltf;*.glb\0All "
                 "Files\0*.*\0");
@@ -191,7 +193,7 @@ void EditorGUI::MenuFile() {
       }
     }
 
-    if (ImGui::MenuItem("Import Texture...", nullptr, false, hasProject)) {
+    if (ImGui::MenuItem("导入纹理...", nullptr, false, hasProject)) {
       std::string textureFile = ShowFileDialog(
           true, "Image Files (*.png;*.jpg;*.jpeg)\0*.png;*.jpg;*.jpeg\0All "
                 "Files\0*.*\0");
@@ -212,8 +214,16 @@ void EditorGUI::MenuFile() {
 
     ImGui::Separator();
 
-    if (ImGui::MenuItem("Exit", "Alt+F4")) {
-      Window::Close();
+    if (ImGui::MenuItem("关闭项目")) {
+      // 关闭当前项目
+      RenderCore::SetCurrentProject(nullptr);
+      s_Scenes.clear();
+      s_CurrentScene = nullptr;
+      s_ActiveSceneIndex = -1;
+      s_SelectedNode = nullptr;
+      s_CurrentPath = "";
+      s_SelectedFile = "";
+      LOG_I("Project closed");
     }
 
     ImGui::EndMenu();
@@ -224,22 +234,21 @@ void EditorGUI::MenuCreate() {
   auto project = RenderCore::GetCurrentProject();
   bool hasProject = (project != nullptr);
 
-  if (ImGui::BeginMenu("Create")) {
+  if (ImGui::BeginMenu("创建")) {
     // 场景
-    if (ImGui::MenuItem("Scene", nullptr, false, hasProject)) {
+    if (ImGui::MenuItem("场景", nullptr, false, hasProject)) {
       CreateScene();
     }
 
     // 空物体
-    if (ImGui::MenuItem("Empty Node", nullptr, false,
-                        s_CurrentScene != nullptr)) {
+    if (ImGui::MenuItem("空物体", nullptr, false, s_CurrentScene != nullptr)) {
       CreateEmptyNode();
     }
 
     ImGui::Separator();
 
     // 3D Objects
-    if (ImGui::BeginMenu("3D Object", s_CurrentScene != nullptr)) {
+    if (ImGui::BeginMenu("3D物体", s_CurrentScene != nullptr)) {
       if (ImGui::MenuItem("Cube")) {
         CreateCube();
       }
@@ -253,31 +262,19 @@ void EditorGUI::MenuCreate() {
     }
 
     // Lights
-    if (ImGui::BeginMenu("Light", s_CurrentScene != nullptr)) {
-      if (ImGui::MenuItem("Point Light")) {
+    if (ImGui::BeginMenu("光源", s_CurrentScene != nullptr)) {
+      if (ImGui::MenuItem("点光源")) {
         CreatePointLight();
       }
-      if (ImGui::MenuItem("Directional Light")) {
+      if (ImGui::MenuItem("方向光")) {
         CreateDirectionalLight();
       }
       ImGui::EndMenu();
     }
 
     // Camera
-    if (ImGui::MenuItem("Camera", nullptr, false, s_CurrentScene != nullptr)) {
+    if (ImGui::MenuItem("相机", nullptr, false, s_CurrentScene != nullptr)) {
       CreateCamera();
-    }
-
-    ImGui::EndMenu();
-  }
-}
-
-void EditorGUI::MenuDelete() {
-  if (ImGui::BeginMenu("Delete")) {
-    bool canDelete = (s_SelectedNode != nullptr && s_CurrentScene != nullptr);
-
-    if (ImGui::MenuItem("Delete Selected Node", "Delete", false, canDelete)) {
-      DeleteSelectedNode();
     }
 
     ImGui::EndMenu();
@@ -286,28 +283,35 @@ void EditorGUI::MenuDelete() {
 
 void EditorGUI::MenuDebug() {
   if (ImGui::BeginMenu("Debug")) {
+    auto &settings = RenderCore::GetPostProcessSettings();
+
     if (ImGui::MenuItem("Shaded", nullptr,
                         s_RenderMode == RenderMode::Shaded)) {
       s_RenderMode = RenderMode::Shaded;
+      settings.debugMode = 0;
       LOG_I("Render mode: Shaded");
     }
     if (ImGui::MenuItem("Wireframe", nullptr,
                         s_RenderMode == RenderMode::Wireframe)) {
       s_RenderMode = RenderMode::Wireframe;
+      settings.debugMode = 1;
       LOG_I("Render mode: Wireframe");
     }
     if (ImGui::MenuItem("Albedo", nullptr,
                         s_RenderMode == RenderMode::Albedo)) {
       s_RenderMode = RenderMode::Albedo;
+      settings.debugMode = 2;
       LOG_I("Render mode: Albedo");
     }
     if (ImGui::MenuItem("Normal", nullptr,
                         s_RenderMode == RenderMode::Normal)) {
       s_RenderMode = RenderMode::Normal;
+      settings.debugMode = 3;
       LOG_I("Render mode: Normal");
     }
     if (ImGui::MenuItem("Depth", nullptr, s_RenderMode == RenderMode::Depth)) {
       s_RenderMode = RenderMode::Depth;
+      settings.debugMode = 4;
       LOG_I("Render mode: Depth");
     }
 
@@ -316,11 +320,11 @@ void EditorGUI::MenuDebug() {
 }
 
 void EditorGUI::RenderSceneHierarchy() {
-  ImGui::Begin("Scene Hierarchy");
+  ImGui::Begin("场景层级");
 
   auto project = RenderCore::GetCurrentProject();
   if (!project) {
-    ImGui::TextDisabled("No project loaded");
+    ImGui::TextDisabled("无项目加载");
     ImGui::End();
     return;
   }
@@ -354,6 +358,38 @@ void EditorGUI::RenderSceneHierarchy() {
         s_SelectedNode = nullptr;
       }
 
+      // Right-click context menu for scenes
+      if (ImGui::BeginPopupContextItem(
+              ("SceneContext##" + std::to_string(i)).c_str())) {
+        if (ImGui::MenuItem("删除场景")) {
+          // Delete the scene
+          std::string sceneName = scene->GetName();
+          s_Scenes.erase(s_Scenes.begin() + i);
+
+          // Update active scene index
+          if (s_ActiveSceneIndex == static_cast<int>(i)) {
+            // If we deleted the active scene, select another one
+            if (!s_Scenes.empty()) {
+              s_ActiveSceneIndex = min(s_ActiveSceneIndex,
+                                       static_cast<int>(s_Scenes.size()) - 1);
+              s_CurrentScene = s_Scenes[s_ActiveSceneIndex];
+            } else {
+              s_ActiveSceneIndex = -1;
+              s_CurrentScene = nullptr;
+            }
+            s_SelectedNode = nullptr;
+          } else if (s_ActiveSceneIndex > static_cast<int>(i)) {
+            // Adjust index if we deleted a scene before the active one
+            s_ActiveSceneIndex--;
+          }
+
+          LOG_I("Deleted scene: {}", sceneName);
+          ImGui::EndPopup();
+          break; // Exit the loop since we modified the vector
+        }
+        ImGui::EndPopup();
+      }
+
       if (sceneOpen) {
         // Show scene's nodes
         Node *rootNode = scene->GetRootNode();
@@ -368,19 +404,21 @@ void EditorGUI::RenderSceneHierarchy() {
 
     // Show message if no scenes
     if (s_Scenes.empty()) {
-      ImGui::TextDisabled("No scenes - Create one in Create menu");
+      ImGui::TextDisabled("无场景 - 在创建菜单中创建一个");
     }
 
     ImGui::TreePop();
   }
 
-  // Right-click context menu
-  if (ImGui::BeginPopupContextWindow("SceneHierarchyContext")) {
-    if (ImGui::MenuItem("Create Scene")) {
+  // Right-click context menu on empty space
+  if (ImGui::BeginPopupContextWindow("场景层级上下文",
+                                     ImGuiPopupFlags_MouseButtonRight |
+                                         ImGuiPopupFlags_NoOpenOverItems)) {
+    if (ImGui::MenuItem("创建场景")) {
       CreateScene();
     }
     if (s_CurrentScene) {
-      if (ImGui::MenuItem("Create Empty Node")) {
+      if (ImGui::MenuItem("创建空物体")) {
         CreateEmptyNode();
       }
     }
@@ -451,11 +489,10 @@ void EditorGUI::RenderNodeTree(Node *node) {
 
   // 右键菜单
   if (ImGui::BeginPopupContextItem()) {
-    if (ImGui::MenuItem("Delete")) {
-      // TODO: 删除节点
-      LOG_I("Delete node {0}", node->GetName());
+    if (ImGui::MenuItem("删除")) {
+      DeleteSelectedNode();
     }
-    if (ImGui::MenuItem("Duplicate")) {
+    if (ImGui::MenuItem("复制")) {
       // TODO: 复制节点
       LOG_I("Duplicate node {0}", node->GetName());
     }
@@ -472,10 +509,10 @@ void EditorGUI::RenderNodeTree(Node *node) {
 }
 
 void EditorGUI::RenderInspector() {
-  ImGui::Begin("Inspector");
+  ImGui::Begin("详细信息");
 
   if (!s_SelectedNode) {
-    ImGui::TextDisabled("No object selected");
+    ImGui::TextDisabled("无物体被选中");
     ImGui::End();
     return;
   }
@@ -736,12 +773,12 @@ void EditorGUI::RenderPostProcessInspector() {
  * 显示项目资产目录，支持文件浏览、拖拽导入模型、创建文件夹等操作
  */
 void EditorGUI::RenderContentBrowser() {
-  ImGui::Begin("Content Browser");
+  ImGui::Begin("资产浏览器");
 
   // 获取当前项目，如果没有项目加载则显示提示
   auto project = RenderCore::GetCurrentProject();
   if (!project) {
-    ImGui::TextDisabled("No project loaded");
+    ImGui::TextDisabled("无项目加载");
     ImGui::End();
     return;
   }
@@ -774,27 +811,27 @@ void EditorGUI::RenderContentBrowser() {
   }
 
   // 新建文件夹按钮
-  if (ImGui::Button("+ New Folder")) {
+  if (ImGui::Button("+ 新建文件夹")) {
     s_ShowNewFolderDialog = true;
     s_NewFolderName[0] = '\0';
   }
 
   // 新建文件夹弹窗逻辑
   if (s_ShowNewFolderDialog) {
-    ImGui::OpenPopup("New Folder");
+    ImGui::OpenPopup("新建文件夹");
   }
 
-  if (ImGui::BeginPopupModal("New Folder", &s_ShowNewFolderDialog,
+  if (ImGui::BeginPopupModal("新建文件夹", &s_ShowNewFolderDialog,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Enter folder name:");
+    ImGui::Text("输入文件夹名称:");
     ImGui::InputText("##foldername", s_NewFolderName, sizeof(s_NewFolderName));
 
-    if (ImGui::Button("Create", ImVec2(120, 0))) {
+    if (ImGui::Button("创建", ImVec2(120, 0))) {
       CreateFolder();
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+    if (ImGui::Button("取消", ImVec2(120, 0))) {
       s_ShowNewFolderDialog = false;
       ImGui::CloseCurrentPopup();
     }
@@ -832,7 +869,7 @@ void EditorGUI::RenderContentBrowser() {
       }
     }
   } else {
-    ImGui::TextDisabled("No file selected");
+    ImGui::TextDisabled("无文件被选中");
   }
   ImGui::EndChild();
 
@@ -908,41 +945,114 @@ void EditorGUI::RenderContentBrowser() {
           s_SelectedFile = filename;
         }
 
-        // 更加健壮的双击检测逻辑：只要鼠标悬停在该项上且发生了左键双击
-        if (ImGui::IsItemHovered() &&
-            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          std::string fullPath = entry.path().string();
-          std::string ext =
-              std::filesystem::path(fullPath).extension().string();
-          std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        // Right-click context menu for files
+        if (ImGui::BeginPopupContextItem(("文件上下文##" + filename).c_str())) {
+          std::filesystem::path filePath =
+              std::filesystem::path(s_CurrentPath) / filename;
 
-          // 仅处理支持的模型格式
-          if (ext == ".obj" || ext == ".gltf" || ext == ".glb") {
-            LOG_I("Attempting to import model: {}", filename);
-
-            neurender::ModelImporter importer;
-            auto result = importer.Import(fullPath, project->GetAssetsPath());
-
-            if (result.success) {
-              auto scene = EditorGUI::GetCurrentScene();
-              Node *parent = GetSelectedNode();
-
-              if (scene) {
-                // 将导入生成的 MeshNode 添加到场景中
-                for (auto &node : result.meshNodes) {
-                  if (parent) {
-                    parent->AddChild(std::move(node));
-                  } else {
-                    scene->AddNode(std::move(node));
-                  }
-                }
-                LOG_I("Successfully imported model: {}", filename);
-              }
-            } else {
-              LOG_E("Failed to import model: {} - Error: {}", filename,
-                    result.errorMessage);
+          if (ImGui::MenuItem("删除")) {
+            try {
+              std::filesystem::remove(filePath);
+              LOG_I("Deleted file: {}", filePath.string());
+              s_SelectedFile = "";
+            } catch (const std::exception &e) {
+              LOG_E("Failed to delete file: {}", e.what());
             }
           }
+
+          if (ImGui::MenuItem("剪切")) {
+            s_ClipboardPath = filePath.string();
+            LOG_I("Cut file: {}", filename);
+          }
+
+          if (ImGui::MenuItem("粘贴", nullptr, false,
+                              !s_ClipboardPath.empty())) {
+            try {
+              std::filesystem::path srcPath(s_ClipboardPath);
+              std::filesystem::path dstPath =
+                  std::filesystem::path(s_CurrentPath) / srcPath.filename();
+
+              // Find unique name if file already exists
+              if (std::filesystem::exists(dstPath)) {
+                std::string stem = dstPath.stem().string();
+                std::string ext = dstPath.extension().string();
+                int copyNum = 1;
+                do {
+                  std::string newName =
+                      stem + "_" + std::to_string(copyNum) + ext;
+                  dstPath = std::filesystem::path(s_CurrentPath) / newName;
+                  copyNum++;
+                } while (std::filesystem::exists(dstPath));
+              }
+
+              // Move the file (cut operation)
+              std::filesystem::rename(srcPath, dstPath);
+              LOG_I("Moved file {} to {}", srcPath.string(), dstPath.string());
+              s_ClipboardPath = ""; // Clear clipboard after paste
+            } catch (const std::exception &e) {
+              LOG_E("Failed to paste file: {}", e.what());
+            }
+          }
+
+          if (ImGui::MenuItem("创建副本")) {
+            try {
+              std::filesystem::path srcPath = filePath;
+              std::filesystem::path dstPath = filePath;
+              std::string stem = dstPath.stem().string();
+              std::string ext = dstPath.extension().string();
+              std::string newName = stem + "_copy" + ext;
+              dstPath.replace_filename(newName);
+
+              // Find unique name if copy already exists
+              int copyNum = 1;
+              while (std::filesystem::exists(dstPath)) {
+                newName = stem + "_copy" + std::to_string(copyNum) + ext;
+                dstPath.replace_filename(newName);
+                copyNum++;
+              }
+
+              std::filesystem::copy_file(srcPath, dstPath);
+              LOG_I("Created copy: {}", dstPath.string());
+            } catch (const std::exception &e) {
+              LOG_E("Failed to create copy: {}", e.what());
+            }
+          }
+
+          // 针对 .mesh 文件的特殊右键项：直接添加到当前场景
+          std::string ext = filePath.extension().string();
+          std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+          if (ext == ".mesh" && s_CurrentScene) {
+            if (ImGui::MenuItem("添加网格到场景")) {
+              try {
+                // 通过资产管理器获取该 mesh 文件的 UUID
+                UUID meshID =
+                    AssetManager::GetInstance().GetAssetGUID(filePath.string());
+
+                if (meshID.IsValid()) {
+                  // 创建一个新的 MeshNode，名称默认为文件名
+                  auto meshNode =
+                      std::make_unique<MeshNode>(filePath.stem().string());
+                  meshNode->SetMeshID(meshID);
+
+                  // 如果当前有选中的节点，作为其子节点添加；否则直接添加到场景根部
+                  Node *parent = GetSelectedNode();
+                  if (parent) {
+                    parent->AddChild(std::move(meshNode));
+                  } else {
+                    s_CurrentScene->AddNode(std::move(meshNode));
+                  }
+
+                  LOG_I("已添加网格到场景: {}", filename);
+                } else {
+                  LOG_E("该网格文件未在资产管理器中注册: {}", filename);
+                }
+              } catch (const std::exception &e) {
+                LOG_E("添加网格失败: {}", e.what());
+              }
+            }
+          }
+
+          ImGui::EndPopup();
         }
 
         // 文件作为拖拽源
@@ -956,13 +1066,13 @@ void EditorGUI::RenderContentBrowser() {
       }
 
       if (directories.empty() && files.empty()) {
-        ImGui::TextDisabled("(Empty folder)");
+        ImGui::TextDisabled("(空文件夹)");
       }
     } else {
-      ImGui::TextDisabled("Invalid path");
+      ImGui::TextDisabled("路径无效");
     }
   } catch (const std::exception &e) {
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error: %s", e.what());
+    ImGui::TextColored(ImVec4(1, 0, 0, 1), "错误: %s", e.what());
   }
 
   ImGui::EndChild();
@@ -1132,7 +1242,6 @@ void EditorGUI::CreateNewProject() {
         s_SelectedNode = nullptr;
         s_CurrentPath = "";
 
-        // 不创建默认场景 - 用户需要手动创建
         s_CurrentScene = nullptr;
         s_ActiveSceneIndex = -1;
 
@@ -1214,14 +1323,35 @@ void EditorGUI::SaveProject() {
   std::string scenesDir = project->GetProjectPath() + "/Scenes";
   std::filesystem::create_directories(scenesDir);
 
+  // 收集当前场景的文件名
+  std::set<std::string> currentSceneFiles;
+
   for (const auto &scene : s_Scenes) {
     std::string scenePath = scenesDir + "/" + scene->GetName() + ".json";
     if (scene->Save(scenePath)) {
       project->AddScene(scenePath);
+      currentSceneFiles.insert(scene->GetName() + ".json");
       LOG_I("Saved scene: {}", scenePath);
     } else {
       LOG_E("Failed to save scene: {}", scene->GetName());
     }
+  }
+
+  // 删除不再存在的场景文件
+  try {
+    if (std::filesystem::exists(scenesDir)) {
+      for (const auto &entry : std::filesystem::directory_iterator(scenesDir)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+          std::string filename = entry.path().filename().string();
+          if (currentSceneFiles.find(filename) == currentSceneFiles.end()) {
+            std::filesystem::remove(entry.path());
+            LOG_I("Deleted orphaned scene file: {}", filename);
+          }
+        }
+      }
+    }
+  } catch (const std::exception &e) {
+    LOG_E("Failed to clean up scene files: {}", e.what());
   }
 
   // 设置当前激活场景

@@ -30,9 +30,10 @@ layout(push_constant) uniform PostProcessSettings {
     uint enableToneMapping;
     uint enableGamma;
     float bloomIntensity;
+    float bloomThreshold;
     float ssaoRadius;
     float ssaoStrength;
-    float _pad;
+    uint debugMode; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth
 } settings;
 
 layout(location = 0) in vec2 fragTexCoord;
@@ -115,6 +116,41 @@ vec3 gammaCorrect(vec3 color) {
 // ===================== 主函数 =====================
 
 void main() {
+    // Debug mode visualization
+    if (settings.debugMode == 2) {
+        // Albedo mode - sample from sceneColor which contains the composition output
+        // We need to access GBuffer directly, but it's not bound here
+        // For now, just show scene color
+        vec3 color = texture(sceneColor, fragTexCoord).rgb;
+        outColor = vec4(color, 1.0);
+        return;
+    }
+    else if (settings.debugMode == 3) {
+        // Normal mode
+        vec3 normal = texture(normalBuffer, fragTexCoord).rgb;
+        // Convert from [0,1] to [-1,1] and back to [0,1] for visualization
+        normal = normal * 2.0 - 1.0;
+        normal = normalize(normal);
+        normal = normal * 0.5 + 0.5;
+        outColor = vec4(normal, 1.0);
+        return;
+    }
+    else if (settings.debugMode == 4) {
+        // Depth mode
+        float depth = texture(depthBuffer, fragTexCoord).r;
+        // Linearize depth for better visualization
+        float near = 0.1;
+        float far = 100.0;
+        float z = depth * 2.0 - 1.0;
+        float linearDepth = (2.0 * near * far) / (far + near - z * (far - near));
+        linearDepth = linearDepth / far; // Normalize to [0,1]
+        outColor = vec4(vec3(linearDepth), 1.0);
+        return;
+    }
+    
+    // Default: Shaded mode (debugMode == 0 or 1)
+    // Note: Wireframe (debugMode == 1) would need geometry shader support
+    
     // 采样场景颜色 (HDR)
     vec3 hdrColor = texture(sceneColor, fragTexCoord).rgb;
     

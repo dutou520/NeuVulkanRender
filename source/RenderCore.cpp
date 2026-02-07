@@ -933,6 +933,22 @@ void RenderCore::InitImGui() {
 
   ImGui::StyleColorsDark();
 
+  // Load Chinese font (Microsoft YaHei)
+  ImFontConfig fontConfig;
+  fontConfig.OversampleH = 2;
+  fontConfig.OversampleV = 1;
+  fontConfig.PixelSnapH = true;
+
+  // Try to load font for Chinese support
+  const char *fontPath = "resource/fonts/SourceHanSansSC-Regular.otf";
+  if (std::filesystem::exists(fontPath)) {
+    io.Fonts->AddFontFromFileTTF(fontPath, 16.0f, &fontConfig,
+                                 io.Fonts->GetGlyphRangesChineseFull());
+    LOG_I("Loaded Chinese font: Song");
+  } else {
+    LOG_W("Chinese font not found at {}, using default font", fontPath);
+  }
+
   ImGui_ImplSDL3_InitForVulkan(Window::GetNativeWindow());
 
   ImGui_ImplVulkan_InitInfo init_info = {};
@@ -2731,7 +2747,7 @@ void RenderCore::CreateForwardRenderPass() {
   depthAttachment.format = VK_FORMAT_D32_SFLOAT;
   depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
   depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; // 使用GBuffer的深度
-  depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
   depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
   depthAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -3119,9 +3135,11 @@ void RenderCore::CreatePostProcessRenderPass() {
   // 1. 等待之前的所有写入 (FB, Bloom, GBuffer etc.)
   dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
   dependencies[0].dstSubpass = 0;
-  dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                                 VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
   dependencies[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-  dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                  VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
   dependencies[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
   dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
@@ -4048,9 +4066,11 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
   MeshResource res;
   res.indexCount = indexCount;
 
-  // Vertex Buffer
-  { // Scope for vertex buffer creation variables
+  // 顶点缓冲 (Vertex Buffer) 创建
+  {
     VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+
+    // 1. 创建暂存缓冲 (Staging Buffer)，用于将数据从 CPU 传输到 GPU
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -4058,19 +4078,24 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  stagingBuffer, stagingBufferMemory);
 
+    // 2. 将顶点数据映射并拷贝到暂存缓冲
     void *data;
     vkMapMemory(m_Device, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, vertices.data(), (size_t)bufferSize);
     vkUnmapMemory(m_Device, stagingBufferMemory);
 
+    // 3. 创建最终的设备局部 (Device Local) 顶点缓冲，这是 GPU
+    // 访问速度最快的内存
     CreateBuffer(bufferSize,
                  VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, res.vertexBuffer,
                  res.vertexMemory);
 
+    // 4. 将暂存缓冲中的数据拷贝到最终的顶点缓冲
     CopyBuffer(stagingBuffer, res.vertexBuffer, bufferSize);
 
+    // 5. 释放暂存缓冲资源
     vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
     vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
   }
@@ -4147,8 +4172,8 @@ void RenderCore::CollectSceneRenderables() {
     // 材质属性设置：基础色、透明度、金属度、粗糙度等
     obj.material.albedo = glm::vec3(1.0f); // 纯白基础色
     obj.material.alpha = 1.0f;             // 不透明
-    obj.material.metallic = 0.5f;          // 中等金属感
-    obj.material.roughness = 0.5f;         // 中等粗糙度
+    obj.material.metallic = 0.0f;          // 金属
+    obj.material.roughness = 1.0f;         // 粗糙度
     obj.material.shadingId = 0.0f;         // 0.0 代表受光照（Lit）
     obj.material.emissiveIntensity = 0.0f; // 无自发光
 

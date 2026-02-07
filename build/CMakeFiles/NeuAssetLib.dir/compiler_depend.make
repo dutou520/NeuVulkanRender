@@ -273,7 +273,6 @@ CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj: D:/CppPrograms/NeuVulkan
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/syslimits.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xmmintrin.h \
-  D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp \
   neulog_export.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
@@ -281,6 +280,52 @@ CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj: D:/CppPrograms/NeuVulkan
   D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
   D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/base.h \
   D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/format.h \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/byte_container_with_subtype.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/abi_macros.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_chars.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/parser.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/internal_iterator.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iterator_traits.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/primitive_iterator.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_custom_base_class.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_pointer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_ref.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_scope.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/begin.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/end.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/cpp_future.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/detected.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/is_sax.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/type_traits.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/serializer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/common.h \
   D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/backtracer.h \
   D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/circular_q.h \
@@ -426,7 +471,6 @@ CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj: D:/CppPrograms/NeuVulkanRend
   C:/msys64/mingw64/include/c++/14.1.0/cassert \
   C:/msys64/mingw64/include/c++/14.1.0/cctype \
   C:/msys64/mingw64/include/c++/14.1.0/cerrno \
-  C:/msys64/mingw64/include/c++/14.1.0/chrono \
   C:/msys64/mingw64/include/c++/14.1.0/clocale \
   C:/msys64/mingw64/include/c++/14.1.0/cmath \
   C:/msys64/mingw64/include/c++/14.1.0/codecvt \
@@ -564,9 +608,54 @@ CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj: D:/CppPrograms/NeuVulkanRend
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/syslimits.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xmmintrin.h \
-  D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp \
   D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
-  D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h
+  D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/byte_container_with_subtype.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/abi_macros.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_chars.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/parser.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/internal_iterator.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iterator_traits.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/primitive_iterator.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_custom_base_class.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_pointer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_ref.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_scope.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/begin.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/end.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/cpp_future.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/detected.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/is_sax.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/type_traits.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/serializer.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley.hpp \
+  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp
 
 CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj: D:/CppPrograms/NeuVulkanRender/source/ModelImporter.cpp \
   C:/msys64/mingw64/include/_mingw.h \
@@ -1291,6 +1380,8 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512vnnivlintrin.h:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp:
+
 C:/msys64/mingw64/include/_timeval.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h:
@@ -1335,8 +1426,6 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/invoke.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/string_view:
 
-D:/CppPrograms/NeuVulkanRender/ThirParty/stb/stb_image_write.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/bit:
 
 C:/msys64/mingw64/include/_mingw_off_t.h:
@@ -1353,15 +1442,13 @@ C:/msys64/mingw64/include/driverspecs.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/functional_hash.h:
 
-C:/msys64/mingw64/include/assert.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/vaesintrin.h:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/exponential.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/streambuf:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_scope.hpp:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/vaesintrin.h:
+
+C:/msys64/mingw64/include/assert.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/vec4.hpp:
 
@@ -1370,6 +1457,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_double3x3_precision.
 C:/msys64/mingw64/include/c++/14.1.0/any:
 
 C:/msys64/mingw64/include/c++/14.1.0/new:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_scope.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/basic_ios.h:
 
@@ -1389,17 +1478,17 @@ C:/msys64/mingw64/include/corecrt_startup.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/backward/binders.h:
 
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/wmmintrin.h:
+
 C:/msys64/mingw64/include/c++/14.1.0/bits/exception_defines.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/charconv.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/tr1/beta_function.tcc:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/wmmintrin.h:
+C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_ref.hpp:
-
-C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h:
 
 C:/msys64/mingw64/include/handleapi.h:
 
@@ -1421,9 +1510,9 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avxintrin.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/memoryfwd.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/is_sax.hpp:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/is_sax.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h:
 
@@ -1437,13 +1526,13 @@ C:/msys64/mingw64/include/c++/14.1.0/cstdlib:
 
 C:/msys64/mingw64/include/c++/14.1.0/ios:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x2_precision.hpp:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/raointintrin.h:
 
-C:/msys64/mingw64/include/c++/14.1.0/bits/char_traits.h:
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x2_precision.hpp:
 
 D:/CppPrograms/NeuVulkanRender/include/Asset/ModelImporter.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/raointintrin.h:
+C:/msys64/mingw64/include/c++/14.1.0/bits/char_traits.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/memory_resource.h:
 
@@ -1485,9 +1574,9 @@ C:/msys64/mingw64/include/specstrings.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/exception_ptr.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iterator_traits.hpp:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iterator_traits.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets_nonio.tcc:
 
@@ -1519,9 +1608,9 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/functexcept.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/gslice.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/begin.hpp:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/begin.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/hash_bytes.h:
 
@@ -1579,10 +1668,6 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/ostream_insert.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float2x3.hpp:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/usermsrintrin.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/postypes.h:
@@ -1621,6 +1706,8 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/null_mutex.h:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp:
+
 C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_atomic.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/mutex:
@@ -1634,6 +1721,8 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h:
 C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_array.tcc:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avxneconvertintrin.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/slice_array.h:
 
@@ -1649,17 +1738,17 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/logger.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/registry.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x4_precision.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_float.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/std_function.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h:
 
-C:/msys64/mingw64/include/pshpack4.h:
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_float.hpp:
+C:/msys64/mingw64/include/pshpack4.h:
 
 neulog_export.h:
 
@@ -1705,13 +1794,13 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512vbmiintrin.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/tr1/modified_bessel_func.tcc:
 
-C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/vpclmulqdqintrin.h:
+C:/msys64/mingw64/include/c++/14.1.0/compare:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/json_reverse_iterator.hpp:
 
-C:/msys64/mingw64/include/c++/14.1.0/compare:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/vpclmulqdqintrin.h:
+
+C:/msys64/mingw64/include/c++/14.1.0/bits/stl_map.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_multimap.h:
 
@@ -1738,6 +1827,10 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool2_precision.hpp:
 C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tree.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/ext/atomicity.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_float_precision.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float4x4.hpp:
 
@@ -1793,17 +1886,19 @@ C:/msys64/mingw64/include/c++/14.1.0/random:
 
 C:/msys64/mingw64/include/c++/14.1.0/bits/valarray_array.h:
 
-C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_half.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp:
+C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_clip_space.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/cassert:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp:
+
 C:/msys64/mingw64/include/c++/14.1.0/bits/version.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_chars.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/cctype:
 
@@ -1811,9 +1906,9 @@ C:/msys64/mingw64/include/c++/14.1.0/tr1/ell_integral.tcc:
 
 C:/msys64/mingw64/include/crtdefs.h:
 
-C:/msys64/mingw64/include/c++/14.1.0/cerrno:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_matrix.inl:
+
+C:/msys64/mingw64/include/c++/14.1.0/cerrno:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
 
@@ -1841,9 +1936,9 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/cldemoteintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_double3x4.hpp:
 
-D:/CppPrograms/NeuVulkanRender/source/MetaFile.cpp:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/compute_vector_decl.hpp:
+
+D:/CppPrograms/NeuVulkanRender/source/MetaFile.cpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/condition_variable:
 
@@ -1881,9 +1976,9 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/amxbf16intrin.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/ext/alloc_traits.h:
 
-C:/msys64/mingw64/include/c++/14.1.0/ext/numeric_traits.h:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/common.hpp:
+
+C:/msys64/mingw64/include/c++/14.1.0/ext/numeric_traits.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/ext/string_conversions.h:
 
@@ -1927,9 +2022,9 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_int2_sized.hpp:
 
 C:/msys64/mingw64/include/sys/stat.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp:
-
 C:/msys64/mingw64/include/c++/14.1.0/numeric:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/optional:
 
@@ -1991,10 +2086,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_half.inl:
 
 C:/msys64/mingw64/include/c++/14.1.0/tr1/gamma.tcc:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/simd/platform.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/tbmintrin.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/tr1/hypergeometric.tcc:
 
 C:/msys64/mingw64/include/c++/14.1.0/tr1/poly_hermite.tcc:
@@ -2007,13 +2098,13 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/amxfp16intrin.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/tuple:
 
-C:/msys64/mingw64/include/pthread_signal.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xtestintrin.h:
-
 C:/msys64/mingw64/include/c++/14.1.0/typeinfo:
 
 C:/msys64/mingw64/include/memoryapi.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xtestintrin.h:
+
+C:/msys64/mingw64/include/pthread_signal.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/utility:
 
@@ -2051,9 +2142,9 @@ C:/msys64/mingw64/include/winreg.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/opt_random.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_custom_base_class.hpp:
-
 C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/time_members.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_custom_base_class.hpp:
 
 C:/msys64/mingw64/include/corecrt_stdio_config.h:
 
@@ -2063,15 +2154,19 @@ C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc:
 
 C:/msys64/mingw64/include/locale.h:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/abi_macros.hpp:
+
 C:/msys64/mingw64/include/malloc.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/primitive_iterator.hpp:
 
 C:/msys64/mingw64/include/math.h:
 
 C:/msys64/mingw64/include/process.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/parser.hpp:
-
 C:/msys64/mingw64/include/pthread.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/parser.hpp:
 
 C:/msys64/mingw64/include/systemtopologyapi.h:
 
@@ -2085,13 +2180,9 @@ C:/msys64/mingw64/include/pthread_time.h:
 
 C:/msys64/mingw64/include/bemapiset.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xopintrin.h:
-
 C:/msys64/mingw64/include/pthread_unistd.h:
 
 C:/msys64/mingw64/include/sdks/_mingw_ddk.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_vector_relational.inl:
 
 C:/msys64/mingw64/include/sec_api/stdio_s.h:
 
@@ -2117,9 +2208,9 @@ C:/msys64/mingw64/include/signal.h:
 
 C:/msys64/mingw64/include/libloaderapi.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/detected.hpp:
-
 C:/msys64/mingw64/include/stdint.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/detected.hpp:
 
 C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h:
 
@@ -2127,9 +2218,9 @@ C:/msys64/mingw64/include/pshpack1.h:
 
 C:/msys64/mingw64/include/stdio.h:
 
-C:/msys64/mingw64/include/sys/types.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/x86intrin.h:
+
+C:/msys64/mingw64/include/sys/types.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_double2_precision.hpp:
 
@@ -2149,8 +2240,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/limits.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mwaitintrin.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_vectorize.hpp:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_projection.inl:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/pmmintrin.h:
@@ -2159,7 +2248,7 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xmmintrin.h:
 
-D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp:
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp:
 
 D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h:
 
@@ -2181,7 +2270,77 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/clflushoptintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/fmt/format.h:
 
-D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h:
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/serializer.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/byte_container_with_subtype.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/gfniintrin.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp:
+
+C:/msys64/mingw64/include/ioapiset.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/clzerointrin.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/movdirintrin.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool4.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/internal_iterator.hpp:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx2intrin.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float3x3_precision.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_pointer.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mm3dnow.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/end.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/cpp_future.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/type_traits.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_uint2_sized.hpp:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsaveoptintrin.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/common.h:
 
@@ -2204,14 +2363,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h:
 D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/tweakme.h:
 
 C:/msys64/mingw64/include/apiset.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/internal_iterator.hpp:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx2intrin.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float3x3_precision.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/fstream:
 
@@ -2241,13 +2392,9 @@ C:/msys64/mingw64/include/guiddef.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/ia32intrin.h:
 
-C:/msys64/mingw64/include/ioapiset.h:
-
 C:/msys64/mingw64/include/jobapi.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mwaitxintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsavecintrin.h:
 
 C:/msys64/mingw64/include/minwindef.h:
 
@@ -2256,8 +2403,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avx512fp16intrin.h:
 C:/msys64/mingw64/include/namedpipeapi.h:
 
 C:/msys64/mingw64/include/poppack.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/setup.hpp:
 
 C:/msys64/mingw64/include/processenv.h:
 
@@ -2281,9 +2426,9 @@ C:/msys64/mingw64/include/threadpoolapiset.h:
 
 C:/msys64/mingw64/include/threadpoollegacyapiset.h:
 
-C:/msys64/mingw64/include/timezoneapi.h:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_integer.inl:
+
+C:/msys64/mingw64/include/timezoneapi.h:
 
 C:/msys64/mingw64/include/tvout.h:
 
@@ -2377,31 +2522,17 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/avxvnniint8intrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/bmiintrin.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/json_sax.hpp:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/clzerointrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/movdirintrin.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/uintrintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/fma4intrin.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/uintrintrin.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/fmaintrin.h:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/from_json.hpp:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/gfniintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/lzcntintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/wbnoinvdintrin.h:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_packing.inl:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/wbnoinvdintrin.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mm3dnow.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/lzcntintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/pconfigintrin.h:
 
@@ -2421,27 +2552,37 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/sm3intrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/smmintrin.h:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/simd/platform.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/tbmintrin.h:
+
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/tmmintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/tsxldtrkintrin.h:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/matrix_float2x3.hpp:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/usermsrintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/waitpkgintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/x86gprintrin.h:
 
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xopintrin.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsavecintrin.h:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_common.inl:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsaveintrin.h:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/binary_writer.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_uint2_sized.hpp:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsaveoptintrin.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xsavesintrin.h:
 
+D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp:
+
 D:/CppPrograms/NeuVulkanRender/ThirParty/stb/stb_image.h:
+
+D:/CppPrograms/NeuVulkanRender/ThirParty/stb/stb_image_write.h:
 
 D:/CppPrograms/NeuVulkanRender/ThirParty/tinygltf/tiny_gltf.h:
 
@@ -2453,7 +2594,11 @@ D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h:
 
+D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_fixes.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_vectorize.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_constants.inl:
 
@@ -2475,7 +2620,11 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_mat4x3.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_trigonometric.inl:
 
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/func_vector_relational.inl:
+
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/qualifier.hpp:
+
+D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/setup.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_mat2x2.hpp:
 
@@ -2575,10 +2724,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_double_precision
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_float.hpp:
 
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_float_precision.hpp:
-
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_geometric.inl:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_relational.hpp:
@@ -2600,10 +2745,6 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_uint_sized.hpp:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool2.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool3.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/position_t.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool4.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool4_precision.hpp:
 
@@ -2672,55 +2813,3 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/matrix.hpp:
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/trigonometric.hpp:
 
 D:/vcpkg/installed/x64-mingw-dynamic/include/glm/vector_relational.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/serializer.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/byte_container_with_subtype.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/abi_macros.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_chars.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/exceptions.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/output/output_adapters.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/hash.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/binary_reader.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/input_adapters.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/input/lexer.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iter_impl.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/primitive_iterator.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/json_pointer.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/call_std/end.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/cpp_future.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/type_traits.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/void_t.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_escape.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_utils.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/value_t.hpp:
-
-D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley.hpp:

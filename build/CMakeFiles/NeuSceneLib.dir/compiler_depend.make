@@ -2269,7 +2269,6 @@ CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj: D:/CppPrograms/NeuVulkanRende
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/syslimits.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/xmmintrin.h \
-  D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp \
   neulog_export.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
@@ -3916,8 +3915,6 @@ C:/msys64/mingw64/include/c++/14.1.0/thread:
 C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h:
 
 C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h:
-
-D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp:
 
 neulog_export.h:
 

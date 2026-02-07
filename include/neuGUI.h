@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Core/UUID.h"
 #include "neugui_export.h"
 #include <imgui.h>
 #include <memory>
@@ -49,7 +48,6 @@ private:
   // 菜单功能
   static void MenuFile();
   static void MenuCreate();
-  static void MenuDelete();
   static void MenuDebug();
 
   // 创建节点和场景
@@ -70,6 +68,10 @@ private:
   static std::string ShowFileDialog(bool isOpen, const char *filter);
   static void CreateFolder();
 
+  // Clipboard operations
+  static std::string GetClipboardPath() { return s_ClipboardPath; }
+  static bool HasClipboard() { return !s_ClipboardPath.empty(); }
+
   // 纵向Tab实现
   static bool VerticalTab(const char *label, bool selected, const ImVec2 &size);
 
@@ -86,9 +88,13 @@ private:
   static bool s_ShowNewFolderDialog;
   static char s_NewFolderName[256];
 
+  // Clipboard for cut/paste operations
+  static std::string s_ClipboardPath;
+
   // 渲染模式
   enum class RenderMode { Shaded, Wireframe, Albedo, Normal, Depth };
   static RenderMode s_RenderMode;
+  static RenderMode GetRenderMode() { return s_RenderMode; }
 
   // 布局初始化标志
   static bool s_DockSpaceInitialized;

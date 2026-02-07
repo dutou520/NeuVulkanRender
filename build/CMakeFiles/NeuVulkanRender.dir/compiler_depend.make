@@ -170,7 +170,6 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: D:/CppPrograms/NeuVulkanRend
   C:/msys64/mingw64/include/c++/14.1.0/iomanip \
   C:/msys64/mingw64/include/c++/14.1.0/ios \
   C:/msys64/mingw64/include/c++/14.1.0/iosfwd \
-  C:/msys64/mingw64/include/c++/14.1.0/iostream \
   C:/msys64/mingw64/include/c++/14.1.0/istream \
   C:/msys64/mingw64/include/c++/14.1.0/iterator \
   C:/msys64/mingw64/include/c++/14.1.0/limits \
@@ -1154,8 +1153,6 @@ C:/msys64/mingw64/include/c++/14.1.0/iomanip:
 C:/msys64/mingw64/include/c++/14.1.0/iosfwd:
 
 C:/msys64/mingw64/include/pthread_compat.h:
-
-C:/msys64/mingw64/include/c++/14.1.0/iostream:
 
 C:/msys64/mingw64/include/c++/14.1.0/istream:
 

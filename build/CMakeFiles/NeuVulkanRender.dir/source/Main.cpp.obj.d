@@ -577,5 +577,4 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/circular_q.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg_buffer.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h \
- C:/msys64/mingw64/include/c++/14.1.0/iostream
+ D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h
