@@ -215,6 +215,8 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
  C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/ModelImporter.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/glm.hpp \
@@ -499,6 +501,9 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/any \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+ D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/PointLightNode.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
  D:/CppPrograms/NeuVulkanRender/include/RenderCore.h \
  D:/CppPrograms/NeuVulkanRender/include/Camera.h \
@@ -525,7 +530,7 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/CppPrograms/NeuVulkanRender/include/Material.h \
  D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
  D:/CppPrograms/NeuVulkanRender/build/neurendercore_export.h \
- D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Window.h \
  D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \

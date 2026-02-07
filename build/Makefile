@@ -304,6 +304,30 @@ source/GBuffer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.s
 .PHONY : source/GBuffer.cpp.s
 
+source/LightNode.obj: source/LightNode.cpp.obj
+.PHONY : source/LightNode.obj
+
+# target to build an object file
+source/LightNode.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj
+.PHONY : source/LightNode.cpp.obj
+
+source/LightNode.i: source/LightNode.cpp.i
+.PHONY : source/LightNode.i
+
+# target to preprocess a source file
+source/LightNode.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.i
+.PHONY : source/LightNode.cpp.i
+
+source/LightNode.s: source/LightNode.cpp.s
+.PHONY : source/LightNode.s
+
+# target to generate assembly for a file
+source/LightNode.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.s
+.PHONY : source/LightNode.cpp.s
+
 source/Main.obj: source/Main.cpp.obj
 .PHONY : source/Main.obj
 
@@ -447,6 +471,30 @@ source/Object.s: source/Object.cpp.s
 source/Object.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/source/Object.cpp.s
 .PHONY : source/Object.cpp.s
+
+source/PointLightNode.obj: source/PointLightNode.cpp.obj
+.PHONY : source/PointLightNode.obj
+
+# target to build an object file
+source/PointLightNode.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.obj
+.PHONY : source/PointLightNode.cpp.obj
+
+source/PointLightNode.i: source/PointLightNode.cpp.i
+.PHONY : source/PointLightNode.i
+
+# target to preprocess a source file
+source/PointLightNode.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.i
+.PHONY : source/PointLightNode.cpp.i
+
+source/PointLightNode.s: source/PointLightNode.cpp.s
+.PHONY : source/PointLightNode.s
+
+# target to generate assembly for a file
+source/PointLightNode.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.s
+.PHONY : source/PointLightNode.cpp.s
 
 source/Project.obj: source/Project.cpp.obj
 .PHONY : source/Project.obj
@@ -690,6 +738,9 @@ help:
 	@echo ... source/GBuffer.obj
 	@echo ... source/GBuffer.i
 	@echo ... source/GBuffer.s
+	@echo ... source/LightNode.obj
+	@echo ... source/LightNode.i
+	@echo ... source/LightNode.s
 	@echo ... source/Main.obj
 	@echo ... source/Main.i
 	@echo ... source/Main.s
@@ -708,6 +759,9 @@ help:
 	@echo ... source/Object.obj
 	@echo ... source/Object.i
 	@echo ... source/Object.s
+	@echo ... source/PointLightNode.obj
+	@echo ... source/PointLightNode.i
+	@echo ... source/PointLightNode.s
 	@echo ... source/Project.obj
 	@echo ... source/Project.i
 	@echo ... source/Project.s

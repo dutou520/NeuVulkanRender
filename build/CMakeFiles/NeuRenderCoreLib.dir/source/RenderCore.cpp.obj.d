@@ -354,8 +354,7 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
- D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
- D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
  C:/msys64/mingw64/include/c++/14.1.0/iomanip \
  C:/msys64/mingw64/include/c++/14.1.0/bits/ios_base.h \
@@ -404,6 +403,8 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/numeric \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_numeric.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
+ D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
+ D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/algorithm \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
@@ -489,6 +490,49 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/any \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
+ D:/CppPrograms/NeuVulkanRender/ThirParty/nlohmann-json/json.hpp \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/PointLightNode.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/quaternion.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/quaternion.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_relational.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_relational.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_float.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_common.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_geometric.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_geometric.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_common.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_float.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_quat.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_relational.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_relational.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_quat.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_float_precision.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_double.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_double_precision.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_trigonometric.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_trigonometric.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_transform.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_transform.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/quaternion.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/epsilon.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/setup.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtc/epsilon.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_exponential.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/quaternion_exponential.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/norm.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/component_wise.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/setup.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/component_wise.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_common.hpp \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/scalar_common.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/norm.inl \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/gtx/quaternion.inl \
+ D:/CppPrograms/NeuVulkanRender/include/Renderer/SceneRenderer.h \
+ D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h \
  D:/CppPrograms/NeuVulkanRender/include/Window.h \
  D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \

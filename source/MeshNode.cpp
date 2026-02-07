@@ -1,4 +1,5 @@
 #include "Nodes/MeshNode.h"
+#include "Renderer/SceneRenderer.h"
 
 namespace neurender {
 
@@ -16,8 +17,9 @@ void MeshNode::CollectRenderables(SceneRenderer &renderer,
 
   glm::mat4 globalMatrix = parentMatrix * GetLocalMatrix();
 
-  // TODO: 将渲染数据提交给渲染器
-  // renderer.SubmitMesh(m_MeshID, m_MaterialID, globalMatrix);
+  if (m_MeshID != UUID::Invalid()) {
+    renderer.SubmitMesh(m_MeshID, m_MaterialID, globalMatrix);
+  }
 
   // 递归处理子节点
   for (auto &child : m_Children) {
@@ -68,6 +70,11 @@ std::unique_ptr<MeshNode> MeshNode::FromJson(const nlohmann::json &j) {
         node->AddChild(std::move(child));
       }
     }
+  }
+
+  // UUID
+  if (j.contains("uuid")) {
+    node->m_UUID = UUID(j["uuid"].get<std::string>());
   }
 
   node->MarkDirty();

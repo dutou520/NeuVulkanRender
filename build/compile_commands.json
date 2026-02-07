@@ -85,6 +85,18 @@
 },
 {
   "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DFMT_SHARED -DNEUASSET_STATIC_DEFINE -DNEUCORE_STATIC_DEFINE -DNEULOG_STATIC_DEFINE -DNEUSCENE_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuSceneLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuSceneLib.dir\\source\\LightNode.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\LightNode.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/LightNode.cpp",
+  "output": "CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DFMT_SHARED -DNEUASSET_STATIC_DEFINE -DNEUCORE_STATIC_DEFINE -DNEULOG_STATIC_DEFINE -DNEUSCENE_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuSceneLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuSceneLib.dir\\source\\PointLightNode.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\PointLightNode.cpp",
+  "file": "D:/CppPrograms/NeuVulkanRender/source/PointLightNode.cpp",
+  "output": "CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.obj"
+},
+{
+  "directory": "D:/CppPrograms/NeuVulkanRender/build",
   "command": "C:\\msys64\\mingw64\\bin\\g++.exe -DDEBUG -DFMT_SHARED -DNEUASSET_STATIC_DEFINE -DNEUCORE_STATIC_DEFINE -DNEUGUI_STATIC_DEFINE -DNEULOG_STATIC_DEFINE -DNEURENDERCORE_STATIC_DEFINE -DNEUSCENE_STATIC_DEFINE -DNEUWINDOW_STATIC_DEFINE -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB @CMakeFiles/NeuRenderCoreLib.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\NeuRenderCoreLib.dir\\source\\RenderCore.cpp.obj -c D:\\CppPrograms\\NeuVulkanRender\\source\\RenderCore.cpp",
   "file": "D:/CppPrograms/NeuVulkanRender/source/RenderCore.cpp",
   "output": "CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj"

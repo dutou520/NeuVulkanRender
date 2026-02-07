@@ -1,4 +1,6 @@
 #include "Nodes/Node.h"
+#include "Nodes/MeshNode.h"
+#include "Nodes/PointLightNode.h"
 
 namespace neurender {
 
@@ -170,10 +172,17 @@ nlohmann::json Node::ToJson() const {
 std::unique_ptr<Node> Node::FromJson(const nlohmann::json &j) {
   std::string type = j.value("type", "Node");
 
-  // 根据类型创建不同的节点 (这里暂时只处理基础 Node)
-  // 后续可以添加 MeshNode、LightNode 等
+  // 根据类型创建不同的节点
+  if (type == "MeshNode") {
+    return MeshNode::FromJson(j);
+  } else if (type == "PointLightNode") {
+    return PointLightNode::FromJson(j);
+  }
+
+  // 基础 Node逻辑
   auto node = std::make_unique<Node>();
 
+  node->m_UUID = UUID(j.value("uuid", UUID::Generate().ToString()));
   node->m_Name = j.value("name", "Node");
   node->m_IsActive = j.value("active", true);
 

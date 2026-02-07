@@ -11,6 +11,11 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+#include "Asset/MeshResource.h"
+#include "Core/UUID.h"
+#include "Project/Project.h"
+#include <unordered_map>
+
 namespace neurender {
 
 class Project;
@@ -59,7 +64,6 @@ private:
   static void CreateDescriptorSetLayouts();
   static void CreateUniformBuffers();
   static void CreateDescriptorSets();
-  static void CreateTestGeometry();
   static void UpdateUniformBuffer(uint32_t currentImage);
   static void CreateSampler();
 
@@ -91,6 +95,15 @@ private:
                          VkDeviceSize size);
 
   // Vulkan Members
+
+  // ============================== Mesh Resource Cache
+  // ==============================
+  static std::unordered_map<UUID, MeshResource> m_MeshCache;
+  static bool LoadMeshResource(const UUID &meshID);
+
+  // 场景渲染收集
+  static void CollectSceneRenderables();
+  static void CollectSceneLights();
 
   // ============================== Vulkan 实例与调试相关
   // ============================== Vulkan 实例：是 Vulkan API 的入口点，所有
@@ -227,10 +240,15 @@ private:
   static std::vector<VkDeviceMemory> m_UniformBuffersMemory;
   static std::vector<void *> m_UniformBuffersMapped;
 
-  // 光照 Uniform Buffers
+  // 光照 Uniform Buffers (方向光)
   static std::vector<VkBuffer> m_LightUniformBuffers;
   static std::vector<VkDeviceMemory> m_LightUniformBuffersMemory;
   static std::vector<void *> m_LightUniformBuffersMapped;
+
+  // 点光源 Uniform Buffers
+  static std::vector<VkBuffer> m_PointLightUniformBuffers;
+  static std::vector<VkDeviceMemory> m_PointLightUniformBuffersMemory;
+  static std::vector<void *> m_PointLightUniformBuffersMapped;
 
   // 测试几何体 (立方体)
   static VkBuffer m_VertexBuffer;

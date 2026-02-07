@@ -3,7 +3,6 @@
 #include <json.hpp>
 #include <string>
 
-
 namespace neurender {
 
 /**
@@ -21,11 +20,12 @@ struct MetaFile {
   static MetaFile FromJson(const nlohmann::json &j);
 
   // 文件操作
-  bool Save(const std::string &metaPath) const;
-  static MetaFile Load(const std::string &metaPath);
+  bool Save(const std::filesystem::path &metaPath) const;
+  static MetaFile Load(const std::filesystem::path &metaPath);
 
   // 生成 meta 文件路径
-  static std::string GetMetaPath(const std::string &assetPath);
+  static std::filesystem::path
+  GetMetaPath(const std::filesystem::path &assetPath);
 };
 
 } // namespace neurender

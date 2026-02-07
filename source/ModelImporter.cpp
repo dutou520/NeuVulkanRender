@@ -173,7 +173,8 @@ ImportResult ModelImporter::ImportGLTF(const std::string &filePath,
       matJson["normalTextureIndex"] = mat.normalTexture.index;
     }
 
-    std::ofstream matFile(matPath);
+    std::filesystem::path matPathObj(matPath);
+    std::ofstream matFile(matPathObj);
     matFile << matJson.dump(2);
     matFile.close();
 
@@ -469,7 +470,8 @@ ImportResult ModelImporter::ImportOBJ(const std::string &filePath,
     }
 
     // 保存网格数据
-    std::ofstream meshFile(meshPath, std::ios::binary);
+    std::filesystem::path meshPathObj(meshPath);
+    std::ofstream meshFile(meshPathObj, std::ios::binary);
 
     uint32_t vertexCount = static_cast<uint32_t>(positions.size() / 3);
     meshFile.write(reinterpret_cast<const char *>(&vertexCount),

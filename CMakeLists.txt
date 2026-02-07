@@ -111,12 +111,14 @@ target_link_libraries(NeuAssetLib PUBLIC
 )
 # Note: NeuAssetLib and NeuSceneLib have circular dependency due to ModelImporter::ImportToScene
 
-# NeuSceneLib (Scene, Project, Node, MeshNode)
+# NeuSceneLib (Scene, Project, Node, MeshNode, LightNode, PointLightNode)
 add_library(NeuSceneLib STATIC 
     source/Scene.cpp 
     source/Project.cpp 
     source/Node.cpp
     source/MeshNode.cpp
+    source/LightNode.cpp
+    source/PointLightNode.cpp
 )
 generate_export_header(NeuSceneLib EXPORT_MACRO_NAME NEUSCENE_API BASE_NAME NeuScene)
 target_compile_definitions(NeuSceneLib PUBLIC NEUSCENE_STATIC_DEFINE)

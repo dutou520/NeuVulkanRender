@@ -54,12 +54,13 @@ std::shared_ptr<Project> Project::Create(const std::string &projectPath,
  * @return 返回加载的项目实例的智能指针，失败则返回 nullptr
  */
 std::shared_ptr<Project> Project::Load(const std::string &projectPath) {
-  std::string projectFile = projectPath + "/project.json";
+  std::filesystem::path projectPathObj(projectPath);
+  std::filesystem::path projectFile = projectPathObj / "project.json";
 
   // 打开 project.json 文件
   std::ifstream file(projectFile);
   if (!file.is_open()) {
-    LOG_E("Failed to open project file: {}", projectFile);
+    LOG_E("Failed to open project file: {}", projectFile.string());
     return nullptr;
   }
 
@@ -89,11 +90,12 @@ std::shared_ptr<Project> Project::Load(const std::string &projectPath) {
  * @return 保存成功返回 true，否则返回 false
  */
 bool Project::Save() const {
-  std::string projectFile = m_ProjectPath + "/project.json";
+  std::filesystem::path projectFile =
+      std::filesystem::path(m_ProjectPath) / "project.json";
 
   std::ofstream file(projectFile);
   if (!file.is_open()) {
-    LOG_E("Failed to save project file: {}", projectFile);
+    LOG_E("Failed to save project file: {}", projectFile.string());
     return false;
   }
 

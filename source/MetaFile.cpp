@@ -2,7 +2,6 @@
 #include <chrono>
 #include <fstream>
 
-
 namespace neurender {
 
 nlohmann::json MetaFile::ToJson() const {
@@ -23,7 +22,7 @@ MetaFile MetaFile::FromJson(const nlohmann::json &j) {
   return meta;
 }
 
-bool MetaFile::Save(const std::string &metaPath) const {
+bool MetaFile::Save(const std::filesystem::path &metaPath) const {
   std::ofstream file(metaPath);
   if (!file.is_open()) {
     return false;
@@ -32,7 +31,7 @@ bool MetaFile::Save(const std::string &metaPath) const {
   return true;
 }
 
-MetaFile MetaFile::Load(const std::string &metaPath) {
+MetaFile MetaFile::Load(const std::filesystem::path &metaPath) {
   std::ifstream file(metaPath);
   if (!file.is_open()) {
     return MetaFile{};
@@ -47,8 +46,9 @@ MetaFile MetaFile::Load(const std::string &metaPath) {
   }
 }
 
-std::string MetaFile::GetMetaPath(const std::string &assetPath) {
-  return assetPath + ".meta";
+std::filesystem::path
+MetaFile::GetMetaPath(const std::filesystem::path &assetPath) {
+  return assetPath.string() + ".meta";
 }
 
 } // namespace neurender

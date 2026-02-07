@@ -1,5 +1,9 @@
 #include "RenderCore.h"
+#include "Asset/AssetManager.h"
+#include "Nodes/PointLightNode.h"
 #include "Project/Project.h"
+#include "Renderer/SceneRenderer.h"
+#include "Scene/Scene.h"
 #include "Window.h"
 #include "neuGUI.h"
 #include "neuLog.h"
@@ -20,6 +24,7 @@
 namespace neurender {
 
 // ========== 原有静态成员定义 ==========
+std::unordered_map<UUID, MeshResource> RenderCore::m_MeshCache;
 VkInstance RenderCore::m_Instance = VK_NULL_HANDLE;
 VkPhysicalDevice RenderCore::m_PhysicalDevice = VK_NULL_HANDLE;
 VkDevice RenderCore::m_Device = VK_NULL_HANDLE;
@@ -71,6 +76,11 @@ std::vector<void *> RenderCore::m_UniformBuffersMapped;
 std::vector<VkBuffer> RenderCore::m_LightUniformBuffers;
 std::vector<VkDeviceMemory> RenderCore::m_LightUniformBuffersMemory;
 std::vector<void *> RenderCore::m_LightUniformBuffersMapped;
+
+// 点光源 Uniform Buffers
+std::vector<VkBuffer> RenderCore::m_PointLightUniformBuffers;
+std::vector<VkDeviceMemory> RenderCore::m_PointLightUniformBuffersMemory;
+std::vector<void *> RenderCore::m_PointLightUniformBuffersMapped;
 
 VkBuffer RenderCore::m_VertexBuffer = VK_NULL_HANDLE;
 VkDeviceMemory RenderCore::m_VertexBufferMemory = VK_NULL_HANDLE;
@@ -241,7 +251,6 @@ void RenderCore::Init() {
   CreateDescriptorSetLayouts();  // 创建描述符集布局
   CreateGeometryPipeline();      // 创建几何管线
   CreateCompositionPipeline();   // 创建合成管线
-  CreateTestGeometry();          // 创建测试几何体 (立方体)
   CreateDescriptorSets();        // 创建描述符集
 
   // ========== 前向渲染初始化 ==========
@@ -396,6 +405,10 @@ void RenderCore::Shutdown() {
   for (size_t i = 0; i < m_LightUniformBuffers.size(); i++) {
     vkDestroyBuffer(m_Device, m_LightUniformBuffers[i], nullptr);
     vkFreeMemory(m_Device, m_LightUniformBuffersMemory[i], nullptr);
+  }
+  for (size_t i = 0; i < m_PointLightUniformBuffers.size(); i++) {
+    vkDestroyBuffer(m_Device, m_PointLightUniformBuffers[i], nullptr);
+    vkFreeMemory(m_Device, m_PointLightUniformBuffersMemory[i], nullptr);
   }
   for (size_t i = 0; i < m_CameraUniformBuffers.size(); i++) {
     vkDestroyBuffer(m_Device, m_CameraUniformBuffers[i], nullptr);
@@ -1385,6 +1398,10 @@ void RenderCore::DrawFrame() {
   // Update uniform buffers (MVP matrices and light data)
   UpdateUniformBuffer(m_CurrentFrame);
 
+  // Dynamic Scene Rendering: Collect objects from scene
+  CollectSceneRenderables();
+
+  // Record command buffer (Standard Vulkan draw calls)
   RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
 
   VkSubmitInfo submitInfo{};
@@ -1874,18 +1891,28 @@ void RenderCore::CreateDescriptorSetLayouts() {
         "Failed to create post-process descriptor set layout!");
   }
 
-  // Composition pass: Light data UBO
-  VkDescriptorSetLayoutBinding lightBinding{};
-  lightBinding.binding = 0;
-  lightBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  lightBinding.descriptorCount = 1;
-  lightBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  lightBinding.pImmutableSamplers = nullptr;
+  // Composition pass: Light data UBO (binding 0: directional, binding 1: point
+  // lights)
+  std::array<VkDescriptorSetLayoutBinding, 2> lightBindings{};
+
+  // Binding 0: Directional light
+  lightBindings[0].binding = 0;
+  lightBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightBindings[0].descriptorCount = 1;
+  lightBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  lightBindings[0].pImmutableSamplers = nullptr;
+
+  // Binding 1: Point lights array
+  lightBindings[1].binding = 1;
+  lightBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightBindings[1].descriptorCount = 1;
+  lightBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  lightBindings[1].pImmutableSamplers = nullptr;
 
   VkDescriptorSetLayoutCreateInfo lightLayoutInfo{};
   lightLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  lightLayoutInfo.bindingCount = 1;
-  lightLayoutInfo.pBindings = &lightBinding;
+  lightLayoutInfo.bindingCount = static_cast<uint32_t>(lightBindings.size());
+  lightLayoutInfo.pBindings = lightBindings.data();
 
   if (vkCreateDescriptorSetLayout(m_Device, &lightLayoutInfo, nullptr,
                                   &m_CompositionLightDescriptorSetLayout) !=
@@ -2203,190 +2230,6 @@ void RenderCore::CreateCompositionPipeline() {
   LOG_I("Composition pipeline created successfully");
 }
 
-void RenderCore::CreateTestGeometry() {
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
-
-  // 检查是否使用自定义几何体数据
-  if (m_UseCustomGeometry && !m_CustomVertices.empty() &&
-      !m_CustomIndices.empty()) {
-    vertices = m_CustomVertices;
-    indices = m_CustomIndices;
-    LOG_I("Using custom geometry: {} vertices, {} indices", vertices.size(),
-          indices.size());
-  } else {
-    // 使用默认的立方体几何体
-    vertices = {
-        // Front face (Z+)
-        {{-0.5f, -0.5f, 0.5f},
-         {0.0f, 0.0f, 1.0f},
-         {0.0f, 0.0f},
-         {1.0f, 0.0f, 0.0f, 1.0f}},
-        {{0.5f, -0.5f, 0.5f},
-         {0.0f, 0.0f, 1.0f},
-         {1.0f, 0.0f},
-         {0.0f, 1.0f, 0.0f, 1.0f}},
-        {{0.5f, 0.5f, 0.5f},
-         {0.0f, 0.0f, 1.0f},
-         {1.0f, 1.0f},
-         {0.0f, 0.0f, 1.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.5f},
-         {0.0f, 0.0f, 1.0f},
-         {0.0f, 1.0f},
-         {1.0f, 1.0f, 0.0f, 1.0f}},
-        // Back face (Z-)
-        {{0.5f, -0.5f, -0.5f},
-         {0.0f, 0.0f, -1.0f},
-         {0.0f, 0.0f},
-         {1.0f, 0.0f, 1.0f, 1.0f}},
-        {{-0.5f, -0.5f, -0.5f},
-         {0.0f, 0.0f, -1.0f},
-         {1.0f, 0.0f},
-         {0.0f, 1.0f, 1.0f, 1.0f}},
-        {{-0.5f, 0.5f, -0.5f},
-         {0.0f, 0.0f, -1.0f},
-         {1.0f, 1.0f},
-         {0.5f, 0.5f, 0.5f, 1.0f}},
-        {{0.5f, 0.5f, -0.5f},
-         {0.0f, 0.0f, -1.0f},
-         {0.0f, 1.0f},
-         {1.0f, 0.5f, 0.0f, 1.0f}},
-        // Top face (Y+)
-        {{-0.5f, 0.5f, 0.5f},
-         {0.0f, 1.0f, 0.0f},
-         {0.0f, 0.0f},
-         {0.8f, 0.8f, 0.8f, 1.0f}},
-        {{0.5f, 0.5f, 0.5f},
-         {0.0f, 1.0f, 0.0f},
-         {1.0f, 0.0f},
-         {0.8f, 0.8f, 0.8f, 1.0f}},
-        {{0.5f, 0.5f, -0.5f},
-         {0.0f, 1.0f, 0.0f},
-         {1.0f, 1.0f},
-         {0.8f, 0.8f, 0.8f, 1.0f}},
-        {{-0.5f, 0.5f, -0.5f},
-         {0.0f, 1.0f, 0.0f},
-         {0.0f, 1.0f},
-         {0.8f, 0.8f, 0.8f, 1.0f}},
-        // Bottom face (Y-)
-        {{-0.5f, -0.5f, -0.5f},
-         {0.0f, -1.0f, 0.0f},
-         {0.0f, 0.0f},
-         {0.3f, 0.3f, 0.3f, 1.0f}},
-        {{0.5f, -0.5f, -0.5f},
-         {0.0f, -1.0f, 0.0f},
-         {1.0f, 0.0f},
-         {0.3f, 0.3f, 0.3f, 1.0f}},
-        {{0.5f, -0.5f, 0.5f},
-         {0.0f, -1.0f, 0.0f},
-         {1.0f, 1.0f},
-         {0.3f, 0.3f, 0.3f, 1.0f}},
-        {{-0.5f, -0.5f, 0.5f},
-         {0.0f, -1.0f, 0.0f},
-         {0.0f, 1.0f},
-         {0.3f, 0.3f, 0.3f, 1.0f}},
-        // Right face (X+)
-        {{0.5f, -0.5f, 0.5f},
-         {1.0f, 0.0f, 0.0f},
-         {0.0f, 0.0f},
-         {0.9f, 0.2f, 0.2f, 1.0f}},
-        {{0.5f, -0.5f, -0.5f},
-         {1.0f, 0.0f, 0.0f},
-         {1.0f, 0.0f},
-         {0.9f, 0.2f, 0.2f, 1.0f}},
-        {{0.5f, 0.5f, -0.5f},
-         {1.0f, 0.0f, 0.0f},
-         {1.0f, 1.0f},
-         {0.9f, 0.2f, 0.2f, 1.0f}},
-        {{0.5f, 0.5f, 0.5f},
-         {1.0f, 0.0f, 0.0f},
-         {0.0f, 1.0f},
-         {0.9f, 0.2f, 0.2f, 1.0f}},
-        // Left face (X-)
-        {{-0.5f, -0.5f, -0.5f},
-         {-1.0f, 0.0f, 0.0f},
-         {0.0f, 0.0f},
-         {0.2f, 0.2f, 0.9f, 1.0f}},
-        {{-0.5f, -0.5f, 0.5f},
-         {-1.0f, 0.0f, 0.0f},
-         {1.0f, 0.0f},
-         {0.2f, 0.2f, 0.9f, 1.0f}},
-        {{-0.5f, 0.5f, 0.5f},
-         {-1.0f, 0.0f, 0.0f},
-         {1.0f, 1.0f},
-         {0.2f, 0.2f, 0.9f, 1.0f}},
-        {{-0.5f, 0.5f, -0.5f},
-         {-1.0f, 0.0f, 0.0f},
-         {0.0f, 1.0f},
-         {0.2f, 0.2f, 0.9f, 1.0f}},
-    };
-
-    indices = {
-        0,  1,  2,  2,  3,  0,  // Front
-        4,  5,  6,  6,  7,  4,  // Back
-        8,  9,  10, 10, 11, 8,  // Top
-        12, 13, 14, 14, 15, 12, // Bottom
-        16, 17, 18, 18, 19, 16, // Right
-        20, 21, 22, 22, 23, 20  // Left
-    };
-
-    LOG_I("Using default cube geometry");
-  }
-
-  m_IndexCount = static_cast<uint32_t>(indices.size());
-
-  // Create vertex buffer
-  VkDeviceSize vertexBufferSize = sizeof(vertices[0]) * vertices.size();
-
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  CreateBuffer(vertexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
-
-  void *data;
-  vkMapMemory(m_Device, stagingBufferMemory, 0, vertexBufferSize, 0, &data);
-  memcpy(data, vertices.data(), (size_t)vertexBufferSize);
-  vkUnmapMemory(m_Device, stagingBufferMemory);
-
-  CreateBuffer(vertexBufferSize,
-               VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                   VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_VertexBuffer,
-               m_VertexBufferMemory);
-
-  CopyBuffer(stagingBuffer, m_VertexBuffer, vertexBufferSize);
-
-  vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
-  vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
-
-  // Create index buffer
-  VkDeviceSize indexBufferSize = sizeof(indices[0]) * indices.size();
-
-  CreateBuffer(indexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-               stagingBuffer, stagingBufferMemory);
-
-  vkMapMemory(m_Device, stagingBufferMemory, 0, indexBufferSize, 0, &data);
-  memcpy(data, indices.data(), (size_t)indexBufferSize);
-  vkUnmapMemory(m_Device, stagingBufferMemory);
-
-  CreateBuffer(
-      indexBufferSize,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_IndexBuffer, m_IndexBufferMemory);
-
-  CopyBuffer(stagingBuffer, m_IndexBuffer, indexBufferSize);
-
-  vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
-  vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
-
-  LOG_I("Geometry created: {} vertices, {} indices ({} triangles)",
-        vertices.size(), m_IndexCount, m_IndexCount / 3);
-}
-
 void RenderCore::CreateSampler() {
   VkSamplerCreateInfo samplerInfo{};
   samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -2441,6 +2284,24 @@ void RenderCore::CreateUniformBuffers() {
 
     vkMapMemory(m_Device, m_LightUniformBuffersMemory[i], 0, lightBufferSize, 0,
                 &m_LightUniformBuffersMapped[i]);
+  }
+
+  // Create point light uniform buffers
+  VkDeviceSize pointLightBufferSize = sizeof(PointLightsUBO);
+
+  m_PointLightUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  m_PointLightUniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  m_PointLightUniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    CreateBuffer(pointLightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 m_PointLightUniformBuffers[i],
+                 m_PointLightUniformBuffersMemory[i]);
+
+    vkMapMemory(m_Device, m_PointLightUniformBuffersMemory[i], 0,
+                pointLightBufferSize, 0, &m_PointLightUniformBuffersMapped[i]);
   }
 
   // Create Camera Uniform Buffers (for PostProcess)
@@ -2574,21 +2435,41 @@ void RenderCore::CreateDescriptorSets() {
 
   // Update composition light descriptor sets
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    // Directional light buffer info (binding 0)
     VkDescriptorBufferInfo lightBufferInfo{};
     lightBufferInfo.buffer = m_LightUniformBuffers[i];
     lightBufferInfo.offset = 0;
     lightBufferInfo.range = sizeof(LightDataUBO);
 
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_CompositionLightDescriptorSets[i];
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &lightBufferInfo;
+    // Point lights buffer info (binding 1)
+    VkDescriptorBufferInfo pointLightBufferInfo{};
+    pointLightBufferInfo.buffer = m_PointLightUniformBuffers[i];
+    pointLightBufferInfo.offset = 0;
+    pointLightBufferInfo.range = sizeof(PointLightsUBO);
 
-    vkUpdateDescriptorSets(m_Device, 1, &descriptorWrite, 0, nullptr);
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+
+    // Binding 0: Directional light
+    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[0].dstSet = m_CompositionLightDescriptorSets[i];
+    descriptorWrites[0].dstBinding = 0;
+    descriptorWrites[0].dstArrayElement = 0;
+    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pBufferInfo = &lightBufferInfo;
+
+    // Binding 1: Point lights
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = m_CompositionLightDescriptorSets[i];
+    descriptorWrites[1].dstBinding = 1;
+    descriptorWrites[1].dstArrayElement = 0;
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pBufferInfo = &pointLightBufferInfo;
+
+    vkUpdateDescriptorSets(m_Device,
+                           static_cast<uint32_t>(descriptorWrites.size()),
+                           descriptorWrites.data(), 0, nullptr);
   }
 
   LOG_I("Descriptor sets created successfully");
@@ -2691,7 +2572,7 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
 
   memcpy(m_UniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 
-  // Update light data
+  // Update light data (directional)
   LightDataUBO lightData{};
   lightData.lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
   lightData.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -2699,6 +2580,36 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
 
   memcpy(m_LightUniformBuffersMapped[currentImage], &lightData,
          sizeof(lightData));
+
+  // Update point lights data by traversing scene
+  PointLightsUBO pointLightsData{};
+  pointLightsData.count = 0;
+
+  // Get current scene from EditorGUI
+  auto currentScene = EditorGUI::GetCurrentScene();
+  if (currentScene) {
+    currentScene->TraverseNodes([&pointLightsData](Node *node) {
+      // Check if this is an active PointLightNode
+      if (node->IsActive() && node->GetNodeType() == "PointLightNode") {
+        auto *pointLight = static_cast<PointLightNode *>(node);
+
+        if (pointLightsData.count < MAX_POINT_LIGHTS) {
+          uint32_t idx = pointLightsData.count;
+
+          // Use position from the node (local for now, world transform TODO)
+          pointLightsData.lights[idx].position = pointLight->GetPosition();
+          pointLightsData.lights[idx].radius = pointLight->GetRadius();
+          pointLightsData.lights[idx].color = pointLight->GetColor();
+          pointLightsData.lights[idx].intensity = pointLight->GetIntensity();
+
+          pointLightsData.count++;
+        }
+      }
+    });
+  }
+
+  memcpy(m_PointLightUniformBuffersMapped[currentImage], &pointLightsData,
+         sizeof(pointLightsData));
 
   // Update Camera UBO (PostProcess)
   struct CameraDataUBO {
@@ -4053,6 +3964,197 @@ bool RenderCore::LoadModelFromFile(const std::string &path,
   LOG_I("Loaded model from {}: {} vertices, {} indices", path,
         outVertices.size(), outIndices.size());
   return true;
+}
+
+// ========== Mesh资源加载与场景收集 ==========
+
+bool RenderCore::LoadMeshResource(const UUID &meshID) {
+  if (m_MeshCache.find(meshID) != m_MeshCache.end()) {
+    return true;
+  }
+
+  std::string path = AssetManager::GetInstance().GetAssetPath(meshID);
+  if (path.empty()) {
+    LOG_W("Mesh resource path not found for UUID: {}", meshID.ToString());
+    return false;
+  }
+
+  std::filesystem::path meshPath(path);
+  std::ifstream file(meshPath, std::ios::binary);
+  if (!file.is_open()) {
+    LOG_E("Failed to open mesh file: {}", path);
+    return false;
+  }
+
+  // 读取头部信息
+  uint32_t vertexCount = 0;
+  uint32_t indexCount = 0;
+  file.read(reinterpret_cast<char *>(&vertexCount), sizeof(uint32_t));
+  file.read(reinterpret_cast<char *>(&indexCount), sizeof(uint32_t));
+
+  if (vertexCount == 0 || indexCount == 0) {
+    LOG_E("Empty mesh data in file: {}", path);
+    return false;
+  }
+
+  std::vector<float> positions(vertexCount * 3);
+  file.read(reinterpret_cast<char *>(positions.data()),
+            positions.size() * sizeof(float));
+
+  bool hasNormals = false;
+  file.read(reinterpret_cast<char *>(&hasNormals), sizeof(bool));
+  std::vector<float> normals;
+  if (hasNormals) {
+    normals.resize(vertexCount * 3);
+    file.read(reinterpret_cast<char *>(normals.data()),
+              normals.size() * sizeof(float));
+  }
+
+  bool hasTexcoords = false;
+  file.read(reinterpret_cast<char *>(&hasTexcoords), sizeof(bool));
+  std::vector<float> texcoords;
+  if (hasTexcoords) {
+    texcoords.resize(vertexCount * 2);
+    file.read(reinterpret_cast<char *>(texcoords.data()),
+              texcoords.size() * sizeof(float));
+  }
+
+  std::vector<uint32_t> indices(indexCount);
+  file.read(reinterpret_cast<char *>(indices.data()),
+            indices.size() * sizeof(uint32_t));
+
+  // 构建 Vertex 数组
+  std::vector<Vertex> vertices(vertexCount);
+  for (uint32_t i = 0; i < vertexCount; i++) {
+    vertices[i].position = glm::vec3(positions[i * 3 + 0], positions[i * 3 + 1],
+                                     positions[i * 3 + 2]);
+
+    if (hasNormals) {
+      vertices[i].normal =
+          glm::vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]);
+    } else {
+      vertices[i].normal = glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+
+    if (hasTexcoords) {
+      vertices[i].texCoord =
+          glm::vec2(texcoords[i * 2 + 0], texcoords[i * 2 + 1]);
+    } else {
+      vertices[i].texCoord = glm::vec2(0.0f, 0.0f);
+    }
+  }
+
+  // 创建缓冲区
+  MeshResource res;
+  res.indexCount = indexCount;
+
+  // Vertex Buffer
+  { // Scope for vertex buffer creation variables
+    VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 stagingBuffer, stagingBufferMemory);
+
+    void *data;
+    vkMapMemory(m_Device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferSize);
+    vkUnmapMemory(m_Device, stagingBufferMemory);
+
+    CreateBuffer(bufferSize,
+                 VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, res.vertexBuffer,
+                 res.vertexMemory);
+
+    CopyBuffer(stagingBuffer, res.vertexBuffer, bufferSize);
+
+    vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
+    vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
+  }
+
+  // Index Buffer
+  { // Scope for index buffer creation variables
+    VkDeviceSize bufferSize = sizeof(uint32_t) * indices.size();
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 stagingBuffer, stagingBufferMemory);
+
+    void *data;
+    vkMapMemory(m_Device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, indices.data(), (size_t)bufferSize);
+    vkUnmapMemory(m_Device, stagingBufferMemory);
+
+    CreateBuffer(
+        bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, res.indexBuffer, res.indexMemory);
+
+    CopyBuffer(stagingBuffer, res.indexBuffer, bufferSize);
+
+    vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
+    vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
+  }
+
+  res.loaded = true;
+  m_MeshCache[meshID] = res;
+  LOG_I("Loaded mesh resource: {}", path);
+  return true;
+}
+
+void RenderCore::CollectSceneRenderables() {
+  // 获取当前正在编辑的场景
+  auto scene = EditorGUI::GetCurrentScene();
+  if (!scene)
+    return;
+
+  // 清空现有的渲染对象队列，准备从场景中重新收集
+  // 注意：在正式版本中，应通过“场景脏标记”来决定是否重整，此处暂且每帧清理
+  m_RenderObjects.clear();
+
+  // 创建一个场景渲染器辅助对象，用于递归遍历场景树并收集渲染指令
+  SceneRenderer renderer;
+  if (scene->GetRootNode()) {
+    // 从根节点开始，递归调用 CollectRenderables，初始变换矩阵为单位阵
+    scene->GetRootNode()->CollectRenderables(renderer, glm::mat4(1.0f));
+  }
+
+  // 遍历收集到的所有渲染命令
+  for (const auto &cmd : renderer.GetRenderCommands()) {
+    // 确保网格资源已加载到 GPU
+    if (!LoadMeshResource(cmd.meshID)) {
+      continue;
+    }
+
+    // 从缓存中获取已加载的网格资源（包括顶点缓冲和索引缓冲）
+    const auto &meshRes = m_MeshCache[cmd.meshID];
+
+    // 构建渲染对象（RenderObject），这是渲染管线直接处理的结构
+    RenderObject obj{};
+    obj.modelMatrix = cmd.transform;         // 模型变换矩阵
+    obj.vertexBuffer = meshRes.vertexBuffer; // 顶点缓冲区句柄
+    obj.indexBuffer = meshRes.indexBuffer;   // 索引缓冲区句柄
+    obj.indexCount = meshRes.indexCount;     // 索引数量
+
+    // TODO: 未来应根据 MaterialID 从资产管理器加载实际材质
+    // 目前暂时硬编码一组默认 PBR 参数
+
+    // 材质属性设置：基础色、透明度、金属度、粗糙度等
+    obj.material.albedo = glm::vec3(1.0f); // 纯白基础色
+    obj.material.alpha = 1.0f;             // 不透明
+    obj.material.metallic = 0.5f;          // 中等金属感
+    obj.material.roughness = 0.5f;         // 中等粗糙度
+    obj.material.shadingId = 0.0f;         // 0.0 代表受光照（Lit）
+    obj.material.emissiveIntensity = 0.0f; // 无自发光
+
+    // 将组装好的渲染对象放入待渲染列表
+    m_RenderObjects.push_back(obj);
+  }
 }
 
 } // namespace neurender

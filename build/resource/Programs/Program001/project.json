@@ -1,7 +1,9 @@
 {
-  "activeScene": "D:\\CppPrograms\\NeuVulkanRender\\resource\\Programs\\Program001/Scenes/DefaultScene.json",
+  "activeScene": "D:\\CppPrograms\\NeuVulkanRender\\resource\\Programs\\Program001/Scenes/Scene.json",
   "assetsPath": "Assets",
   "name": "NewProject",
-  "scenes": [],
-  "uuid": "298f49a292b61e43"
+  "scenes": [
+    "D:\\CppPrograms\\NeuVulkanRender\\resource\\Programs\\Program001/Scenes/Scene.json"
+  ],
+  "uuid": "5304ed23763f09f0"
 }

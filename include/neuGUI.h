@@ -11,6 +11,7 @@ namespace neurender {
 
 class Node;
 class Scene;
+class PointLightNode;
 
 /**
  * @brief EditorGUI 编辑器GUI管理器
@@ -41,8 +42,9 @@ private:
   static void RenderNodeTree(Node *node);
   static void RenderTransformEditor(Node *node);
   static void RenderMeshNodeInspector(Node *node);
-  static void RenderLightNodeInspector(Node *node);
+  static void RenderPointLightInspector(PointLightNode *light);
   static void RenderCameraNodeInspector(Node *node);
+  static void RenderPostProcessInspector();
 
   // 菜单功能
   static void MenuFile();

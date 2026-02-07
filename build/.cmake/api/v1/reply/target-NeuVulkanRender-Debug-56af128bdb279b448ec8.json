@@ -30,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 179,
+				"line" : 181,
 				"parent" : 0
 			},
 			{
@@ -42,13 +42,13 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 181,
+				"line" : 183,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 152,
+				"line" : 154,
 				"parent" : 0
 			}
 		]
@@ -168,7 +168,15 @@
 		},
 		{
 			"backtrace" : 3,
+			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "NeuAssetLib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "NeuSceneLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
@@ -176,15 +184,7 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
 			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
-			"id" : "NeuSceneLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,

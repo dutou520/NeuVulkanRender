@@ -7,7 +7,7 @@ layout(set = 0, binding = 2) uniform sampler2D gbuffer3; // Normal + Smoothness
 layout(set = 0, binding = 3) uniform sampler2D gbuffer4; // ShadingID + Emissive
 layout(set = 0, binding = 4) uniform sampler2D depthBuffer; // Depth
 
-// 光照数据
+// 方向光数据
 layout(set = 1, binding = 0) uniform LightData {
     vec3 lightDir;
     float _pad1;
@@ -17,6 +17,21 @@ layout(set = 1, binding = 0) uniform LightData {
     float _pad3;
 } light;
 
+// 点光源数据
+#define MAX_POINT_LIGHTS 128
+
+struct PointLight {
+    vec3 position;
+    float radius;
+    vec3 color;
+    float intensity;
+};
+
+layout(set = 1, binding = 1) uniform PointLightsData {
+    PointLight lights[MAX_POINT_LIGHTS];
+    uint count;
+} pointLights;
+
 // 视口信息
 layout(push_constant) uniform PushConstants {
     vec2 viewportSize;
@@ -24,6 +39,9 @@ layout(push_constant) uniform PushConstants {
 
 layout(location = 0) in vec2 fragTexCoord;
 layout(location = 0) out vec4 outColor;
+
+// ===================== 常量 =====================
+const float PI = 3.14159265359;
 
 // ===================== 辅助函数 =====================
 
@@ -68,7 +86,7 @@ float distributionGGX(vec3 N, vec3 H, float roughness) {
     float NdotH2 = NdotH * NdotH;
     
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = 3.14159265 * denom * denom;
+    denom = PI * denom * denom;
     
     return a2 / denom;
 }
@@ -86,7 +104,78 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     return ggx1 * ggx2;
 }
 
+// 点光源衰减函数
+float calculateAttenuation(float distance, float radius) {
+    // 平滑衰减: 在半径边缘衰减到0
+    float attenuation = clamp(1.0 - distance / radius, 0.0, 1.0);
+    // 距离平方反比衰减
+    attenuation *= 1.0 / (distance * distance + 1.0);
+    return attenuation;
+}
+
 // ===================== 着色函数 =====================
+
+// 计算单个方向光的PBR贡献
+vec3 calculateDirectionalLight(vec3 N, vec3 V, vec3 albedo, vec3 F0, float roughness) {
+    vec3 L = normalize(light.lightDir);
+    vec3 H = normalize(V + L);
+    
+    // Cook-Torrance BRDF
+    float D = distributionGGX(N, H, roughness);
+    float G = geometrySmith(N, V, L, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    
+    vec3 kS = F;
+    vec3 kD = (1.0 - kS) * (1.0 - length(F0 - vec3(0.04)) / 0.96);
+    
+    float NdotL = max(dot(N, L), 0.0);
+    
+    vec3 numerator = D * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * NdotL + 0.0001;
+    vec3 specularBRDF = numerator / denominator;
+    
+    vec3 diffuse = kD * albedo / PI;
+    
+    return (diffuse + specularBRDF) * light.lightColor * NdotL;
+}
+
+// 计算单个点光源的PBR贡献
+vec3 calculatePointLight(int index, vec3 worldPos, vec3 N, vec3 V, vec3 albedo, vec3 F0, float roughness) {
+    PointLight pl = pointLights.lights[index];
+    
+    vec3 lightVec = pl.position - worldPos;
+    float distance = length(lightVec);
+    
+    // 超出半径则不计算
+    if (distance > pl.radius) {
+        return vec3(0.0);
+    }
+    
+    vec3 L = normalize(lightVec);
+    vec3 H = normalize(V + L);
+    
+    // 衰减
+    float attenuation = calculateAttenuation(distance, pl.radius);
+    vec3 radiance = pl.color * pl.intensity * attenuation;
+    
+    // Cook-Torrance BRDF
+    float D = distributionGGX(N, H, roughness);
+    float G = geometrySmith(N, V, L, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    
+    vec3 kS = F;
+    vec3 kD = (1.0 - kS) * (1.0 - length(F0 - vec3(0.04)) / 0.96);
+    
+    float NdotL = max(dot(N, L), 0.0);
+    
+    vec3 numerator = D * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * NdotL + 0.0001;
+    vec3 specularBRDF = numerator / denominator;
+    
+    vec3 diffuse = kD * albedo / PI;
+    
+    return (diffuse + specularBRDF) * radiance * NdotL;
+}
 
 // PBR 着色 (ShadingID 0-100)
 vec3 shadePBR(vec3 albedo, vec3 normal, vec3 specular, float smoothness, 
@@ -95,30 +184,20 @@ vec3 shadePBR(vec3 albedo, vec3 normal, vec3 specular, float smoothness,
     
     vec3 N = normalize(normal);
     vec3 V = normalize(light.viewPos - worldPos);
-    vec3 L = normalize(light.lightDir);
-    vec3 H = normalize(V + L);
     
     // F0 取 specular 通道
     vec3 F0 = specular;
     
-    // Cook-Torrance BRDF
-    float D = distributionGGX(N, H, roughness);
-    float G = geometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    // 累加所有光源贡献
+    vec3 Lo = vec3(0.0);
     
-    vec3 kS = F;
-    vec3 kD = (1.0 - kS) * (1.0 - length(specular - vec3(0.04)) / 0.96);
+    // 方向光贡献
+    Lo += calculateDirectionalLight(N, V, albedo, F0, roughness);
     
-    float NdotL = max(dot(N, L), 0.0);
-    
-    vec3 numerator = D * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * NdotL + 0.0001;
-    vec3 specularBRDF = numerator / denominator;
-    
-    vec3 diffuse = kD * albedo / 3.14159265;
-    
-    // 最终颜色
-    vec3 Lo = (diffuse + specularBRDF) * light.lightColor * NdotL;
+    // 点光源贡献
+    for (uint i = 0u; i < pointLights.count && i < MAX_POINT_LIGHTS; i++) {
+        Lo += calculatePointLight(int(i), worldPos, N, V, albedo, F0, roughness);
+    }
     
     // 环境光 (简化)
     vec3 ambient = vec3(0.03) * albedo * occlusion;

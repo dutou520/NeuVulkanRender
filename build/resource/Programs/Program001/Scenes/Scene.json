@@ -1,0 +1,26 @@
+{
+  "name": "Scene",
+  "rootNode": {
+    "active": true,
+    "children": [],
+    "name": "Root",
+    "position": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotation": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "type": "Node",
+    "uuid": "4bcd59ebf17a2f63"
+  },
+  "uuid": "573327892eae01c9"
+}

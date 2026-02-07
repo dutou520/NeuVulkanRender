@@ -1,5 +1,7 @@
 #include "neuGUI.h"
+#include "Asset/ModelImporter.h"
 #include "Nodes/Node.h"
+#include "Nodes/PointLightNode.h"
 #include "Project/Project.h"
 #include "RenderCore.h"
 #include "Scene/Scene.h"
@@ -173,19 +175,19 @@ void EditorGUI::MenuFile() {
       std::string modelFile = ShowFileDialog(
           true, "Model Files (*.obj;*.gltf;*.glb)\0*.obj;*.gltf;*.glb\0All "
                 "Files\0*.*\0");
-      if (!modelFile.empty()) {
-        // Copy to Assets directory
-        std::filesystem::path src(modelFile);
-        std::filesystem::path dst =
-            std::filesystem::path(currentProject->GetAssetsPath()) /
-            src.filename();
-        try {
-          std::filesystem::copy_file(
-              src, dst, std::filesystem::copy_options::overwrite_existing);
-          LOG_I("Imported model: {}", dst.string());
-        } catch (const std::exception &e) {
-          LOG_E("Failed to import model: {}", e.what());
+      if (!modelFile.empty() && s_CurrentScene) {
+        // Use ModelImporter to properly import and add to scene
+        ModelImporter importer;
+        auto result = importer.ImportToScene(
+            modelFile, currentProject->GetAssetsPath(), *s_CurrentScene);
+        if (result.success) {
+          LOG_I("Imported model to scene: {} ({} meshes created)", modelFile,
+                result.meshIDs.size());
+        } else {
+          LOG_E("Failed to import model: {}", result.errorMessage);
         }
+      } else if (!s_CurrentScene) {
+        LOG_W("No scene loaded, please create a scene first");
       }
     }
 
@@ -518,6 +520,12 @@ void EditorGUI::RenderInspector() {
     s_CurrentInspectorTab = 0;
   }
 
+  // PostProcess Tab（常驻）
+  if (VerticalTab("PostProcess", s_CurrentInspectorTab == 5,
+                  ImVec2(100.0f, 40.0f))) {
+    s_CurrentInspectorTab = 5;
+  }
+
   // Transform Tab
   if (VerticalTab("Transform", s_CurrentInspectorTab == 1,
                   ImVec2(100.0f, 40.0f))) {
@@ -534,6 +542,11 @@ void EditorGUI::RenderInspector() {
     if (VerticalTab("Material", s_CurrentInspectorTab == 3,
                     ImVec2(100.0f, 40.0f))) {
       s_CurrentInspectorTab = 3;
+    }
+  } else if (nodeType == "PointLightNode" || nodeType == "LightNode") {
+    if (VerticalTab("Light", s_CurrentInspectorTab == 4,
+                    ImVec2(100.0f, 40.0f))) {
+      s_CurrentInspectorTab = 4;
     }
   }
 
@@ -572,6 +585,16 @@ void EditorGUI::RenderInspector() {
       ImGui::Text("Metallic");
       ImGui::Text("Roughness");
     }
+    break;
+
+  case 4: // Light
+    if (nodeType == "PointLightNode") {
+      RenderPointLightInspector(static_cast<PointLightNode *>(s_SelectedNode));
+    }
+    break;
+
+  case 5: // PostProcess
+    RenderPostProcessInspector();
     break;
   }
 
@@ -619,9 +642,103 @@ void EditorGUI::RenderMeshNodeInspector(Node *node) {
   ImGui::Text("Triangles: 0");
 }
 
+void EditorGUI::RenderPointLightInspector(PointLightNode *light) {
+  ImGui::Text("Point Light Properties");
+  ImGui::Separator();
+
+  // Color
+  glm::vec3 color = light->GetColor();
+  float colorArr[3] = {color.r, color.g, color.b};
+  if (ImGui::ColorEdit3("Color", colorArr)) {
+    light->SetColor(glm::vec3(colorArr[0], colorArr[1], colorArr[2]));
+  }
+
+  // Intensity
+  float intensity = light->GetIntensity();
+  if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f)) {
+    light->SetIntensity(intensity);
+  }
+
+  // Radius
+  float radius = light->GetRadius();
+  if (ImGui::DragFloat("Radius", &radius, 0.5f, 0.1f, 1000.0f)) {
+    light->SetRadius(radius);
+  }
+
+  ImGui::Separator();
+  ImGui::Text("Attenuation");
+
+  // Constant Attenuation
+  float constant = light->GetConstantAttenuation();
+  if (ImGui::DragFloat("Constant", &constant, 0.01f, 0.0f, 10.0f)) {
+    light->SetConstantAttenuation(constant);
+  }
+
+  // Linear Attenuation
+  float linear = light->GetLinearAttenuation();
+  if (ImGui::DragFloat("Linear", &linear, 0.001f, 0.0f, 1.0f)) {
+    light->SetLinearAttenuation(linear);
+  }
+
+  // Quadratic Attenuation
+  float quadratic = light->GetQuadraticAttenuation();
+  if (ImGui::DragFloat("Quadratic", &quadratic, 0.001f, 0.0f, 1.0f)) {
+    light->SetQuadraticAttenuation(quadratic);
+  }
+}
+
+void EditorGUI::RenderPostProcessInspector() {
+  ImGui::Text("Post-Processing Settings");
+  ImGui::Separator();
+
+  auto &settings = RenderCore::GetPostProcessSettings();
+
+  // SSAO Settings
+  if (ImGui::CollapsingHeader("SSAO", ImGuiTreeNodeFlags_DefaultOpen)) {
+    bool enableSSAO = settings.enableSSAO != 0;
+    if (ImGui::Checkbox("Enable SSAO", &enableSSAO)) {
+      settings.enableSSAO = enableSSAO ? 1 : 0;
+    }
+    ImGui::DragFloat("SSAO Radius", &settings.ssaoRadius, 0.01f, 0.01f, 5.0f);
+    ImGui::DragFloat("SSAO Strength", &settings.ssaoStrength, 0.1f, 0.1f,
+                     10.0f);
+  }
+
+  // Bloom Settings
+  if (ImGui::CollapsingHeader("Bloom", ImGuiTreeNodeFlags_DefaultOpen)) {
+    bool enableBloom = settings.enableBloom != 0;
+    if (ImGui::Checkbox("Enable Bloom", &enableBloom)) {
+      settings.enableBloom = enableBloom ? 1 : 0;
+    }
+    ImGui::DragFloat("Intensity##Bloom", &settings.bloomIntensity, 0.01f, 0.0f,
+                     5.0f);
+    ImGui::DragFloat("Threshold##Bloom", &settings.bloomThreshold, 0.01f, 0.0f,
+                     5.0f);
+  }
+
+  // Tonemapping & Gamma
+  if (ImGui::CollapsingHeader("Tonemapping & Color",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    bool enableToneMapping = settings.enableToneMapping != 0;
+    if (ImGui::Checkbox("Enable Tone Mapping", &enableToneMapping)) {
+      settings.enableToneMapping = enableToneMapping ? 1 : 0;
+    }
+
+    bool enableGamma = settings.enableGamma != 0;
+    if (ImGui::Checkbox("Enable Gamma Correction", &enableGamma)) {
+      settings.enableGamma = enableGamma ? 1 : 0;
+    }
+  }
+}
+
+/**
+ * @brief 渲染内容浏览器面板
+ * 显示项目资产目录，支持文件浏览、拖拽导入模型、创建文件夹等操作
+ */
 void EditorGUI::RenderContentBrowser() {
   ImGui::Begin("Content Browser");
 
+  // 获取当前项目，如果没有项目加载则显示提示
   auto project = RenderCore::GetCurrentProject();
   if (!project) {
     ImGui::TextDisabled("No project loaded");
@@ -631,13 +748,13 @@ void EditorGUI::RenderContentBrowser() {
 
   std::string assetsPath = project->GetAssetsPath();
 
-  // Initialize current path to assets path if empty
+  // 如果当前路径为空或不在资产目录下，初始化为资产根目录
   if (s_CurrentPath.empty() ||
       s_CurrentPath.find(assetsPath) == std::string::npos) {
     s_CurrentPath = assetsPath;
   }
 
-  // Show current path relative to Assets
+  // 显示相对于 Assets 目录的当前路径
   std::string relativePath = s_CurrentPath;
   if (s_CurrentPath.length() > assetsPath.length()) {
     relativePath = "Assets" + s_CurrentPath.substr(assetsPath.length());
@@ -646,7 +763,7 @@ void EditorGUI::RenderContentBrowser() {
   }
   ImGui::Text("Path: %s", relativePath.c_str());
 
-  // Back button (only if not at Assets root)
+  // 返回上一级按钮（仅在不在根目录时显示）
   if (s_CurrentPath != assetsPath) {
     if (ImGui::Button("..  [Back]")) {
       std::filesystem::path p(s_CurrentPath);
@@ -656,13 +773,13 @@ void EditorGUI::RenderContentBrowser() {
     ImGui::SameLine();
   }
 
-  // New Folder button
+  // 新建文件夹按钮
   if (ImGui::Button("+ New Folder")) {
     s_ShowNewFolderDialog = true;
     s_NewFolderName[0] = '\0';
   }
 
-  // New Folder dialog
+  // 新建文件夹弹窗逻辑
   if (s_ShowNewFolderDialog) {
     ImGui::OpenPopup("New Folder");
   }
@@ -686,10 +803,11 @@ void EditorGUI::RenderContentBrowser() {
 
   ImGui::Separator();
 
+  // 使用两栏布局：左侧显示选中文件信息，右侧显示文件列表
   ImGui::Columns(2, "ContentBrowserColumns", true);
   ImGui::SetColumnWidth(0, 200.0f);
 
-  // Left side: selected file info
+  // 左侧：选中文件信息
   ImGui::BeginChild("FileInfo", ImVec2(0, 0), true);
   if (!s_SelectedFile.empty()) {
     ImGui::Text("Selected:");
@@ -718,14 +836,14 @@ void EditorGUI::RenderContentBrowser() {
   }
   ImGui::EndChild();
 
-  // Right side: file list
+  // 右侧：文件列表
   ImGui::NextColumn();
   ImGui::BeginChild("FileList", ImVec2(0, 0), true);
 
   try {
     if (std::filesystem::exists(s_CurrentPath) &&
         std::filesystem::is_directory(s_CurrentPath)) {
-      // Collect directories and files separately
+      // 将目录和文件分开收集，以便优先显示目录
       std::vector<std::filesystem::directory_entry> directories;
       std::vector<std::filesystem::directory_entry> files;
 
@@ -738,7 +856,7 @@ void EditorGUI::RenderContentBrowser() {
         }
       }
 
-      // Sort alphabetically
+      // 按名称字母顺序排序
       auto sortByName = [](const std::filesystem::directory_entry &a,
                            const std::filesystem::directory_entry &b) {
         return a.path().filename().string() < b.path().filename().string();
@@ -746,7 +864,7 @@ void EditorGUI::RenderContentBrowser() {
       std::sort(directories.begin(), directories.end(), sortByName);
       std::sort(files.begin(), files.end(), sortByName);
 
-      // Show directories first
+      // 首先渲染目录
       for (const auto &entry : directories) {
         std::string name = "[D] " + entry.path().filename().string();
         std::string filename = entry.path().filename().string();
@@ -755,23 +873,79 @@ void EditorGUI::RenderContentBrowser() {
                               ImGuiSelectableFlags_AllowDoubleClick)) {
           s_SelectedFile = filename;
 
-          // Double-click to enter directory
+          // 双击进入目录
           if (ImGui::IsMouseDoubleClicked(0)) {
             s_CurrentPath = entry.path().string();
             s_SelectedFile = "";
           }
         }
+
+        // 文件夹作为拖拽目标（实现文件移动功能）
+        if (ImGui::BeginDragDropTarget()) {
+          if (const ImGuiPayload *payload =
+                  ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+            const char *sourcePath = (const char *)payload->Data;
+            std::filesystem::path src(sourcePath);
+            std::filesystem::path dst = entry.path() / src.filename();
+            try {
+              std::filesystem::rename(src, dst);
+              LOG_I("Moved file {} to {}", src.string(), dst.string());
+            } catch (const std::exception &e) {
+              LOG_E("Failed to move file: {}", e.what());
+            }
+          }
+          ImGui::EndDragDropTarget();
+        }
       }
 
-      // Show files
+      // 渲染文件
       for (const auto &entry : files) {
         std::string filename = entry.path().filename().string();
+        bool isSelected = (s_SelectedFile == filename);
 
-        if (ImGui::Selectable(filename.c_str(), s_SelectedFile == filename)) {
+        if (ImGui::Selectable(filename.c_str(), isSelected,
+                              ImGuiSelectableFlags_AllowDoubleClick)) {
           s_SelectedFile = filename;
         }
 
-        // Drag source for files
+        // 更加健壮的双击检测逻辑：只要鼠标悬停在该项上且发生了左键双击
+        if (ImGui::IsItemHovered() &&
+            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          std::string fullPath = entry.path().string();
+          std::string ext =
+              std::filesystem::path(fullPath).extension().string();
+          std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+          // 仅处理支持的模型格式
+          if (ext == ".obj" || ext == ".gltf" || ext == ".glb") {
+            LOG_I("Attempting to import model: {}", filename);
+
+            neurender::ModelImporter importer;
+            auto result = importer.Import(fullPath, project->GetAssetsPath());
+
+            if (result.success) {
+              auto scene = EditorGUI::GetCurrentScene();
+              Node *parent = GetSelectedNode();
+
+              if (scene) {
+                // 将导入生成的 MeshNode 添加到场景中
+                for (auto &node : result.meshNodes) {
+                  if (parent) {
+                    parent->AddChild(std::move(node));
+                  } else {
+                    scene->AddNode(std::move(node));
+                  }
+                }
+                LOG_I("Successfully imported model: {}", filename);
+              }
+            } else {
+              LOG_E("Failed to import model: {} - Error: {}", filename,
+                    result.errorMessage);
+            }
+          }
+        }
+
+        // 文件作为拖拽源
         if (ImGui::BeginDragDropSource()) {
           std::string fullPath = entry.path().string();
           ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", fullPath.c_str(),
@@ -817,68 +991,78 @@ bool EditorGUI::VerticalTab(const char *label, bool selected,
 // ========== 创建节点函数 ==========
 
 void EditorGUI::CreateCube() {
-  if (!s_CurrentScene) {
-    LOG_W("No scene loaded, cannot create cube");
+  auto project = RenderCore::GetCurrentProject();
+  if (!project || !s_CurrentScene) {
+    LOG_W("No project or scene loaded, cannot create cube");
     return;
   }
 
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
+  // 使用 ModelImporter 导入内置的 Cube 几何体
+  // 这会将 .obj 转换为引擎内部的 .mesh 格式并注册到 AssetManager
+  ModelImporter importer;
+  std::string modelPath = "resource/models/build_in/Box.obj";
+  auto result = importer.ImportToScene(modelPath, project->GetAssetsPath(),
+                                       *s_CurrentScene);
 
-  if (RenderCore::LoadModelFromFile("resource/models/build_in/Box.obj",
-                                    vertices, indices)) {
-    // TODO: 创建MeshNode并设置几何体数据
-    auto node = std::make_unique<Node>("Cube");
-    s_CurrentScene->AddNode(std::move(node));
-    LOG_I("Created Cube with {} vertices", vertices.size());
+  if (result.success) {
+    LOG_I("Created Cube and added to scene");
   } else {
-    LOG_E("Failed to load Box.obj");
+    LOG_E("Failed to create Cube: {}", result.errorMessage);
   }
 }
 
 void EditorGUI::CreateSphere() {
-  if (!s_CurrentScene) {
-    LOG_W("No scene loaded, cannot create sphere");
+  auto project = RenderCore::GetCurrentProject();
+  if (!project || !s_CurrentScene) {
+    LOG_W("No project or scene loaded, cannot create sphere");
     return;
   }
 
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
+  // 使用 ModelImporter 导入内置的 Sphere 几何体
+  ModelImporter importer;
+  std::string modelPath = "resource/models/build_in/sphere.obj";
+  auto result = importer.ImportToScene(modelPath, project->GetAssetsPath(),
+                                       *s_CurrentScene);
 
-  if (RenderCore::LoadModelFromFile("resource/models/build_in/sphere.obj",
-                                    vertices, indices)) {
-    // TODO: 创建MeshNode并设置几何体数据
-    auto node = std::make_unique<Node>("Sphere");
-    s_CurrentScene->AddNode(std::move(node));
-    LOG_I("Created Sphere with {} vertices", vertices.size());
+  if (result.success) {
+    LOG_I("Created Sphere and added to scene");
   } else {
-    LOG_E("Failed to load sphere.obj");
+    LOG_E("Failed to create Sphere: {}", result.errorMessage);
   }
 }
 
 void EditorGUI::CreatePlane() {
-  if (!s_CurrentScene) {
-    LOG_W("No scene loaded, cannot create plane");
+  auto project = RenderCore::GetCurrentProject();
+  if (!project || !s_CurrentScene) {
+    LOG_W("No project or scene loaded, cannot create plane");
     return;
   }
 
-  std::vector<Vertex> vertices;
-  std::vector<uint32_t> indices;
+  // 使用 ModelImporter 导入内置的 Plane 几何体
+  ModelImporter importer;
+  std::string modelPath = "resource/models/build_in/Plane.obj";
+  auto result = importer.ImportToScene(modelPath, project->GetAssetsPath(),
+                                       *s_CurrentScene);
 
-  if (RenderCore::LoadModelFromFile("resource/models/build_in/Plane.obj",
-                                    vertices, indices)) {
-    // TODO: 创建MeshNode并设置几何体数据
-    auto node = std::make_unique<Node>("Plane");
-    s_CurrentScene->AddNode(std::move(node));
-    LOG_I("Created Plane with {} vertices", vertices.size());
+  if (result.success) {
+    LOG_I("Created Plane and added to scene");
   } else {
-    LOG_E("Failed to load Plane.obj");
+    LOG_E("Failed to create Plane: {}", result.errorMessage);
   }
 }
 
 void EditorGUI::CreatePointLight() {
-  auto node = std::make_unique<Node>("Point Light");
-  s_CurrentScene->AddNode(std::move(node));
+  if (!s_CurrentScene) {
+    LOG_W("No scene loaded, cannot create point light");
+    return;
+  }
+
+  auto pointLight = std::make_unique<PointLightNode>("Point Light");
+  pointLight->SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
+  pointLight->SetColor(glm::vec3(1.0f));
+  pointLight->SetIntensity(1.0f);
+  pointLight->SetRadius(10.0f);
+  s_CurrentScene->AddNode(std::move(pointLight));
   LOG_I("Created Point Light");
 }
 

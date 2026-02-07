@@ -77,12 +77,36 @@ struct UniformBufferObject {
 };
 
 /**
- * @brief 光照数据 Uniform Buffer
+ * @brief 光照数据 Uniform Buffer (方向光)
  */
 struct LightDataUBO {
   alignas(16) glm::vec3 lightDir;
   alignas(16) glm::vec3 lightColor;
   alignas(16) glm::vec3 viewPos;
+};
+
+/**
+ * @brief 点光源最大数量
+ */
+constexpr uint32_t MAX_POINT_LIGHTS = 128;
+
+/**
+ * @brief 单个点光源数据 (用于Shader传输)
+ */
+struct PointLight {
+  alignas(16) glm::vec3 position;
+  float radius;
+  alignas(16) glm::vec3 color;
+  float intensity;
+};
+
+/**
+ * @brief 点光源数组 Uniform Buffer
+ */
+struct PointLightsUBO {
+  PointLight lights[MAX_POINT_LIGHTS];
+  uint32_t count;
+  float _pad[3];
 };
 
 } // namespace neurender

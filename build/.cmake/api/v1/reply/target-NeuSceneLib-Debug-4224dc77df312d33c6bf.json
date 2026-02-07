@@ -42,19 +42,19 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 127,
+				"line" : 129,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 122,
+				"line" : 124,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 1,
-				"line" : 123,
+				"line" : 125,
 				"parent" : 0
 			}
 		]
@@ -149,7 +149,9 @@
 				0,
 				1,
 				2,
-				3
+				3,
+				4,
+				5
 			]
 		}
 	],
@@ -161,11 +163,11 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuAssetLib::@6890427a1f51a3e7e1df"
+			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
+			"id" : "NeuAssetLib::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "NeuSceneLib::@6890427a1f51a3e7e1df",
@@ -185,7 +187,9 @@
 				0,
 				1,
 				2,
-				3
+				3,
+				4,
+				5
 			]
 		}
 	],
@@ -213,6 +217,18 @@
 			"backtrace" : 2,
 			"compileGroupIndex" : 0,
 			"path" : "source/MeshNode.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "source/LightNode.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "source/PointLightNode.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

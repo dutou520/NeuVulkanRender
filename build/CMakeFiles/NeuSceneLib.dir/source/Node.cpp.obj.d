@@ -491,4 +491,7 @@ CMakeFiles/NeuSceneLib.dir/source/Node.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/ordered_map.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/any \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
- D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp
+ D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/PointLightNode.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h
