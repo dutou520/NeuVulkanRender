@@ -314,6 +314,42 @@ void EditorGUI::MenuDebug() {
       settings.debugMode = 4;
       LOG_I("Render mode: Depth");
     }
+    if (ImGui::MenuItem("Smoothness", nullptr,
+                        s_RenderMode == RenderMode::Smoothness)) {
+      s_RenderMode = RenderMode::Smoothness;
+      settings.debugMode = 5;
+      LOG_I("Render mode: Smoothness");
+    }
+    if (ImGui::MenuItem("Specular", nullptr,
+                        s_RenderMode == RenderMode::Specular)) {
+      s_RenderMode = RenderMode::Specular;
+      settings.debugMode = 6;
+      LOG_I("Render mode: Specular");
+    }
+    if (ImGui::MenuItem("Occlusion", nullptr,
+                        s_RenderMode == RenderMode::Occlusion)) {
+      s_RenderMode = RenderMode::Occlusion;
+      settings.debugMode = 7;
+      LOG_I("Render mode: Occlusion");
+    }
+    if (ImGui::MenuItem("MaterialFlags", nullptr,
+                        s_RenderMode == RenderMode::MaterialFlags)) {
+      s_RenderMode = RenderMode::MaterialFlags;
+      settings.debugMode = 8;
+      LOG_I("Render mode: MaterialFlags");
+    }
+    if (ImGui::MenuItem("ShadingID", nullptr,
+                        s_RenderMode == RenderMode::ShadingID)) {
+      s_RenderMode = RenderMode::ShadingID;
+      settings.debugMode = 9;
+      LOG_I("Render mode: ShadingID");
+    }
+    if (ImGui::MenuItem("Emission", nullptr,
+                        s_RenderMode == RenderMode::Emission)) {
+      s_RenderMode = RenderMode::Emission;
+      settings.debugMode = 10;
+      LOG_I("Render mode: Emission");
+    }
 
     ImGui::EndMenu();
   }

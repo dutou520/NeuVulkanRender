@@ -7,6 +7,11 @@ layout(set = 0, binding = 2) uniform sampler2D normalBuffer;    // 法线缓冲 
 layout(set = 0, binding = 3) uniform sampler2D bloomTexture;    // Bloom模糊结果
 layout(set = 0, binding = 4) uniform sampler2D ssaoNoise;       // SSAO噪声纹理
 
+// 新增 GBuffer 纹理用于调试
+layout(set = 0, binding = 6) uniform sampler2D gbuffer1;      // Albedo + MaterialFlags
+layout(set = 0, binding = 7) uniform sampler2D gbuffer2;      // Specular + Occlusion
+layout(set = 0, binding = 8) uniform sampler2D gbuffer4;      // ShadingID + Emissive
+
 // SSAO采样核
 layout(set = 0, binding = 5) uniform SSAOKernel {
     vec4 samples[64];
@@ -33,7 +38,7 @@ layout(push_constant) uniform PostProcessSettings {
     float bloomThreshold;
     float ssaoRadius;
     float ssaoStrength;
-    uint debugMode; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth
+    uint debugMode; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth, 5=Smoothness, 6=Specular, 7=Occlusion, 8=MaterialFlags, 9=ShadingID, 10=Emission
 } settings;
 
 layout(location = 0) in vec2 fragTexCoord;
@@ -113,22 +118,37 @@ vec3 gammaCorrect(vec3 color) {
     return pow(color, vec3(1.0 / 2.2));
 }
 
+// 辅助函数：HSL转RGB（用于自发光色相计算）
+vec3 hslToRgb(vec3 hsl) {
+    float h = hsl.x / 360.0;
+    float s = hsl.y;
+    float l = hsl.z;
+    float c = (1.0 - abs(2.0 * l - 1.0)) * s;
+    float x = c * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
+    float m = l - c / 2.0;
+    vec3 rgb;
+    if (h < 1.0/6.0) rgb = vec3(c, x, 0.0);
+    else if (h < 2.0/6.0) rgb = vec3(x, c, 0.0);
+    else if (h < 3.0/6.0) rgb = vec3(0.0, c, x);
+    else if (h < 4.0/6.0) rgb = vec3(0.0, x, c);
+    else if (h < 5.0/6.0) rgb = vec3(x, 0.0, c);
+    else rgb = vec3(c, 0.0, x);
+    return rgb + m;
+}
+
 // ===================== 主函数 =====================
 
 void main() {
     // Debug mode visualization
     if (settings.debugMode == 2) {
-        // Albedo mode - sample from sceneColor which contains the composition output
-        // We need to access GBuffer directly, but it's not bound here
-        // For now, just show scene color
-        vec3 color = texture(sceneColor, fragTexCoord).rgb;
-        outColor = vec4(color, 1.0);
+        // Albedo mode
+        vec3 albedo = texture(gbuffer1, fragTexCoord).rgb;
+        outColor = vec4(albedo, 1.0);
         return;
     }
     else if (settings.debugMode == 3) {
         // Normal mode
         vec3 normal = texture(normalBuffer, fragTexCoord).rgb;
-        // Convert from [0,1] to [-1,1] and back to [0,1] for visualization
         normal = normal * 2.0 - 1.0;
         normal = normalize(normal);
         normal = normal * 0.5 + 0.5;
@@ -138,13 +158,65 @@ void main() {
     else if (settings.debugMode == 4) {
         // Depth mode
         float depth = texture(depthBuffer, fragTexCoord).r;
-        // Linearize depth for better visualization
-        float near = 0.1;
-        float far = 100.0;
+        float near = camera.nearPlane;
+        float far = camera.farPlane;
         float z = depth * 2.0 - 1.0;
         float linearDepth = (2.0 * near * far) / (far + near - z * (far - near));
-        linearDepth = linearDepth / far; // Normalize to [0,1]
+        linearDepth = linearDepth / far;
         outColor = vec4(vec3(linearDepth), 1.0);
+        return;
+    }
+    else if (settings.debugMode == 5) {
+        // Smoothness mode
+        float smoothness = texture(normalBuffer, fragTexCoord).a;
+        outColor = vec4(vec3(smoothness), 1.0);
+        return;
+    }
+    else if (settings.debugMode == 6) {
+        // Specular mode
+        vec3 specular = texture(gbuffer2, fragTexCoord).rgb;
+        outColor = vec4(specular, 1.0);
+        return;
+    }
+    else if (settings.debugMode == 7) {
+        // Occlusion mode
+        float occlusion = texture(gbuffer2, fragTexCoord).a;
+        outColor = vec4(vec3(occlusion), 1.0);
+        return;
+    }
+    else if (settings.debugMode == 8) {
+        // MaterialFlags mode
+        float flags = texture(gbuffer1, fragTexCoord).a;
+        outColor = vec4(vec3(flags), 1.0);
+        return;
+    }
+    else if (settings.debugMode == 9) {
+        // ShadingID mode
+        float id = texture(gbuffer4, fragTexCoord).r;
+        // Distribute the ID visualize it better
+        vec3 idColor = vec3(
+            mod(id * 255.0, 4.0) / 3.0,
+            mod(id * 255.0 / 4.0, 4.0) / 3.0,
+            mod(id * 255.0 / 16.0, 4.0) / 3.0
+        );
+        outColor = vec4(idColor, 1.0);
+        return;
+    }
+    else if (settings.debugMode == 10) {
+        // Emission mode
+        vec4 g4 = texture(gbuffer4, fragTexCoord);
+        float hue = g4.a * 255.0;
+        vec2 brightness = g4.gb;
+        float l = (brightness.r * 255.0) * 256.0 + (brightness.g * 255.0);
+        l = l / 65535.0 * 10.0; // Scale for visualization
+        
+        vec3 emissive = hslToRgb(vec3(hue * 360.0 / 255.0, 1.0, l));
+        // Apply tonemapping to emission debug for better visibility
+        vec3 mapped = emissive;
+        if (settings.enableToneMapping != 0) {
+            mapped = ACESFilm(emissive);
+        }
+        outColor = vec4(mapped, 1.0);
         return;
     }
     

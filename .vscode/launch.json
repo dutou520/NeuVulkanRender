@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "快速运行EXE",
+            "type": "lldb",
+            "request": "launch",
+            "program": "D:/CppPrograms/NeuVulkanRender/build/NeuVulkanRender.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

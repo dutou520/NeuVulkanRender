@@ -318,7 +318,8 @@ private:
     float ssaoRadius = 0.5f;
     float ssaoStrength = 1.5f;
     uint32_t debugMode =
-        0; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth
+        0; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth, 5=Smoothness,
+           // 6=Specular, 7=Occlusion, 8=MaterialFlags, 9=ShadingID, 10=Emission
   };
   static PostProcessSettings m_PostProcessSettings;
 

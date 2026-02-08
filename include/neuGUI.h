@@ -92,7 +92,19 @@ private:
   static std::string s_ClipboardPath;
 
   // 渲染模式
-  enum class RenderMode { Shaded, Wireframe, Albedo, Normal, Depth };
+  enum class RenderMode {
+    Shaded,
+    Wireframe,
+    Albedo,
+    Normal,
+    Depth,
+    Smoothness,
+    Specular,
+    Occlusion,
+    MaterialFlags,
+    ShadingID,
+    Emission
+  };
   static RenderMode s_RenderMode;
   static RenderMode GetRenderMode() { return s_RenderMode; }
 

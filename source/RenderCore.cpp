@@ -1880,7 +1880,7 @@ void RenderCore::CreateDescriptorSetLayouts() {
   // Binding 4: SSAONoise
   // Binding 5: SSAOKernel
   std::vector<VkDescriptorSetLayoutBinding> ppBindings;
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 9; i++) {
     VkDescriptorSetLayoutBinding binding{};
     binding.binding = i;
     binding.descriptorType = (i == 5)
@@ -3868,7 +3868,22 @@ void RenderCore::CreatePostProcessDescriptorSets() {
     kernelInfo.offset = 0;
     kernelInfo.range = VK_WHOLE_SIZE;
 
-    std::array<VkWriteDescriptorSet, 6> descriptorWrites{};
+    VkDescriptorImageInfo gbuffer1Info{};
+    gbuffer1Info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    gbuffer1Info.imageView = m_GBuffer.GetAlbedoFlags(i).view;
+    gbuffer1Info.sampler = m_GBufferSampler;
+
+    VkDescriptorImageInfo gbuffer2Info{};
+    gbuffer2Info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    gbuffer2Info.imageView = m_GBuffer.GetSpecularOcclusion(i).view;
+    gbuffer2Info.sampler = m_GBufferSampler;
+
+    VkDescriptorImageInfo gbuffer4Info{};
+    gbuffer4Info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    gbuffer4Info.imageView = m_GBuffer.GetShadingEmissive(i).view;
+    gbuffer4Info.sampler = m_GBufferSampler;
+
+    std::array<VkWriteDescriptorSet, 9> descriptorWrites{};
 
     auto writeImage = [&](uint32_t binding, VkDescriptorImageInfo *info) {
       VkWriteDescriptorSet write{};
@@ -3895,6 +3910,10 @@ void RenderCore::CreatePostProcessDescriptorSets() {
     descriptorWrites[5].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[5].descriptorCount = 1;
     descriptorWrites[5].pBufferInfo = &kernelInfo;
+
+    descriptorWrites[6] = writeImage(6, &gbuffer1Info);
+    descriptorWrites[7] = writeImage(7, &gbuffer2Info);
+    descriptorWrites[8] = writeImage(8, &gbuffer4Info);
 
     vkUpdateDescriptorSets(m_Device,
                            static_cast<uint32_t>(descriptorWrites.size()),
