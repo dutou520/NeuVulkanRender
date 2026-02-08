@@ -1,0 +1,63 @@
+{
+  "repo_notes": [
+    {
+      "content": "使用简体中文来编写所有内容。"
+    }
+  ],
+  "pages": [
+    {
+      "title": "NeuVulkanRender 概述",
+      "purpose": "对 NeuVulkanRender 项目进行高层次介绍，说明其作为基于 Vulkan 的渲染引擎的用途，并概述其第三方依赖项的架构（GLM 用于数学运算、spdlog 用于日志记录）",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "第三方依赖项",
+      "purpose": "概述集成到 NeuVulkanRender 中的第三方库，说明选择 GLM 和 spdlog 的原因，以及它们如何满足渲染引擎的需求",
+      "page_notes": [
+        {
+          "content": "使用简体中文来编写所有内容。"
+        }
+      ]
+    },
+    {
+      "title": "RenderCore结构",
+      "purpose": "概述RenderCore中如何设计的渲染管线、如何传递数据",
+      "page_notes": [
+        {
+          "content": "使用简体中文来编写所有内容。"
+        }
+      ]
+    },
+    {
+      "title": "GUI系统",
+      "purpose": "概述这个项目中的GUI中包含的功能，以及数据的传递",
+      "page_notes": [
+        {
+          "content": "使用简体中文来编写所有内容。"
+        }
+      ]
+    },
+    {
+      "title": "后处理",
+      "purpose": "概述这个项目中，后处理管线是怎么运行的，涉及到哪些数据，是怎么传递数据的",
+      "page_notes": [
+        {
+          "content": "使用简体中文来编写所有内容。"
+        }
+      ]
+    },
+    {
+      "title": "GBuffer",
+      "purpose": "概述这个项目中，Gbuffer在不同的渲染阶段中涉及的数据，以及是如何更新的",
+      "page_notes": [
+        {
+          "content": "使用简体中文来编写所有内容。"
+        }
+      ]
+    }
+  ]
+}
