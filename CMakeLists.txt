@@ -91,11 +91,13 @@ target_include_directories(NeuCoreLib PUBLIC
 )
 target_link_libraries(NeuCoreLib PUBLIC glm::glm)
 
-# NeuAssetLib (AssetManager, MetaFile, ModelImporter)
+# NeuAssetLib (AssetManager, MetaFile, ModelImporter, TextureResource, MaterialResource)
 add_library(NeuAssetLib STATIC 
     source/AssetManager.cpp 
     source/MetaFile.cpp 
     source/ModelImporter.cpp
+    source/TextureResource.cpp
+    source/MaterialResource.cpp
 )
 generate_export_header(NeuAssetLib EXPORT_MACRO_NAME NEUASSET_API BASE_NAME NeuAsset)
 target_compile_definitions(NeuAssetLib PUBLIC NEUASSET_STATIC_DEFINE)
@@ -108,6 +110,7 @@ target_link_libraries(NeuAssetLib PUBLIC
     NeuLogLib 
     ThirPartyLib
     glm::glm
+    Vulkan::Vulkan
 )
 # Note: NeuAssetLib and NeuSceneLib have circular dependency due to ModelImporter::ImportToScene
 

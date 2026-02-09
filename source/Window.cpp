@@ -76,7 +76,18 @@ void Window::PollEvents() {
         event.window.windowID == SDL_GetWindowID(m_Window)) {
       m_ShouldClose = true;
     }
+    // Handle window resizing
+    if (event.type == SDL_EVENT_WINDOW_RESIZED &&
+        event.window.windowID == SDL_GetWindowID(m_Window)) {
+      m_Width = event.window.data1;
+      m_Height = event.window.data2;
+    }
   }
+}
+
+bool Window::IsMinimized() {
+  uint32_t flags = SDL_GetWindowFlags(m_Window);
+  return (flags & SDL_WINDOW_MINIMIZED) != 0;
 }
 
 } // namespace neurender

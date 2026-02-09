@@ -352,6 +352,30 @@ source/Main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.s
 .PHONY : source/Main.cpp.s
 
+source/MaterialResource.obj: source/MaterialResource.cpp.obj
+.PHONY : source/MaterialResource.obj
+
+# target to build an object file
+source/MaterialResource.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj
+.PHONY : source/MaterialResource.cpp.obj
+
+source/MaterialResource.i: source/MaterialResource.cpp.i
+.PHONY : source/MaterialResource.i
+
+# target to preprocess a source file
+source/MaterialResource.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.i
+.PHONY : source/MaterialResource.cpp.i
+
+source/MaterialResource.s: source/MaterialResource.cpp.s
+.PHONY : source/MaterialResource.s
+
+# target to generate assembly for a file
+source/MaterialResource.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.s
+.PHONY : source/MaterialResource.cpp.s
+
 source/MeshNode.obj: source/MeshNode.cpp.obj
 .PHONY : source/MeshNode.obj
 
@@ -568,6 +592,30 @@ source/Scene.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/Scene.cpp.s
 .PHONY : source/Scene.cpp.s
 
+source/TextureResource.obj: source/TextureResource.cpp.obj
+.PHONY : source/TextureResource.obj
+
+# target to build an object file
+source/TextureResource.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj
+.PHONY : source/TextureResource.cpp.obj
+
+source/TextureResource.i: source/TextureResource.cpp.i
+.PHONY : source/TextureResource.i
+
+# target to preprocess a source file
+source/TextureResource.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.i
+.PHONY : source/TextureResource.cpp.i
+
+source/TextureResource.s: source/TextureResource.cpp.s
+.PHONY : source/TextureResource.s
+
+# target to generate assembly for a file
+source/TextureResource.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.s
+.PHONY : source/TextureResource.cpp.s
+
 source/UUID.obj: source/UUID.cpp.obj
 .PHONY : source/UUID.obj
 
@@ -744,6 +792,9 @@ help:
 	@echo ... source/Main.obj
 	@echo ... source/Main.i
 	@echo ... source/Main.s
+	@echo ... source/MaterialResource.obj
+	@echo ... source/MaterialResource.i
+	@echo ... source/MaterialResource.s
 	@echo ... source/MeshNode.obj
 	@echo ... source/MeshNode.i
 	@echo ... source/MeshNode.s
@@ -771,6 +822,9 @@ help:
 	@echo ... source/Scene.obj
 	@echo ... source/Scene.i
 	@echo ... source/Scene.s
+	@echo ... source/TextureResource.obj
+	@echo ... source/TextureResource.i
+	@echo ... source/TextureResource.s
 	@echo ... source/UUID.obj
 	@echo ... source/UUID.i
 	@echo ... source/UUID.s

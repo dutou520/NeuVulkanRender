@@ -11,7 +11,9 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+#include "Asset/MaterialResource.h"
 #include "Asset/MeshResource.h"
+#include "Asset/TextureResource.h"
 #include "Core/UUID.h"
 #include "Project/Project.h"
 #include <unordered_map>
@@ -32,6 +34,14 @@ public:
   static VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
   static VkCommandPool GetCommandPool() { return m_CommandPool; }
   static VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
+
+  // ========== 材质管理接口 (Public) ==========
+  static UUID CreateMaterial();
+  static void DeleteMaterial(const UUID &id);
+  static std::vector<UUID> GetAllMaterials();
+  static void SetMaterialTexture(const UUID &matID, uint32_t binding,
+                                 const UUID &texID);
+  static MaterialResource *GetMaterialResource(const UUID &materialID);
 
 private:
   static void CreateInstance();
@@ -100,6 +110,30 @@ private:
   // ==============================
   static std::unordered_map<UUID, MeshResource> m_MeshCache;
   static bool LoadMeshResource(const UUID &meshID);
+
+  // ============================== Texture Resource Cache
+  // ==============================
+  static std::unordered_map<UUID, TextureResource> m_TextureCache;
+  static bool LoadTextureResource(const UUID &textureID);
+  static TextureResource *GetTextureResource(const UUID &textureID);
+
+  // ============================== Material Resource Cache
+  // ==============================
+  static std::unordered_map<UUID, MaterialResource> m_MaterialCache;
+  static bool LoadMaterialResource(const UUID &materialID);
+  static void CreateMaterialDescriptorSet(MaterialResource *material);
+
+  // ============================== Default Resources
+  // ==============================
+  static TextureResource m_DefaultWhiteTexture;  // 默认白色纹理
+  static TextureResource m_DefaultNormalTexture; // 默认法线纹理 (0.5, 0.5, 1.0)
+  static TextureResource m_DefaultBlackTexture;  // 默认黑色纹理
+  static MaterialResource m_DefaultMaterial;     // 默认材质
+  static void CreateDefaultTextures();
+  static void CreateDefaultMaterial();
+
+  // Material descriptor set layout
+  static VkDescriptorSetLayout m_MaterialDescriptorSetLayout;
 
   // 场景渲染收集
   static void CollectSceneRenderables();
@@ -328,6 +362,7 @@ private:
   struct RenderObject {
     glm::mat4 modelMatrix;
     Material material;
+    MaterialResource *pMaterialResource = nullptr;
     VkBuffer vertexBuffer;
     VkBuffer indexBuffer;
     uint32_t indexCount;

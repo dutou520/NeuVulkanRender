@@ -306,7 +306,6 @@ CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
- D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
  D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
  D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \

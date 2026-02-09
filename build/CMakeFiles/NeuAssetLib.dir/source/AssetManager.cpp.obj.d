@@ -1,7 +1,6 @@
 CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj: \
  D:\CppPrograms\NeuVulkanRender\source\AssetManager.cpp \
  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
- D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
  C:/msys64/mingw64/include/c++/14.1.0/cstdint \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++config.h \
@@ -190,6 +189,29 @@ CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_numeric.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/filesystem \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_fwd.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ratio \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_path.h \
+ C:/msys64/mingw64/include/c++/14.1.0/codecvt \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/allocated_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/unique_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/aligned_buffer.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_dir.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fs_ops.h \
+ C:/msys64/mingw64/include/c++/14.1.0/unordered_map \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/unordered_map.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable_policy.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/algorithm \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
@@ -199,14 +221,6 @@ CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_algorithm_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/functional \
  C:/msys64/mingw64/include/c++/14.1.0/bits/std_function.h \
- C:/msys64/mingw64/include/c++/14.1.0/unordered_map \
- C:/msys64/mingw64/include/c++/14.1.0/bits/unordered_map.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable_policy.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/aligned_buffer.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
  C:/msys64/mingw64/include/c++/14.1.0/array \
  C:/msys64/mingw64/include/c++/14.1.0/compare \
  C:/msys64/mingw64/include/c++/14.1.0/iterator \
@@ -214,11 +228,6 @@ CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/memory \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/align.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/unique_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/allocated_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_atomic.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
@@ -269,15 +278,6 @@ CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj: \
  C:/msys64/mingw64/include/sec_api/string_s.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/filesystem \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_fwd.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
- C:/msys64/mingw64/include/c++/14.1.0/ratio \
- C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_path.h \
- C:/msys64/mingw64/include/c++/14.1.0/codecvt \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_dir.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fs_ops.h \
  C:/msys64/mingw64/include/c++/14.1.0/optional \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/conversions/to_json.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/iterators/iteration_proxy.hpp \

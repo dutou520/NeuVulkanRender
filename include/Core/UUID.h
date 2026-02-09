@@ -5,7 +5,6 @@
 #include <sstream>
 #include <string>
 
-
 namespace neurender {
 
 /**
@@ -26,9 +25,11 @@ public:
 
   std::string ToString() const;
   bool IsValid() const { return m_UUID != 0; }
+  bool IsEmpty() const { return m_UUID == 0; }
 
   static UUID Generate();
   static UUID Invalid() { return UUID(static_cast<uint64_t>(0)); }
+  static UUID FromString(const std::string &str);
 
 private:
   uint64_t m_UUID;

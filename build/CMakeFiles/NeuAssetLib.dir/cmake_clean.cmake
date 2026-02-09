@@ -1,10 +1,14 @@
 file(REMOVE_RECURSE
   "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj"
   "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj.d"
+  "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj"
+  "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj.d"
   "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj"
   "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj.d"
   "CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj"
   "CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj.d"
+  "CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj"
+  "CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj.d"
   "libNeuAssetLib.a"
   "libNeuAssetLib.pdb"
 )

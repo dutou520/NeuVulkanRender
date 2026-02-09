@@ -22,6 +22,7 @@ public:
   static int GetWidth() { return m_Width; }
   static int GetHeight() { return m_Height; }
   static void Close() { m_ShouldClose = true; }
+  static bool IsMinimized();
 
 private:
   static SDL_Window *m_Window;

@@ -157,6 +157,16 @@ RenderCore::PostProcessSettings RenderCore::m_PostProcessSettings;
 // ========== 场景对象静态成员定义 ==========
 std::vector<RenderCore::RenderObject> RenderCore::m_RenderObjects;
 
+// ========== 纹理和材质缓存静态成员定义 ==========
+std::unordered_map<UUID, TextureResource> RenderCore::m_TextureCache;
+std::unordered_map<UUID, MaterialResource> RenderCore::m_MaterialCache;
+TextureResource RenderCore::m_DefaultWhiteTexture;
+TextureResource RenderCore::m_DefaultNormalTexture;
+TextureResource RenderCore::m_DefaultBlackTexture;
+MaterialResource RenderCore::m_DefaultMaterial;
+VkDescriptorSetLayout RenderCore::m_MaterialDescriptorSetLayout =
+    VK_NULL_HANDLE;
+
 // Global variable for PostProcess Camera Descriptor Sets (avoiding header
 // change)
 std::vector<VkDescriptorSet> g_PostProcessCameraDescriptorSets;
@@ -231,9 +241,12 @@ void RenderCore::Init() {
   CreateImageViews();    // Create image views
 
   // ========== 资源初始化 ==========
-  CreateCommandPool();    // Create command pool
-  CreateUniformBuffers(); // 创建 Uniform Buffers
-  CreateDescriptorPool(); // Create descriptor pool
+  CreateDescriptorSetLayouts(); // 创建描述符集布局
+  CreateCommandPool();          // Create command pool
+  CreateUniformBuffers();       // 创建 Uniform Buffers
+  CreateDescriptorPool();       // Create descriptor pool
+  CreateDefaultTextures(); // Create default textures (white, black, normal)
+  CreateDefaultMaterial(); // Create default material
 
   // ========== 核心资源初始化 (纹理/缓冲) ==========
   CreateGBuffer();           // 创建 GBuffer 资源
@@ -248,10 +261,10 @@ void RenderCore::Init() {
   CreateCompositionRenderPass(); // 创建 合成渲染通道
   CreateBloomRenderPass();       // 创建 Bloom 渲染通道
   CreateBloomFramebuffers();     // 创建 Bloom 帧缓冲
-  CreateDescriptorSetLayouts();  // 创建描述符集布局
-  CreateGeometryPipeline();      // 创建几何管线
-  CreateCompositionPipeline();   // 创建合成管线
-  CreateDescriptorSets();        // 创建描述符集
+
+  CreateGeometryPipeline();    // 创建几何管线
+  CreateCompositionPipeline(); // 创建合成管线
+  CreateDescriptorSets();      // 创建描述符集
 
   // ========== 前向渲染初始化 ==========
   CreateForwardRenderPass(); // 创建前向渲染通道
@@ -271,9 +284,6 @@ void RenderCore::Init() {
   CreateSyncObjects();    // Create semaphores and fences
 
   // ========== 场景设置 ==========
-  // 不再设置默认测试场景，等待用户加载工程
-  // SetupBunnyTestScene();
-
   InitImGui(); // Initialize ImGui
 
   LOG_I("RenderCore Initialized with Deferred + Forward Rendering & "
@@ -1065,10 +1075,14 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     // Push constants structure (Must match shader layout)
     struct PushConstantData {
       glm::mat4 model;
-      float metallic;
-      float roughness;
+      glm::vec4 baseColorFactor;
+      float metallicFactor;
+      float roughnessFactor;
+      float normalScale;
+      float occlusionStrength;
       float shadingId;
       float emissiveIntensity;
+      uint32_t textureFlags;
     };
 
     // Render opaque objects
@@ -1076,12 +1090,25 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
       if (obj.material.IsTransparent())
         continue;
 
+      // Bind Partial Material Descriptor Set (Textures)
+      VkDescriptorSet matSet = obj.pMaterialResource
+                                   ? obj.pMaterialResource->descriptorSet
+                                   : m_DefaultMaterial.descriptorSet;
+      vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                              m_GeometryPipelineLayout, 1, 1, &matSet, 0,
+                              nullptr);
+
       PushConstantData pcData{};
       pcData.model = obj.modelMatrix;
-      pcData.metallic = obj.material.metallic;
-      pcData.roughness = obj.material.roughness;
-      pcData.shadingId = obj.material.shadingId;
+      pcData.baseColorFactor = obj.material.baseColorFactor;
+      pcData.metallicFactor = obj.material.metallicFactor;
+      pcData.roughnessFactor = obj.material.roughnessFactor;
+      pcData.normalScale = obj.material.normalScale;
+      pcData.occlusionStrength = obj.material.occlusionStrength;
+      pcData.shadingId = 0.0f; // Lit
       pcData.emissiveIntensity = obj.material.emissiveIntensity;
+      pcData.textureFlags =
+          obj.pMaterialResource ? obj.pMaterialResource->GetTextureFlags() : 0;
 
       vkCmdPushConstants(commandBuffer, m_GeometryPipelineLayout,
                          VK_SHADER_STAGE_VERTEX_BIT |
@@ -1173,28 +1200,47 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     vkCmdBindDescriptorSets(
         commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ForwardPipelineLayout,
         0, 1, &m_GeometryDescriptorSets[m_CurrentFrame], 0, nullptr);
+
+    // Bind Lights (Set 2)
     vkCmdBindDescriptorSets(
         commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ForwardPipelineLayout,
-        1, 1, &m_CompositionLightDescriptorSets[m_CurrentFrame], 0, nullptr);
+        2, 1, &m_CompositionLightDescriptorSets[m_CurrentFrame], 0, nullptr);
 
     struct ForwardPushConstants {
       glm::mat4 model;
-      float metallic;
-      float roughness;
+      glm::vec4 baseColorFactor;
+      float metallicFactor;
+      float roughnessFactor;
+      float normalScale;
       float alpha;
+      float shadingId;
       float emissiveIntensity;
+      uint32_t textureFlags;
     };
 
     for (const auto &obj : m_RenderObjects) {
       if (!obj.material.IsTransparent())
         continue;
 
+      // Bind Material (Set 1)
+      VkDescriptorSet matSet = obj.pMaterialResource
+                                   ? obj.pMaterialResource->descriptorSet
+                                   : m_DefaultMaterial.descriptorSet;
+      vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                              m_ForwardPipelineLayout, 1, 1, &matSet, 0,
+                              nullptr);
+
       ForwardPushConstants pcData{};
       pcData.model = obj.modelMatrix;
-      pcData.metallic = obj.material.metallic;
-      pcData.roughness = obj.material.roughness;
+      pcData.baseColorFactor = obj.material.baseColorFactor;
+      pcData.metallicFactor = obj.material.metallicFactor;
+      pcData.roughnessFactor = obj.material.roughnessFactor;
+      pcData.normalScale = obj.material.normalScale;
       pcData.alpha = obj.material.alpha;
+      pcData.shadingId = 0.0f;
       pcData.emissiveIntensity = obj.material.emissiveIntensity;
+      pcData.textureFlags =
+          obj.pMaterialResource ? obj.pMaterialResource->GetTextureFlags() : 0;
 
       vkCmdPushConstants(commandBuffer, m_ForwardPipelineLayout,
                          VK_SHADER_STAGE_VERTEX_BIT |
@@ -1381,7 +1427,7 @@ void RenderCore::DrawFrame() {
       m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    // RecreateSwapchain();
+    RecreateSwapchain();
     return;
   } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("failed to acquire swap chain image!");
@@ -1458,7 +1504,7 @@ void RenderCore::DrawFrame() {
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       m_FramebufferResized) {
     m_FramebufferResized = false;
-    // RecreateSwapchain();
+    RecreateSwapchain();
   } else if (result != VK_SUCCESS) {
     throw std::runtime_error("failed to present swap chain image!");
   }
@@ -1476,6 +1522,77 @@ void RenderCore::CleanupSwapchain() {
   }
 
   vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
+}
+
+void RenderCore::RecreateSwapchain() {
+  while (Window::GetWidth() == 0 || Window::GetHeight() == 0) {
+    Window::PollEvents();
+    SDL_Delay(1);
+  }
+
+  vkDeviceWaitIdle(m_Device);
+
+  CleanupSwapchain();
+
+  // Destroy resources that depend on swapchain size
+  m_GBuffer.Destroy(m_Device);
+  for (auto &sc : m_SceneColor) {
+    if (sc.view != VK_NULL_HANDLE) {
+      vkDestroyImageView(m_Device, sc.view, nullptr);
+      vkDestroyImage(m_Device, sc.image, nullptr);
+      vkFreeMemory(m_Device, sc.memory, nullptr);
+      sc.view = VK_NULL_HANDLE;
+    }
+  }
+  m_SceneColor.clear();
+
+  if (m_BloomBrightTexture.view != VK_NULL_HANDLE) {
+    vkDestroyImageView(m_Device, m_BloomBrightTexture.view, nullptr);
+    vkDestroyImage(m_Device, m_BloomBrightTexture.image, nullptr);
+    vkFreeMemory(m_Device, m_BloomBrightTexture.memory, nullptr);
+    m_BloomBrightTexture.view = VK_NULL_HANDLE;
+  }
+  if (m_BloomBlurTexture.view != VK_NULL_HANDLE) {
+    vkDestroyImageView(m_Device, m_BloomBlurTexture.view, nullptr);
+    vkDestroyImage(m_Device, m_BloomBlurTexture.image, nullptr);
+    vkFreeMemory(m_Device, m_BloomBlurTexture.memory, nullptr);
+    m_BloomBlurTexture.view = VK_NULL_HANDLE;
+  }
+
+  for (auto fb : m_CompositionFramebuffers) {
+    if (fb != VK_NULL_HANDLE)
+      vkDestroyFramebuffer(m_Device, fb, nullptr);
+  }
+  m_CompositionFramebuffers.clear();
+
+  if (m_BloomBrightFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBrightFramebuffer, nullptr);
+    m_BloomBrightFramebuffer = VK_NULL_HANDLE;
+  }
+  if (m_BloomBlurFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBlurFramebuffer, nullptr);
+    m_BloomBlurFramebuffer = VK_NULL_HANDLE;
+  }
+
+  // Re-create everything
+  CreateSwapchain();
+  CreateImageViews();
+  CreateGBuffer();
+  CreateSceneRenderTarget();
+  CreateBloomResources();
+  CreateFramebuffers();
+  CreateBloomFramebuffers();
+
+  // CreateDescriptorSets and CreatePostProcessDescriptorSets allocate and
+  // update. This might lead to gradual descriptor pool fill-up, but since it's
+  // a large pool and Resizing is relatively rare, it's a functional fix for
+  // now. Proper fix would be resetting the pool or separating allocation from
+  // update.
+  CreateDescriptorSets();
+  CreatePostProcessDescriptorSets();
+
+  LOG_I("Swapchain recreated: {0}x{1}", m_SwapchainExtent.width,
+        m_SwapchainExtent.height);
 }
 
 // ========== 辅助函数实现 ==========
@@ -1850,6 +1967,31 @@ void RenderCore::CreateDescriptorSetLayouts() {
         "Failed to create composition GBuffer descriptor set layout!");
   }
 
+  // Material Descriptor Set Layout (Set 1)
+  std::array<VkDescriptorSetLayoutBinding, 5> materialBindings{};
+  for (uint32_t i = 0; i < 5; i++) {
+    materialBindings[i].binding = i;
+    materialBindings[i].descriptorType =
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    materialBindings[i].descriptorCount = 1;
+    materialBindings[i].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    materialBindings[i].pImmutableSamplers = nullptr;
+  }
+
+  VkDescriptorSetLayoutCreateInfo materialLayoutInfo{};
+  materialLayoutInfo.sType =
+      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  materialLayoutInfo.bindingCount =
+      static_cast<uint32_t>(materialBindings.size());
+  materialLayoutInfo.pBindings = materialBindings.data();
+
+  if (vkCreateDescriptorSetLayout(m_Device, &materialLayoutInfo, nullptr,
+                                  &m_MaterialDescriptorSetLayout) !=
+      VK_SUCCESS) {
+    throw std::runtime_error(
+        "Failed to create material descriptor set layout!");
+  }
+
   // Single Texture Descriptor Set Layout (For Bloom)
   VkDescriptorSetLayoutBinding singleTextureBinding{};
   singleTextureBinding.binding = 0;
@@ -2052,13 +2194,18 @@ void RenderCore::CreateGeometryPipeline() {
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   pushConstantRange.offset = 0;
   pushConstantRange.size =
-      sizeof(glm::mat4) +
-      sizeof(float) * 4; // 64 (Mat4) + 16 (4 floats) = 80 bytes
+      128; // Increased to cover all material params (offset 104 + 4 = 108 ->
+           // aligned to 128 safer)
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 1;
-  pipelineLayoutInfo.pSetLayouts = &m_GeometryDescriptorSetLayout;
+
+  // Set 0: Geometry (UBO), Set 1: Material (Textures)
+  VkDescriptorSetLayout setLayouts[] = {m_GeometryDescriptorSetLayout,
+                                        m_MaterialDescriptorSetLayout};
+
+  pipelineLayoutInfo.setLayoutCount = 2;
+  pipelineLayoutInfo.pSetLayouts = setLayouts;
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
@@ -2926,15 +3073,17 @@ void RenderCore::CreateForwardPipeline() {
   pushConstantRange.stageFlags =
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   pushConstantRange.offset = 0;
-  pushConstantRange.size = sizeof(glm::mat4) + sizeof(float) * 4; // 80 bytes
+  pushConstantRange.size = 128; // 128 bytes for material params
 
-  // 使用现有的描述符布局
-  VkDescriptorSetLayout setLayouts[] = {m_GeometryDescriptorSetLayout,
-                                        m_CompositionLightDescriptorSetLayout};
+  // 使用现有的描述符布局 (Set 0: Geometry, Set 1: Material, Set 2: Light)
+  VkDescriptorSetLayout setLayouts[] = {
+      m_GeometryDescriptorSetLayout,
+      m_MaterialDescriptorSetLayout,          // Set 1: Textures
+      m_CompositionLightDescriptorSetLayout}; // Set 2: Lights
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 2;
+  pipelineLayoutInfo.setLayoutCount = 3;
   pipelineLayoutInfo.pSetLayouts = setLayouts;
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
@@ -4003,6 +4152,330 @@ bool RenderCore::LoadModelFromFile(const std::string &path,
   return true;
 }
 
+// ========== 纹理与材质资源加载 ==========
+
+void RenderCore::CreateDefaultTextures() {
+  unsigned char whiteData[] = {255, 255, 255, 255};
+  m_DefaultWhiteTexture.CreateFromData(m_Device, m_PhysicalDevice,
+                                       m_CommandPool, m_GraphicsQueue,
+                                       whiteData, 1, 1, 4);
+  m_DefaultWhiteTexture.isLoaded = true;
+
+  unsigned char blackData[] = {0, 0, 0, 255};
+  m_DefaultBlackTexture.CreateFromData(m_Device, m_PhysicalDevice,
+                                       m_CommandPool, m_GraphicsQueue,
+                                       blackData, 1, 1, 4);
+  m_DefaultBlackTexture.isLoaded = true;
+
+  unsigned char normalData[] = {128, 128, 255, 255};
+  m_DefaultNormalTexture.CreateFromData(m_Device, m_PhysicalDevice,
+                                        m_CommandPool, m_GraphicsQueue,
+                                        normalData, 1, 1, 4);
+  m_DefaultNormalTexture.isLoaded = true;
+}
+
+void RenderCore::CreateDefaultMaterial() {
+  m_DefaultMaterial.name = "Default Material";
+  m_DefaultMaterial.material = Material{};
+  m_DefaultMaterial.uuid = UUID::Invalid();
+
+  m_DefaultMaterial.baseColorTex = &m_DefaultWhiteTexture;
+  m_DefaultMaterial.metallicRoughnessTex = &m_DefaultWhiteTexture;
+  m_DefaultMaterial.normalTex = &m_DefaultNormalTexture;
+  m_DefaultMaterial.emissiveTex = &m_DefaultBlackTexture;
+  m_DefaultMaterial.occlusionTex = &m_DefaultWhiteTexture;
+
+  CreateMaterialDescriptorSet(&m_DefaultMaterial);
+  m_DefaultMaterial.isLoaded = true;
+}
+
+bool RenderCore::LoadTextureResource(const UUID &textureID) {
+  if (!textureID.IsValid())
+    return false;
+  if (m_TextureCache.find(textureID) != m_TextureCache.end())
+    return true;
+
+  std::string filePath = AssetManager::GetInstance().GetAssetPath(textureID);
+  if (filePath.empty())
+    return false;
+
+  TextureResource texture;
+  if (texture.LoadFromFile(m_Device, m_PhysicalDevice, m_CommandPool,
+                           m_GraphicsQueue, filePath)) {
+    m_TextureCache[textureID] = std::move(texture);
+    return true;
+  }
+  return false;
+}
+
+TextureResource *RenderCore::GetTextureResource(const UUID &textureID) {
+  if (!textureID.IsValid())
+    return &m_DefaultWhiteTexture;
+
+  auto it = m_TextureCache.find(textureID);
+  if (it != m_TextureCache.end()) {
+    return &it->second;
+  }
+
+  if (LoadTextureResource(textureID)) {
+    return &m_TextureCache[textureID];
+  }
+
+  return &m_DefaultWhiteTexture;
+}
+
+void RenderCore::CreateMaterialDescriptorSet(MaterialResource *material) {
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = m_DescriptorPool;
+  allocInfo.descriptorSetCount = 1;
+  allocInfo.pSetLayouts = &m_MaterialDescriptorSetLayout;
+
+  if (vkAllocateDescriptorSets(m_Device, &allocInfo,
+                               &material->descriptorSet) != VK_SUCCESS) {
+    LOG_E("Failed to allocate material descriptor set!");
+    return;
+  }
+
+  std::array<VkWriteDescriptorSet, 5> descriptorWrites{};
+  std::array<VkDescriptorImageInfo, 5> imageInfos{};
+
+  auto setupImageWrite = [&](uint32_t binding, TextureResource *texRes,
+                             VkDescriptorImageInfo &imageInfo) {
+    TextureResource *targetTex =
+        (texRes && texRes->isLoaded) ? texRes : &m_DefaultWhiteTexture;
+
+    // Normal map fallback
+    if (binding == 2 && targetTex == &m_DefaultWhiteTexture) {
+      targetTex = &m_DefaultNormalTexture;
+    }
+    // Emissive/Occlusion fallback
+    if (binding == 3 && targetTex == &m_DefaultWhiteTexture)
+      targetTex = &m_DefaultBlackTexture;
+
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = targetTex->imageView;
+    imageInfo.sampler = targetTex->sampler;
+
+    descriptorWrites[binding].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[binding].dstSet = material->descriptorSet;
+    descriptorWrites[binding].dstBinding = binding;
+    descriptorWrites[binding].dstArrayElement = 0;
+    descriptorWrites[binding].descriptorType =
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[binding].descriptorCount = 1;
+    descriptorWrites[binding].pImageInfo = &imageInfo;
+  };
+
+  setupImageWrite(0, material->baseColorTex, imageInfos[0]);
+  setupImageWrite(1, material->metallicRoughnessTex, imageInfos[1]);
+  setupImageWrite(2, material->normalTex, imageInfos[2]);
+  setupImageWrite(3, material->emissiveTex, imageInfos[3]);
+  setupImageWrite(4, material->occlusionTex, imageInfos[4]);
+
+  vkUpdateDescriptorSets(m_Device,
+                         static_cast<uint32_t>(descriptorWrites.size()),
+                         descriptorWrites.data(), 0, nullptr);
+}
+
+bool RenderCore::LoadMaterialResource(const UUID &materialID) {
+  if (!materialID.IsValid())
+    return false;
+  if (m_MaterialCache.find(materialID) != m_MaterialCache.end())
+    return true;
+
+  std::string filePath = AssetManager::GetInstance().GetAssetPath(materialID);
+  if (filePath.empty())
+    return false;
+
+  MaterialResource materialRes;
+  materialRes.uuid = materialID;
+  if (materialRes.LoadFromFile(filePath)) {
+    // Load referenced textures
+    LoadTextureResource(materialRes.material.baseColorTexture);
+    LoadTextureResource(materialRes.material.metallicRoughnessTexture);
+    LoadTextureResource(materialRes.material.normalTexture);
+    LoadTextureResource(materialRes.material.emissiveTexture);
+    LoadTextureResource(materialRes.material.occlusionTexture);
+
+    // Get pointers to textures
+    materialRes.baseColorTex =
+        GetTextureResource(materialRes.material.baseColorTexture);
+    materialRes.metallicRoughnessTex =
+        GetTextureResource(materialRes.material.metallicRoughnessTexture);
+    materialRes.normalTex =
+        GetTextureResource(materialRes.material.normalTexture);
+    materialRes.emissiveTex =
+        GetTextureResource(materialRes.material.emissiveTexture);
+    materialRes.occlusionTex =
+        GetTextureResource(materialRes.material.occlusionTexture);
+
+    // Create descriptor set
+    CreateMaterialDescriptorSet(&materialRes);
+
+    materialRes.isLoaded = true;
+    m_MaterialCache[materialID] = std::move(materialRes);
+    return true;
+  }
+  return false;
+}
+
+MaterialResource *RenderCore::GetMaterialResource(const UUID &materialID) {
+  if (!materialID.IsValid())
+    return &m_DefaultMaterial;
+
+  auto it = m_MaterialCache.find(materialID);
+  if (it != m_MaterialCache.end()) {
+    return &it->second;
+  }
+
+  if (LoadMaterialResource(materialID)) {
+    return &m_MaterialCache[materialID];
+  }
+
+  return &m_DefaultMaterial;
+}
+
+// ============================== Material Management
+// ==============================
+
+UUID RenderCore::CreateMaterial() {
+  MaterialResource material;
+  material.SetName("New Material");
+  material.uuid = UUID();
+
+  // Default PBR params
+  material.material.baseColorFactor = glm::vec4(1.0f);
+  material.material.metallicFactor = 0.0f;
+  material.material.roughnessFactor = 0.5f;
+  material.material.normalScale = 1.0f;
+  material.material.emissiveIntensity = 0.0f;
+  material.material.alpha = 1.0f;
+  material.material.shadingId = 0.0f; // Default Lit
+  material.material.textureFlags = 0;
+
+  // Set default textures
+  material.baseColorTex = &m_DefaultWhiteTexture;
+  material.metallicRoughnessTex = &m_DefaultWhiteTexture;
+  material.normalTex = &m_DefaultNormalTexture;
+  material.emissiveTex = &m_DefaultBlackTexture;
+  material.occlusionTex = &m_DefaultWhiteTexture;
+
+  // Create Descriptor Set
+  CreateMaterialDescriptorSet(&material);
+
+  UUID id = material.uuid;
+  m_MaterialCache[id] = std::move(material);
+
+  LOG_I("Created new material: {}", id.ToString());
+  return id;
+}
+
+void RenderCore::DeleteMaterial(const UUID &id) {
+  auto it = m_MaterialCache.find(id);
+  if (it != m_MaterialCache.end()) {
+    // Free descriptor set
+    if (it->second.descriptorSet != VK_NULL_HANDLE) {
+      vkFreeDescriptorSets(m_Device, m_DescriptorPool, 1,
+                           &it->second.descriptorSet);
+    }
+    m_MaterialCache.erase(it);
+    LOG_I("Deleted material: {}", id.ToString());
+  }
+}
+
+std::vector<UUID> RenderCore::GetAllMaterials() {
+  std::vector<UUID> materials;
+  materials.reserve(m_MaterialCache.size());
+  for (const auto &pair : m_MaterialCache) {
+    materials.push_back(pair.first);
+  }
+  return materials;
+}
+
+void RenderCore::SetMaterialTexture(const UUID &matID, uint32_t binding,
+                                    const UUID &texID) {
+  auto it = m_MaterialCache.find(matID);
+  if (it == m_MaterialCache.end())
+    return;
+
+  MaterialResource &mat = it->second;
+  TextureResource *texRes = nullptr;
+
+  if (texID.IsValid()) {
+    texRes = GetTextureResource(texID);
+  }
+
+  // Fallback to defaults
+  if (!texRes) {
+    switch (binding) {
+    case 0:
+      texRes = &m_DefaultWhiteTexture;
+      break;
+    case 1:
+      texRes = &m_DefaultWhiteTexture;
+      break;
+    case 2:
+      texRes = &m_DefaultNormalTexture;
+      break;
+    case 3:
+      texRes = &m_DefaultBlackTexture;
+      break;
+    case 4:
+      texRes = &m_DefaultWhiteTexture;
+      break;
+    default:
+      texRes = &m_DefaultWhiteTexture;
+      break;
+    }
+  }
+
+  // Update pointer
+  switch (binding) {
+  case 0:
+    mat.baseColorTex = texRes;
+    break;
+  case 1:
+    mat.metallicRoughnessTex = texRes;
+    break;
+  case 2:
+    mat.normalTex = texRes;
+    break;
+  case 3:
+    mat.emissiveTex = texRes;
+    break;
+  case 4:
+    mat.occlusionTex = texRes;
+    break;
+  }
+
+  // Update flags
+  uint32_t flagBit = (1 << binding);
+  if (texID.IsValid()) {
+    mat.material.textureFlags |= flagBit;
+  } else {
+    mat.material.textureFlags &= ~flagBit;
+  }
+
+  // Update Descriptor Set
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.dstSet = mat.descriptorSet;
+  descriptorWrite.dstBinding = binding;
+  descriptorWrite.dstArrayElement = 0;
+  descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  descriptorWrite.descriptorCount = 1;
+
+  VkDescriptorImageInfo imageInfo{};
+  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  imageInfo.imageView = texRes->imageView;
+  imageInfo.sampler = texRes->sampler;
+
+  descriptorWrite.pImageInfo = &imageInfo;
+
+  vkUpdateDescriptorSets(m_Device, 1, &descriptorWrite, 0, nullptr);
+}
+
 // ========== Mesh资源加载与场景收集 ==========
 
 bool RenderCore::LoadMeshResource(const UUID &meshID) {
@@ -4010,16 +4483,15 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
     return true;
   }
 
-  std::string path = AssetManager::GetInstance().GetAssetPath(meshID);
-  if (path.empty()) {
+  std::filesystem::path meshPath =
+      AssetManager::GetInstance().GetAssetPathObj(meshID);
+  if (meshPath.empty()) {
     LOG_W("Mesh resource path not found for UUID: {}", meshID.ToString());
     return false;
   }
-
-  std::filesystem::path meshPath(path);
   std::ifstream file(meshPath, std::ios::binary);
   if (!file.is_open()) {
-    LOG_E("Failed to open mesh file: {}", path);
+    LOG_E("Failed to open mesh file: {}", meshPath.string());
     return false;
   }
 
@@ -4030,7 +4502,7 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
   file.read(reinterpret_cast<char *>(&indexCount), sizeof(uint32_t));
 
   if (vertexCount == 0 || indexCount == 0) {
-    LOG_E("Empty mesh data in file: {}", path);
+    LOG_E("Empty mesh data in file: {}", meshPath.string());
     return false;
   }
 
@@ -4147,7 +4619,7 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
 
   res.loaded = true;
   m_MeshCache[meshID] = res;
-  LOG_I("Loaded mesh resource: {}", path);
+  LOG_I("Loaded mesh resource: {}", meshPath.string());
   return true;
 }
 
@@ -4175,7 +4647,7 @@ void RenderCore::CollectSceneRenderables() {
       continue;
     }
 
-    // 从缓存中获取已加载的网格资源（包括顶点缓冲和索引缓冲）
+    // 从缓存中获取已加载的一网格资源（包括顶点缓冲和索引缓冲）
     const auto &meshRes = m_MeshCache[cmd.meshID];
 
     // 构建渲染对象（RenderObject），这是渲染管线直接处理的结构
@@ -4185,16 +4657,15 @@ void RenderCore::CollectSceneRenderables() {
     obj.indexBuffer = meshRes.indexBuffer;   // 索引缓冲区句柄
     obj.indexCount = meshRes.indexCount;     // 索引数量
 
-    // TODO: 未来应根据 MaterialID 从资产管理器加载实际材质
-    // 目前暂时硬编码一组默认 PBR 参数
-
-    // 材质属性设置：基础色、透明度、金属度、粗糙度等
-    obj.material.albedo = glm::vec3(1.0f); // 纯白基础色
-    obj.material.alpha = 1.0f;             // 不透明
-    obj.material.metallic = 0.0f;          // 金属
-    obj.material.roughness = 1.0f;         // 粗糙度
-    obj.material.shadingId = 0.0f;         // 0.0 代表受光照（Lit）
-    obj.material.emissiveIntensity = 0.0f; // 无自发光
+    // 加载并设置材质
+    MaterialResource *pMatRes = GetMaterialResource(cmd.materialID);
+    if (pMatRes) {
+      obj.material = pMatRes->material;
+      obj.pMaterialResource = pMatRes;
+    } else {
+      obj.material = m_DefaultMaterial.material;
+      obj.pMaterialResource = &m_DefaultMaterial;
+    }
 
     // 将组装好的渲染对象放入待渲染列表
     m_RenderObjects.push_back(obj);

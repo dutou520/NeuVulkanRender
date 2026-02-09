@@ -12,35 +12,106 @@ layout(location = 1) out vec4 outSpecularOcclusion; // GBuffer2: RGB=Specular, A
 layout(location = 2) out vec4 outNormalSmoothness;  // GBuffer3: RGB=Normal, A=Smoothness
 layout(location = 3) out vec4 outShadingEmissive;   // GBuffer4: R=ShadingID, G=EmissiveR, B=EmissiveG, A=EmissiveB * intensity
 
+// 材质纹理 (set 1)
+layout(set = 1, binding = 0) uniform sampler2D baseColorMap;
+layout(set = 1, binding = 1) uniform sampler2D metallicRoughnessMap;
+layout(set = 1, binding = 2) uniform sampler2D normalMap;
+layout(set = 1, binding = 3) uniform sampler2D emissiveMap;
+layout(set = 1, binding = 4) uniform sampler2D occlusionMap;
+
 // 材质参数 Push Constants
+// offset 0-63: mat4 model (in vertex shader)
+// offset 64+: material parameters
 layout(push_constant) uniform PushConstants {
-    layout(offset = 64) float metallic;
-    layout(offset = 68) float roughness;
-    layout(offset = 72) float shadingId;
-    layout(offset = 76) float emissiveIntensity;
+    layout(offset = 64) vec4 baseColorFactor;       // 基础颜色因子
+    layout(offset = 80) float metallicFactor;       // 金属度因子
+    layout(offset = 84) float roughnessFactor;      // 粗糙度因子
+    layout(offset = 88) float normalScale;          // 法线贴图强度
+    layout(offset = 92) float occlusionStrength;    // AO 强度
+    layout(offset = 96) float shadingId;            // 着色模型 ID
+    layout(offset = 100) float emissiveIntensity;   // 自发光强度
+    layout(offset = 104) uint textureFlags;         // 纹理标志位
+    // bit 0: useBaseColorMap
+    // bit 1: useMetallicRoughnessMap
+    // bit 2: useNormalMap
+    // bit 3: useEmissiveMap
+    // bit 4: useOcclusionMap
 } material;
 
 void main() {
-    // 归一化法线
+    // ========== 基础颜色 ==========
+    vec4 baseColor;
+    if ((material.textureFlags & 1u) != 0u) {
+        // 从纹理采样并乘以因子
+        baseColor = texture(baseColorMap, fragTexCoord) * material.baseColorFactor;
+    } else {
+        // 使用顶点颜色乘以因子
+        baseColor = fragColor * material.baseColorFactor;
+    }
+    
+    // ========== 金属度/粗糙度 ==========
+    float metallic = material.metallicFactor;
+    float roughness = material.roughnessFactor;
+    if ((material.textureFlags & 2u) != 0u) {
+        // GLTF: G = Roughness, B = Metallic
+        vec4 mr = texture(metallicRoughnessMap, fragTexCoord);
+        metallic = mr.b * material.metallicFactor;
+        roughness = mr.g * material.roughnessFactor;
+    }
+    
+    // ========== 法线 ==========
     vec3 normal = normalize(fragNormal);
+    if ((material.textureFlags & 4u) != 0u) {
+        // 采样法线贴图
+        vec3 tangentNormal = texture(normalMap, fragTexCoord).rgb * 2.0 - 1.0;
+        tangentNormal.xy *= material.normalScale;
+        tangentNormal = normalize(tangentNormal);
+        
+        // 简化的法线扰动 (无TBN矩阵)
+        // 在没有切线数据时，使用屏幕空间导数近似TBN
+        vec3 dpx = dFdx(fragPosition);
+        vec3 dpy = dFdy(fragPosition);
+        vec2 duvx = dFdx(fragTexCoord);
+        vec2 duvy = dFdy(fragTexCoord);
+        
+        vec3 T = normalize(dpx * duvy.y - dpy * duvx.y);
+        vec3 B = normalize(dpy * duvx.x - dpx * duvy.x);
+        vec3 N = normalize(fragNormal);
+        mat3 TBN = mat3(T, B, N);
+        
+        normal = normalize(TBN * tangentNormal);
+    }
+    
+    // ========== 环境遮蔽 ==========
+    float occlusion = 1.0;
+    if ((material.textureFlags & 16u) != 0u) {
+        occlusion = texture(occlusionMap, fragTexCoord).r;
+        occlusion = 1.0 + material.occlusionStrength * (occlusion - 1.0);
+    }
+    
+    // ========== 自发光 ==========
+    vec3 emissiveColor = vec3(0.0);
+    if ((material.textureFlags & 8u) != 0u) {
+        emissiveColor = texture(emissiveMap, fragTexCoord).rgb * material.emissiveIntensity;
+    } else if (material.emissiveIntensity > 0.0) {
+        emissiveColor = baseColor.rgb * material.emissiveIntensity;
+    }
+    
+    // ========== GBuffer 输出 ==========
     
     // GBuffer1: Albedo + MaterialFlags
-    outAlbedoFlags = vec4(fragColor.rgb, 0.0);
+    outAlbedoFlags = vec4(baseColor.rgb, 0.0);
     
     // GBuffer2: Specular + Occlusion
-    vec3 specularColor = mix(vec3(0.04), fragColor.rgb, material.metallic);
-    float occlusion = 1.0;
+    vec3 specularColor = mix(vec3(0.04), baseColor.rgb, metallic);
     outSpecularOcclusion = vec4(specularColor, occlusion);
     
     // GBuffer3: Normal + Smoothness
     vec3 encodedNormal = normal * 0.5 + 0.5;
-    float smoothness = 1.0 - material.roughness;
+    float smoothness = 1.0 - roughness;
     outNormalSmoothness = vec4(encodedNormal, smoothness);
     
-    // GBuffer4: ShadingID + Emissive Color (使用albedo作为自发光颜色)
-    // R = 着色ID归一化
-    // GBA = 自发光颜色 * 强度 (HDR)
+    // GBuffer4: ShadingID + Emissive Color
     float shadingIdNorm = material.shadingId / 255.0;
-    vec3 emissiveColor = fragColor.rgb * material.emissiveIntensity;
     outShadingEmissive = vec4(shadingIdNorm, emissiveColor.r, emissiveColor.g, emissiveColor.b);
 }

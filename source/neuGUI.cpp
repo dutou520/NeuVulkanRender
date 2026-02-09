@@ -20,6 +20,20 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 namespace neurender {
 
+static void ClearMaterialInScene(Node *node, const UUID &matID) {
+  if (!node)
+    return;
+  if (node->GetNodeType() == "MeshNode") {
+    auto *meshNode = static_cast<MeshNode *>(node);
+    if (meshNode->GetMaterialID() == matID) {
+      meshNode->SetMaterialID(UUID::Invalid());
+    }
+  }
+  for (auto &child : node->GetChildren()) {
+    ClearMaterialInScene(child.get(), matID);
+  }
+}
+
 // 静态成员初始化
 std::vector<std::shared_ptr<Scene>> EditorGUI::s_Scenes;
 int EditorGUI::s_ActiveSceneIndex = -1;
@@ -421,6 +435,9 @@ void EditorGUI::RenderSceneHierarchy() {
 
           LOG_I("Deleted scene: {}", sceneName);
           ImGui::EndPopup();
+          if (sceneOpen) {
+            ImGui::TreePop();
+          }
           break; // Exit the loop since we modified the vector
         }
         ImGui::EndPopup();
@@ -653,10 +670,213 @@ void EditorGUI::RenderInspector() {
     if (nodeType == "MeshNode") {
       ImGui::Text("Material Properties");
       ImGui::Separator();
-      // TODO: 材质属性编辑
-      ImGui::Text("Base Color");
-      ImGui::Text("Metallic");
-      ImGui::Text("Roughness");
+
+      // 获取 MeshNode 的材质
+      auto *meshNode = static_cast<MeshNode *>(s_SelectedNode);
+      UUID materialID = meshNode->GetMaterialID();
+      MaterialResource *matRes = nullptr;
+
+      if (materialID.IsValid()) {
+        matRes = RenderCore::GetMaterialResource(materialID);
+      }
+
+      // Material Selection / Creation
+      if (!matRes || !materialID.IsValid()) {
+        ImGui::TextDisabled("No Material Assigned");
+        if (ImGui::Button("Create New Material")) {
+          UUID newMatID = RenderCore::CreateMaterial();
+          meshNode->SetMaterialID(newMatID);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Select Material")) {
+          ImGui::OpenPopup("SelectMaterialPopup");
+        }
+      } else {
+        ImGui::Text("Material: %s", matRes->GetName().c_str());
+        ImGui::TextDisabled("UUID: %s", materialID.ToString().c_str());
+
+        if (ImGui::Button("Change Material")) {
+          ImGui::OpenPopup("SelectMaterialPopup");
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Unassign Material")) {
+          meshNode->SetMaterialID(UUID::Invalid());
+          matRes = nullptr;
+        }
+      }
+
+      // Material Selection Popup
+      if (ImGui::BeginPopup("SelectMaterialPopup")) {
+        std::vector<UUID> materials = RenderCore::GetAllMaterials();
+        for (const auto &id : materials) {
+          MaterialResource *m = RenderCore::GetMaterialResource(id);
+          if (ImGui::Selectable(m->GetName().c_str())) {
+            meshNode->SetMaterialID(id);
+          }
+        }
+        ImGui::EndPopup();
+      }
+
+      if (matRes) {
+        ImGui::Separator();
+        // Material Name
+        char nameBuf[256];
+        strncpy(nameBuf, matRes->GetName().c_str(), sizeof(nameBuf));
+        if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf))) {
+          matRes->SetName(nameBuf);
+        }
+
+        ImGui::Separator();
+
+        // PBR Properties
+        // Base Color
+        if (ImGui::CollapsingHeader("基础颜色 (Base Color)",
+                                    ImGuiTreeNodeFlags_DefaultOpen)) {
+          // 颜色编辑控件：允许用户调整材质的颜色因子 (RGBA)
+          if (ImGui::ColorEdit4("颜色因子",
+                                &matRes->material.baseColorFactor.x)) {
+            // 自动透明度切换逻辑：
+            // 如果 Alpha 值小于 0.999，自动将材质类型切换为透明
+            // (Transparent)，使用前向渲染
+            if (matRes->material.baseColorFactor.a < 0.999f) {
+              if (matRes->material.type != MaterialType::Transparent) {
+                matRes->material.type = MaterialType::Transparent;
+                matRes->material.alphaMode = "BLEND";
+              }
+            } else {
+              // 否则切换为不透明 (Opaque)，使用延迟渲染
+              if (matRes->material.type != MaterialType::Opaque) {
+                matRes->material.type = MaterialType::Opaque;
+                matRes->material.alphaMode = "OPAQUE";
+              }
+            }
+            // 同步更新材质的 alpha 属性，确保与 baseColorFactor.a 保持一致
+            matRes->material.alpha = matRes->material.baseColorFactor.a;
+          }
+
+          // 显示当前的渲染路径类型
+          ImGui::Text("渲染类型: %s",
+                      (matRes->material.type == MaterialType::Transparent)
+                          ? "透明 (Forward)"
+                          : "不透明 (Deferred)");
+
+          // 显示基础颜色贴图的绑定状态
+          ImGui::Text("贴图状态: %s", (matRes->material.textureFlags & 1)
+                                          ? "已加载"
+                                          : "未加载 (使用默认值)");
+
+          // 贴图槽位：支持从资源浏览器 (Content Browser)
+          // 拖拽贴图至此按钮进行分配
+          ImGui::Button("基础颜色贴图槽位", ImVec2(-1, 20));
+          if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload *payload =
+                    ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+              const char *path = (const char *)payload->Data;
+              // 通过文件路径获取资产的唯一标识符 UUID
+              UUID texID =
+                  AssetManager::GetInstance().GetAssetGUID(std::string(path));
+              if (texID.IsValid()) {
+                // 将贴图设置到材质的 0 号槽位 (基础颜色)
+                RenderCore::SetMaterialTexture(materialID, 0, texID);
+              }
+            }
+            ImGui::EndDragDropTarget();
+          }
+        }
+
+        // Metallic / Roughness
+        if (ImGui::CollapsingHeader("Metallic / Roughness",
+                                    ImGuiTreeNodeFlags_DefaultOpen)) {
+          ImGui::SliderFloat("Metallic", &matRes->material.metallicFactor, 0.0f,
+                             1.0f);
+          ImGui::SliderFloat("Roughness", &matRes->material.roughnessFactor,
+                             0.0f, 1.0f);
+
+          ImGui::Text("Texture: %s", (matRes->material.textureFlags & 2)
+                                         ? "Loaded (G=Roughness, B=Metallic)"
+                                         : "None/Default");
+
+          ImGui::Button("Metallic/Roughness Map Slot", ImVec2(-1, 20));
+          if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload *payload =
+                    ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+              const char *path = (const char *)payload->Data;
+              UUID texID =
+                  AssetManager::GetInstance().GetAssetGUID(std::string(path));
+              if (texID.IsValid()) {
+                RenderCore::SetMaterialTexture(materialID, 1, texID);
+              }
+            }
+            ImGui::EndDragDropTarget();
+          }
+        }
+
+        // Normal Map
+        if (ImGui::CollapsingHeader("Normal Map")) {
+          ImGui::SliderFloat("Scale", &matRes->material.normalScale, 0.0f,
+                             2.0f);
+          ImGui::Text("Texture: %s", (matRes->material.textureFlags & 4)
+                                         ? "Loaded"
+                                         : "None/Default");
+
+          ImGui::Button("Normal Map Slot", ImVec2(-1, 20));
+          if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload *payload =
+                    ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+              const char *path = (const char *)payload->Data;
+              UUID texID =
+                  AssetManager::GetInstance().GetAssetGUID(std::string(path));
+              if (texID.IsValid()) {
+                RenderCore::SetMaterialTexture(materialID, 2, texID);
+              }
+            }
+            ImGui::EndDragDropTarget();
+          }
+        }
+
+        // Emission
+        if (ImGui::CollapsingHeader("Emission")) {
+          ImGui::DragFloat("Intensity", &matRes->material.emissiveIntensity,
+                           0.1f, 0.0f, 100.0f);
+          ImGui::Text("Texture: %s", (matRes->material.textureFlags & 8)
+                                         ? "Loaded"
+                                         : "None/Default");
+
+          ImGui::Button("Emissive Map Slot", ImVec2(-1, 20));
+          if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload *payload =
+                    ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+              const char *path = (const char *)payload->Data;
+              UUID texID =
+                  AssetManager::GetInstance().GetAssetGUID(std::string(path));
+              if (texID.IsValid()) {
+                RenderCore::SetMaterialTexture(materialID, 3, texID);
+              }
+            }
+            ImGui::EndDragDropTarget();
+          }
+        }
+
+        // Occlusion
+        if (ImGui::CollapsingHeader("Occlusion")) {
+          ImGui::Text("Texture: %s", (matRes->material.textureFlags & 16)
+                                         ? "Loaded"
+                                         : "None/Default");
+          ImGui::Button("Occlusion Map Slot", ImVec2(-1, 20));
+          if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload *payload =
+                    ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+              const char *path = (const char *)payload->Data;
+              UUID texID =
+                  AssetManager::GetInstance().GetAssetGUID(std::string(path));
+              if (texID.IsValid()) {
+                RenderCore::SetMaterialTexture(materialID, 4, texID);
+              }
+            }
+            ImGui::EndDragDropTarget();
+          }
+        }
+      }
     }
     break;
 
@@ -883,26 +1103,30 @@ void EditorGUI::RenderContentBrowser() {
   // 左侧：选中文件信息
   ImGui::BeginChild("FileInfo", ImVec2(0, 0), true);
   if (!s_SelectedFile.empty()) {
-    ImGui::Text("Selected:");
-    ImGui::TextWrapped("%s", s_SelectedFile.c_str());
-    ImGui::Separator();
+    try {
+      ImGui::Text("Selected:");
+      ImGui::TextWrapped("%s", s_SelectedFile.c_str());
+      ImGui::Separator();
 
-    std::filesystem::path filePath =
-        std::filesystem::path(s_CurrentPath) / s_SelectedFile;
-    if (std::filesystem::exists(filePath)) {
-      if (std::filesystem::is_directory(filePath)) {
-        ImGui::Text("Type: Folder");
-      } else {
-        ImGui::Text("Type: File");
-        auto size = std::filesystem::file_size(filePath);
-        if (size < 1024) {
-          ImGui::Text("Size: %llu B", size);
-        } else if (size < 1024 * 1024) {
-          ImGui::Text("Size: %.1f KB", size / 1024.0f);
+      std::filesystem::path filePath =
+          std::filesystem::path(s_CurrentPath) / s_SelectedFile;
+      if (std::filesystem::exists(filePath)) {
+        if (std::filesystem::is_directory(filePath)) {
+          ImGui::Text("Type: Folder");
         } else {
-          ImGui::Text("Size: %.1f MB", size / (1024.0f * 1024.0f));
+          ImGui::Text("Type: File");
+          auto size = std::filesystem::file_size(filePath);
+          if (size < 1024) {
+            ImGui::Text("Size: %llu B", size);
+          } else if (size < 1024 * 1024) {
+            ImGui::Text("Size: %.1f KB", size / 1024.0f);
+          } else {
+            ImGui::Text("Size: %.1f MB", size / (1024.0f * 1024.0f));
+          }
         }
       }
+    } catch (const std::exception &e) {
+      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error: %s", e.what());
     }
   } else {
     ImGui::TextDisabled("无文件被选中");
@@ -932,25 +1156,35 @@ void EditorGUI::RenderContentBrowser() {
       // 按名称字母顺序排序
       auto sortByName = [](const std::filesystem::directory_entry &a,
                            const std::filesystem::directory_entry &b) {
-        return a.path().filename().string() < b.path().filename().string();
+        try {
+          return a.path().filename().u8string() <
+                 b.path().filename().u8string();
+        } catch (...) {
+          return false;
+        }
       };
       std::sort(directories.begin(), directories.end(), sortByName);
       std::sort(files.begin(), files.end(), sortByName);
 
       // 首先渲染目录
       for (const auto &entry : directories) {
-        std::string name = "[D] " + entry.path().filename().string();
-        std::string filename = entry.path().filename().string();
+        std::string filename;
+        try {
+          filename = entry.path().filename().u8string();
+        } catch (...) {
+          filename = "Invalid Encoding";
+        }
+        std::string name = "[D] " + filename;
 
-        if (ImGui::Selectable(name.c_str(), s_SelectedFile == filename,
-                              ImGuiSelectableFlags_AllowDoubleClick)) {
+        bool isSelected = (s_SelectedFile == filename);
+        if (ImGui::Selectable(name.c_str(), isSelected)) {
           s_SelectedFile = filename;
+        }
 
-          // 双击进入目录
-          if (ImGui::IsMouseDoubleClicked(0)) {
-            s_CurrentPath = entry.path().string();
-            s_SelectedFile = "";
-          }
+        if (ImGui::IsItemHovered() &&
+            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          s_CurrentPath = entry.path().u8string();
+          s_SelectedFile = "";
         }
 
         // 文件夹作为拖拽目标（实现文件移动功能）
@@ -981,6 +1215,15 @@ void EditorGUI::RenderContentBrowser() {
           s_SelectedFile = filename;
         }
 
+        // 拖拽源 (文件)
+        if (ImGui::BeginDragDropSource()) {
+          std::string pathStr = entry.path().string();
+          ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", pathStr.c_str(),
+                                    pathStr.length() + 1);
+          ImGui::Text("%s", filename.c_str());
+          ImGui::EndDragDropSource();
+        }
+
         // Right-click context menu for files
         if (ImGui::BeginPopupContextItem(("文件上下文##" + filename).c_str())) {
           std::filesystem::path filePath =
@@ -988,8 +1231,46 @@ void EditorGUI::RenderContentBrowser() {
 
           if (ImGui::MenuItem("删除")) {
             try {
+              // 处理材质删除的特殊逻辑
+              std::string ext;
+              try {
+                ext = filePath.extension().u8string();
+              } catch (...) {
+                ext = filePath.extension().string();
+              }
+              std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+              if (ext == ".mat.json") {
+                UUID matID = AssetManager::GetInstance().GetAssetGUID(filePath);
+                if (matID.IsValid()) {
+                  LOG_I("Deleting material asset: {}, clearing from scenes...",
+                        matID.ToString());
+
+                  // 1. 在所有加载的场景中清除该材质的引用
+                  for (auto &scene : EditorGUI::s_Scenes) {
+                    if (scene && scene->GetRootNode()) {
+                      ClearMaterialInScene(scene->GetRootNode(), matID);
+                    }
+                  }
+
+                  // 2. 从渲染核心缓存中删除
+                  RenderCore::DeleteMaterial(matID);
+
+                  // 3. 从资产管理器注销
+                  AssetManager::GetInstance().UnregisterAsset(matID);
+                }
+              }
+
+              // 通用的 .meta 文件清理
+              std::filesystem::path metaPath = filePath;
+              metaPath += ".meta";
+              if (std::filesystem::exists(metaPath)) {
+                std::filesystem::remove(metaPath);
+                LOG_I("Deleted meta file: {}", metaPath.u8string());
+              }
+
               std::filesystem::remove(filePath);
-              LOG_I("Deleted file: {}", filePath.string());
+              LOG_I("Deleted file: {}", filePath.u8string());
               s_SelectedFile = "";
             } catch (const std::exception &e) {
               LOG_E("Failed to delete file: {}", e.what());
@@ -1227,46 +1508,60 @@ void EditorGUI::CreateCamera() {
 // ========== 工程管理函数 ==========
 
 std::string EditorGUI::ShowFileDialog(bool isOpen, const char *filter) {
-  char filename[MAX_PATH] = "";
+  wchar_t filename[MAX_PATH] = L"";
 
-  OPENFILENAMEA ofn;
+  // 将 filter 转换为宽字符 (注意 filter 可能有多个 \0)
+  std::wstring wfilter;
+  if (filter) {
+    const char *p = filter;
+    while (*p || *(p + 1)) {
+      wfilter += (wchar_t)*p;
+      p++;
+    }
+    wfilter += L'\0';
+    wfilter += L'\0';
+  }
+
+  OPENFILENAMEW ofn;
   ZeroMemory(&ofn, sizeof(ofn));
   ofn.lStructSize = sizeof(ofn);
   ofn.hwndOwner = NULL;
   ofn.lpstrFile = filename;
   ofn.nMaxFile = MAX_PATH;
-  ofn.lpstrFilter = filter;
+  ofn.lpstrFilter = wfilter.empty() ? NULL : wfilter.c_str();
   ofn.nFilterIndex = 1;
   ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
+  BOOL success = FALSE;
   if (isOpen) {
-    if (GetOpenFileNameA(&ofn)) {
-      return std::string(filename);
-    }
+    success = GetOpenFileNameW(&ofn);
   } else {
-    if (GetSaveFileNameA(&ofn)) {
-      return std::string(filename);
-    }
+    success = GetSaveFileNameW(&ofn);
+  }
+
+  if (success) {
+    // 将宽字符路径转换为 UTF-8 字符串
+    return std::filesystem::path(filename).u8string();
   }
 
   return "";
 }
 
 void EditorGUI::CreateNewProject() {
-  // 使用文件夹选择对话框
-  char folderPath[MAX_PATH] = "";
+  // 使用文件夹选择对话框 (宽字符版本)
+  wchar_t folderPath[MAX_PATH] = L"";
 
-  BROWSEINFOA bi;
+  BROWSEINFOW bi;
   ZeroMemory(&bi, sizeof(bi));
-  bi.lpszTitle = "Select folder for new project";
+  bi.lpszTitle = L"Select folder for new project";
   bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
 
-  LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);
+  LPITEMIDLIST pidl = SHBrowseForFolderW(&bi);
   if (pidl != NULL) {
-    SHGetPathFromIDListA(pidl, folderPath);
+    SHGetPathFromIDListW(pidl, folderPath);
     CoTaskMemFree(pidl);
 
-    std::string projectPath = std::string(folderPath);
+    std::string projectPath = std::filesystem::path(folderPath).u8string();
     if (!projectPath.empty()) {
       // 创建新工程
       auto project = Project::Create(projectPath, "NewProject");

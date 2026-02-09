@@ -28,7 +28,8 @@ std::shared_ptr<Project> Project::Create(const std::string &projectPath,
   // 1. 创建项目实例
   auto project = std::make_shared<Project>(name);
   project->m_ProjectPath = projectPath;
-  project->m_AssetsPath = projectPath + "/Assets";
+  project->m_AssetsPath =
+      (std::filesystem::path(projectPath) / "Assets").u8string();
 
   // 2. 创建物理目录结构
   // 创建项目根目录和资源子目录
@@ -155,7 +156,9 @@ std::shared_ptr<Project> Project::FromJson(const nlohmann::json &j,
   // 读取项目名称，如果不存在则赋予默认值
   project->m_Name = j.value("name", "Unnamed Project");
   // 拼接完整的资源路径
-  project->m_AssetsPath = projectPath + "/" + j.value("assetsPath", "Assets");
+  project->m_AssetsPath =
+      (std::filesystem::path(projectPath) / j.value("assetsPath", "Assets"))
+          .u8string();
   // 获取当前激活场景
   project->m_ActiveScenePath = j.value("activeScene", "");
 

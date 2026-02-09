@@ -263,7 +263,7 @@ CMAKE_TOOLCHAIN_FILE:STRING=D:/vcpkg/scripts/buildsystems/vcpkg.cmake
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Dependencies for the target
-NeuAssetLib_LIB_DEPENDS:STATIC=general;NeuCoreLib;general;NeuLogLib;general;glm::glm;
+NeuAssetLib_LIB_DEPENDS:STATIC=general;NeuCoreLib;general;NeuLogLib;general;glm::glm;general;Vulkan::Vulkan;
 
 //Dependencies for the target
 NeuCoreLib_LIB_DEPENDS:STATIC=general;glm::glm;

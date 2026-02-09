@@ -1443,7 +1443,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "general;NeuCoreLib;general;NeuLogLib;general;glm::glm;"
+			"value" : "general;NeuCoreLib;general;NeuLogLib;general;glm::glm;general;Vulkan::Vulkan;"
 		},
 		{
 			"name" : "NeuCoreLib_LIB_DEPENDS",

@@ -47,7 +47,9 @@ MetaFile MetaFile::Load(const std::filesystem::path &metaPath) {
 
 std::filesystem::path
 MetaFile::GetMetaPath(const std::filesystem::path &assetPath) {
-  return assetPath.string() + ".meta";
+  std::filesystem::path p = assetPath;
+  p += ".meta";
+  return p;
 }
 
 } // namespace neurender

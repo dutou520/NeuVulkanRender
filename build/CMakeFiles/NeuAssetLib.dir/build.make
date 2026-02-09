@@ -113,11 +113,43 @@ CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.s"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\CppPrograms\NeuVulkanRender\source\ModelImporter.cpp -o CMakeFiles\NeuAssetLib.dir\source\ModelImporter.cpp.s
 
+CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj: CMakeFiles/NeuAssetLib.dir/flags.make
+CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj: CMakeFiles/NeuAssetLib.dir/includes_CXX.rsp
+CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj: D:/CppPrograms/NeuVulkanRender/source/TextureResource.cpp
+CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj: CMakeFiles/NeuAssetLib.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj -MF CMakeFiles\NeuAssetLib.dir\source\TextureResource.cpp.obj.d -o CMakeFiles\NeuAssetLib.dir\source\TextureResource.cpp.obj -c D:\CppPrograms\NeuVulkanRender\source\TextureResource.cpp
+
+CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.i"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\CppPrograms\NeuVulkanRender\source\TextureResource.cpp > CMakeFiles\NeuAssetLib.dir\source\TextureResource.cpp.i
+
+CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.s"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\CppPrograms\NeuVulkanRender\source\TextureResource.cpp -o CMakeFiles\NeuAssetLib.dir\source\TextureResource.cpp.s
+
+CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj: CMakeFiles/NeuAssetLib.dir/flags.make
+CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj: CMakeFiles/NeuAssetLib.dir/includes_CXX.rsp
+CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj: D:/CppPrograms/NeuVulkanRender/source/MaterialResource.cpp
+CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj: CMakeFiles/NeuAssetLib.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj -MF CMakeFiles\NeuAssetLib.dir\source\MaterialResource.cpp.obj.d -o CMakeFiles\NeuAssetLib.dir\source\MaterialResource.cpp.obj -c D:\CppPrograms\NeuVulkanRender\source\MaterialResource.cpp
+
+CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.i"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\CppPrograms\NeuVulkanRender\source\MaterialResource.cpp > CMakeFiles\NeuAssetLib.dir\source\MaterialResource.cpp.i
+
+CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.s"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\CppPrograms\NeuVulkanRender\source\MaterialResource.cpp -o CMakeFiles\NeuAssetLib.dir\source\MaterialResource.cpp.s
+
 # Object files for target NeuAssetLib
 NeuAssetLib_OBJECTS = \
 "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj" \
 "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj" \
-"CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj"
+"CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj" \
+"CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj" \
+"CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj"
 
 # External object files for target NeuAssetLib
 NeuAssetLib_EXTERNAL_OBJECTS =
@@ -125,9 +157,11 @@ NeuAssetLib_EXTERNAL_OBJECTS =
 libNeuAssetLib.a: CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj
 libNeuAssetLib.a: CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj
 libNeuAssetLib.a: CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj
+libNeuAssetLib.a: CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj
+libNeuAssetLib.a: CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj
 libNeuAssetLib.a: CMakeFiles/NeuAssetLib.dir/build.make
 libNeuAssetLib.a: CMakeFiles/NeuAssetLib.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libNeuAssetLib.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX static library libNeuAssetLib.a"
 	$(CMAKE_COMMAND) -P CMakeFiles\NeuAssetLib.dir\cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\NeuAssetLib.dir\link.txt --verbose=$(VERBOSE)
 

@@ -496,7 +496,6 @@ CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
- D:/CppPrograms/NeuVulkanRender/include/Asset/MetaFile.h \
  D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
  D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \

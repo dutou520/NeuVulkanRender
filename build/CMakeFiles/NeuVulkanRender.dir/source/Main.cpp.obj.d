@@ -281,9 +281,10 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_vp9std_decode.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/vk_video/vulkan_video_codec_vp9std.h \
  D:/CppPrograms/NeuVulkanRender/include/Material.h \
- C:/msys64/mingw64/include/c++/14.1.0/string \
+ D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
+ C:/msys64/mingw64/include/c++/14.1.0/iomanip \
+ C:/msys64/mingw64/include/c++/14.1.0/iosfwd \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stringfwd.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/char_traits.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/postypes.h \
  C:/msys64/mingw64/include/c++/14.1.0/cwchar \
  C:/msys64/mingw64/include/wchar.h \
@@ -292,41 +293,7 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  C:/msys64/mingw64/include/_mingw_stat64.h \
  C:/msys64/mingw64/include/swprintf.inl \
  C:/msys64/mingw64/include/sec_api/wchar_s.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/localefwd.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++locale.h \
- C:/msys64/mingw64/include/c++/14.1.0/clocale \
- C:/msys64/mingw64/include/locale.h C:/msys64/mingw64/include/stdio.h \
- C:/msys64/mingw64/include/sec_api/stdio_s.h \
- C:/msys64/mingw64/include/c++/14.1.0/iosfwd \
- C:/msys64/mingw64/include/c++/14.1.0/cctype \
- C:/msys64/mingw64/include/ctype.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/ostream_insert.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_forced.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.h \
- C:/msys64/mingw64/include/c++/14.1.0/string_view \
- C:/msys64/mingw64/include/c++/14.1.0/bits/string_view.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/ext/string_conversions.h \
- C:/msys64/mingw64/include/c++/14.1.0/cstdio \
- C:/msys64/mingw64/include/c++/14.1.0/cerrno \
- C:/msys64/mingw64/include/c++/14.1.0/bits/charconv.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.tcc \
- D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
- D:/CppPrograms/NeuVulkanRender/build/neurendercore_export.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/imgui.h \
- D:/vcpkg/installed/x64-mingw-dynamic/include/imconfig.h \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
- C:/msys64/mingw64/include/stdarg.h \
- C:/msys64/mingw64/include/_mingw_stdarg.h \
- C:/msys64/mingw64/include/string.h \
- C:/msys64/mingw64/include/sec_api/string_s.h \
- C:/msys64/mingw64/include/c++/14.1.0/memory \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tempbuf.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/align.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/unique_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/allocated_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/ios_base.h \
  C:/msys64/mingw64/include/c++/14.1.0/ext/atomicity.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/gthr-default.h \
@@ -343,26 +310,34 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  C:/msys64/mingw64/include/pthread_compat.h \
  C:/msys64/mingw64/include/pthread_unistd.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/atomic_word.h \
- C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h \
- C:/msys64/mingw64/include/c++/14.1.0/exception \
- C:/msys64/mingw64/include/c++/14.1.0/bits/exception_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_init_exception.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/nested_exception.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_atomic.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
- C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
- C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
- C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
- D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
- D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
- C:/msys64/mingw64/include/c++/14.1.0/iomanip \
- C:/msys64/mingw64/include/c++/14.1.0/bits/ios_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/localefwd.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++locale.h \
+ C:/msys64/mingw64/include/c++/14.1.0/clocale \
+ C:/msys64/mingw64/include/locale.h C:/msys64/mingw64/include/stdio.h \
+ C:/msys64/mingw64/include/sec_api/stdio_s.h \
+ C:/msys64/mingw64/include/c++/14.1.0/cctype \
+ C:/msys64/mingw64/include/ctype.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.h \
+ C:/msys64/mingw64/include/c++/14.1.0/string \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/char_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/ostream_insert.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_forced.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.h \
+ C:/msys64/mingw64/include/c++/14.1.0/string_view \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/string_view.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/string_conversions.h \
+ C:/msys64/mingw64/include/c++/14.1.0/cstdio \
+ C:/msys64/mingw64/include/c++/14.1.0/cerrno \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/charconv.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/bits/locale_classes.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/system_error \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/error_constants.h \
  C:/msys64/mingw64/include/c++/14.1.0/stdexcept \
+ C:/msys64/mingw64/include/c++/14.1.0/exception \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/exception_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_init_exception.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/nested_exception.h \
  C:/msys64/mingw64/include/c++/14.1.0/locale \
  C:/msys64/mingw64/include/c++/14.1.0/bits/locale_facets.h \
  C:/msys64/mingw64/include/c++/14.1.0/cwctype \
@@ -403,16 +378,29 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/numeric \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_numeric.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
- D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
- D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/algorithm \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_heap.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_tempbuf.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_algorithm_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/iterator \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stream_iterator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/memory \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_raw_storage_iter.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/align.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/unique_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/allocated_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/concurrence.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/shared_ptr_atomic.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_base.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/utility \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/adl_serializer.hpp \
@@ -452,6 +440,8 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/json_fwd.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/string_concat.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/cstring \
+ C:/msys64/mingw64/include/string.h \
+ C:/msys64/mingw64/include/sec_api/string_s.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/identity_tag.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/meta/std_fs.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/filesystem \
@@ -490,6 +480,18 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/any \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+ D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
+ D:/CppPrograms/NeuVulkanRender/build/neurendercore_export.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/imgui.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/imconfig.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
+ C:/msys64/mingw64/include/stdarg.h \
+ C:/msys64/mingw64/include/_mingw_stdarg.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/MaterialResource.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
+ D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
+ D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
  D:/CppPrograms/NeuVulkanRender/include/Window.h \
  D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \

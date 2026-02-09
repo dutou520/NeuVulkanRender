@@ -97,12 +97,12 @@ NeuVulkanRender.exe: libNeuSceneLib.a
 NeuVulkanRender.exe: libNeuImGuiBackendLib.a
 NeuVulkanRender.exe: libNeuGUILib.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libimguid.a
-NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libvulkan-1.dll.a
 NeuVulkanRender.exe: libNeuWindowLib.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libSDL3.dll.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libimguizmo.a
 NeuVulkanRender.exe: libNeuAssetLib.a
 NeuVulkanRender.exe: libNeuSceneLib.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libvulkan-1.dll.a
 NeuVulkanRender.exe: libNeuLogLib.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libspdlogd.dll.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libfmtd.dll.a

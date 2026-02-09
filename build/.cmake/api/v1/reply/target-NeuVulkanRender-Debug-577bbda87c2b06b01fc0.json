@@ -30,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 181,
+				"line" : 184,
 				"parent" : 0
 			},
 			{
@@ -42,13 +42,13 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 183,
+				"line" : 186,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 154,
+				"line" : 157,
 				"parent" : 0
 			}
 		]
@@ -164,10 +164,6 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuAssetLib::@6890427a1f51a3e7e1df"
-		},
-		{
-			"backtrace" : 3,
 			"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df"
 		},
 		{
@@ -180,7 +176,7 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
+			"id" : "NeuAssetLib::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 3,
@@ -189,6 +185,10 @@
 		{
 			"backtrace" : 3,
 			"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "NeuCoreLib::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "NeuVulkanRender::@6890427a1f51a3e7e1df",
@@ -231,11 +231,6 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libvulkan-1.dll.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
 				"fragment" : "libNeuWindowLib.a",
 				"role" : "libraries"
 			},
@@ -267,6 +262,11 @@
 			{
 				"backtrace" : 4,
 				"fragment" : "-Wl,--end-group",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "D:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libvulkan-1.dll.a",
 				"role" : "libraries"
 			},
 			{

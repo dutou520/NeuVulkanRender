@@ -4,6 +4,13 @@
 #include <spdlog/spdlog.h>
 
 int main(int argc, char *argv[]) {
+  // Set global locale to UTF-8 for robust filesystem handling on Windows
+  try {
+    std::locale::global(std::locale(".UTF8"));
+  } catch (...) {
+    // Fallback if .UTF8 is not supported
+  }
+
   neurender::NeuLog::Init();
   LOG_I("Starting NeuVulkanRender...");
 

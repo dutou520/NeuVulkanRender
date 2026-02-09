@@ -2,10 +2,10 @@
 #include "Core/UUID.h"
 #include "Nodes/MeshNode.h"
 #include "Scene/Scene.h"
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
-
 
 namespace neurender {
 
@@ -17,7 +17,7 @@ struct ImportResult {
   std::string errorMessage;
   std::vector<UUID> meshIDs;                        // 导入的 Mesh 资源 GUID
   std::vector<UUID> materialIDs;                    // 导入的 Material 资源 GUID
-  std::vector<UUID> textureIDs;                     // 导入的 Texture 资源 GUID
+  std::vector<UUID> textureIDs;                     // 导入 of Texture 资源 GUID
   std::vector<std::unique_ptr<MeshNode>> meshNodes; // 生成的 MeshNode
 };
 
@@ -62,9 +62,9 @@ private:
   std::string GetFileExtension(const std::string &filePath);
 
   // 生成唯一的资源文件名
-  std::string GenerateAssetFileName(const std::string &baseName,
-                                    const std::string &extension,
-                                    const std::string &assetsDir);
+  std::filesystem::path GenerateAssetFileName(const std::string &baseName,
+                                              const std::string &extension,
+                                              const std::string &assetsDir);
 };
 
 } // namespace neurender

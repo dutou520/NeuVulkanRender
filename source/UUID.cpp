@@ -27,4 +27,6 @@ std::string UUID::ToString() const {
 
 UUID UUID::Generate() { return UUID(); }
 
+UUID UUID::FromString(const std::string &str) { return UUID(str); }
+
 } // namespace neurender

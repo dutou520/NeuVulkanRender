@@ -9,8 +9,10 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "D:/CppPrograms/NeuVulkanRender/source/AssetManager.cpp" "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj.d"
+  "D:/CppPrograms/NeuVulkanRender/source/MaterialResource.cpp" "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/MetaFile.cpp" "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/ModelImporter.cpp" "CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj.d"
+  "D:/CppPrograms/NeuVulkanRender/source/TextureResource.cpp" "CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

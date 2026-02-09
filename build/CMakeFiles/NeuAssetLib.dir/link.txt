@@ -1,2 +1,2 @@
-C:\msys64\mingw64\bin\ar.exe qc libNeuAssetLib.a CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj
+C:\msys64\mingw64\bin\ar.exe qc libNeuAssetLib.a CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj
 C:\msys64\mingw64\bin\ranlib.exe libNeuAssetLib.a
