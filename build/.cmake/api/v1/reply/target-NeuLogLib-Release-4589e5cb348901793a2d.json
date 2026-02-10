@@ -3,7 +3,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "libNeuImGuiBackendLib.a"
+			"path" : "libNeuLogLib.a"
 		}
 	],
 	"backtrace" : 2,
@@ -13,8 +13,9 @@
 		[
 			"_add_library",
 			"add_library",
-			"target_include_directories",
-			"target_link_libraries"
+			"target_link_libraries",
+			"target_compile_definitions",
+			"target_include_directories"
 		],
 		"files" : 
 		[
@@ -29,7 +30,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 42,
+				"line" : 25,
 				"parent" : 0
 			},
 			{
@@ -41,13 +42,19 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 43,
+				"line" : 32,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 44,
+				"line" : 27,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 28,
 				"parent" : 0
 			}
 		]
@@ -58,17 +65,44 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g -std=gnu++17"
+					"fragment" : "-O3 -DNDEBUG -std=gnu++17"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "FMT_SHARED"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "NEULOG_STATIC_DEFINE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SPDLOG_COMPILED_LIB"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SPDLOG_FMT_EXTERNAL"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "SPDLOG_SHARED_LIB"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 3,
+					"backtrace" : 5,
 					"path" : "D:/CppPrograms/NeuVulkanRender/include"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
+					"path" : "D:/CppPrograms/NeuVulkanRender/build"
+				},
+				{
+					"backtrace" : 3,
 					"isSystem" : true,
 					"path" : "D:/vcpkg/installed/x64-mingw-dynamic/include"
 				}
@@ -78,20 +112,19 @@
 			{
 				"backtraces" : 
 				[
-					4
+					3
 				],
 				"standard" : "17"
 			},
 			"sourceIndexes" : 
 			[
-				0,
-				1
+				0
 			]
 		}
 	],
-	"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df",
-	"name" : "NeuImGuiBackendLib",
-	"nameOnDisk" : "libNeuImGuiBackendLib.a",
+	"id" : "NeuLogLib::@6890427a1f51a3e7e1df",
+	"name" : "NeuLogLib",
+	"nameOnDisk" : "libNeuLogLib.a",
 	"paths" : 
 	{
 		"build" : ".",
@@ -103,8 +136,7 @@
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				0,
-				1
+				0
 			]
 		}
 	],
@@ -113,13 +145,7 @@
 		{
 			"backtrace" : 2,
 			"compileGroupIndex" : 0,
-			"path" : "source/imgui_impl_sdl3.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 2,
-			"compileGroupIndex" : 0,
-			"path" : "source/imgui_impl_vulkan.cpp",
+			"path" : "source/neuLog.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

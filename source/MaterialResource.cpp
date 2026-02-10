@@ -59,16 +59,16 @@ bool MaterialResource::SaveToFile(const std::string &path) const {
 }
 
 bool MaterialResource::HasTextures() const {
-  return baseColorTex != nullptr || metallicRoughnessTex != nullptr ||
-         normalTex != nullptr || emissiveTex != nullptr ||
-         occlusionTex != nullptr;
+  return baseColorTex != nullptr || metallicTex != nullptr ||
+         roughnessTex != nullptr || normalTex != nullptr ||
+         emissiveTex != nullptr || occlusionTex != nullptr;
 }
 
 uint32_t MaterialResource::GetTextureFlags() const {
   uint32_t flags = 0;
   if (baseColorTex != nullptr && baseColorTex->isLoaded)
     flags |= (1 << 0);
-  if (metallicRoughnessTex != nullptr && metallicRoughnessTex->isLoaded)
+  if (metallicTex != nullptr && metallicTex->isLoaded)
     flags |= (1 << 1);
   if (normalTex != nullptr && normalTex->isLoaded)
     flags |= (1 << 2);
@@ -76,6 +76,8 @@ uint32_t MaterialResource::GetTextureFlags() const {
     flags |= (1 << 3);
   if (occlusionTex != nullptr && occlusionTex->isLoaded)
     flags |= (1 << 4);
+  if (roughnessTex != nullptr && roughnessTex->isLoaded)
+    flags |= (1 << 5);
   return flags;
 }
 

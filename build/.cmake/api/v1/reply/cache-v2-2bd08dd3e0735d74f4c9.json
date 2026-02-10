@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "Debug"
+			"value" : "Release"
 		},
 		{
 			"name" : "CMAKE_CACHEFILE_DIR",
@@ -1432,6 +1432,18 @@
 			],
 			"type" : "INTERNAL",
 			"value" : "[D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libvulkan-1.dll.a][D:/vcpkg/installed/x64-mingw-dynamic/include][cfound components: glslc glslangValidator ][v1.4.328()]"
+		},
+		{
+			"name" : "GLSLC_EXE",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a program."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "C:/VulkanSDK/1.4.335.0/Bin/glslc.exe"
 		},
 		{
 			"name" : "NeuAssetLib_LIB_DEPENDS",

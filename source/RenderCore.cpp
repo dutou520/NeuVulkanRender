@@ -2058,8 +2058,10 @@ void RenderCore::CreateDescriptorSetLayouts() {
   }
 
   // Material Descriptor Set Layout (Set 1)
-  std::array<VkDescriptorSetLayoutBinding, 5> materialBindings{};
-  for (uint32_t i = 0; i < 5; i++) {
+  // 采样器: 0=BaseColor, 1=Metallic, 2=Normal, 3=Emissive, 4=Occlusion,
+  // 5=Roughness
+  std::array<VkDescriptorSetLayoutBinding, 6> materialBindings{};
+  for (uint32_t i = 0; i < 6; i++) {
     materialBindings[i].binding = i;
     materialBindings[i].descriptorType =
         VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -4273,7 +4275,8 @@ void RenderCore::CreateDefaultMaterial() {
   m_DefaultMaterial.uuid = UUID::Invalid();
 
   m_DefaultMaterial.baseColorTex = &m_DefaultWhiteTexture;
-  m_DefaultMaterial.metallicRoughnessTex = &m_DefaultWhiteTexture;
+  m_DefaultMaterial.metallicTex = &m_DefaultBlackTexture;
+  m_DefaultMaterial.roughnessTex = &m_DefaultWhiteTexture;
   m_DefaultMaterial.normalTex = &m_DefaultNormalTexture;
   m_DefaultMaterial.emissiveTex = &m_DefaultBlackTexture;
   m_DefaultMaterial.occlusionTex = &m_DefaultWhiteTexture;
@@ -4342,8 +4345,8 @@ void RenderCore::CreateMaterialDescriptorSet(MaterialResource *material) {
     return;
   }
 
-  std::array<VkWriteDescriptorSet, 5> descriptorWrites{};
-  std::array<VkDescriptorImageInfo, 5> imageInfos{};
+  std::array<VkWriteDescriptorSet, 6> descriptorWrites{};
+  std::array<VkDescriptorImageInfo, 6> imageInfos{};
 
   auto setupImageWrite = [&](uint32_t binding, TextureResource *texRes,
                              VkDescriptorImageInfo &imageInfo) {
@@ -4373,10 +4376,11 @@ void RenderCore::CreateMaterialDescriptorSet(MaterialResource *material) {
   };
 
   setupImageWrite(0, material->baseColorTex, imageInfos[0]);
-  setupImageWrite(1, material->metallicRoughnessTex, imageInfos[1]);
+  setupImageWrite(1, material->metallicTex, imageInfos[1]);
   setupImageWrite(2, material->normalTex, imageInfos[2]);
   setupImageWrite(3, material->emissiveTex, imageInfos[3]);
   setupImageWrite(4, material->occlusionTex, imageInfos[4]);
+  setupImageWrite(5, material->roughnessTex, imageInfos[5]);
 
   vkUpdateDescriptorSets(m_Device,
                          static_cast<uint32_t>(descriptorWrites.size()),
@@ -4398,22 +4402,25 @@ bool RenderCore::LoadMaterialResource(const UUID &materialID) {
   if (materialRes.LoadFromFile(filePath)) {
     // Load referenced textures
     LoadTextureResource(materialRes.material.baseColorTexture);
-    LoadTextureResource(materialRes.material.metallicRoughnessTexture);
+    LoadTextureResource(materialRes.material.metallicTexture);
     LoadTextureResource(materialRes.material.normalTexture);
     LoadTextureResource(materialRes.material.emissiveTexture);
     LoadTextureResource(materialRes.material.occlusionTexture);
+    LoadTextureResource(materialRes.material.roughnessTexture);
 
     // Get pointers to textures
     materialRes.baseColorTex =
         GetTextureResource(materialRes.material.baseColorTexture);
-    materialRes.metallicRoughnessTex =
-        GetTextureResource(materialRes.material.metallicRoughnessTexture);
+    materialRes.metallicTex =
+        GetTextureResource(materialRes.material.metallicTexture);
     materialRes.normalTex =
         GetTextureResource(materialRes.material.normalTexture);
     materialRes.emissiveTex =
         GetTextureResource(materialRes.material.emissiveTexture);
     materialRes.occlusionTex =
         GetTextureResource(materialRes.material.occlusionTexture);
+    materialRes.roughnessTex =
+        GetTextureResource(materialRes.material.roughnessTexture);
 
     // Create descriptor set
     CreateMaterialDescriptorSet(&materialRes);
@@ -4493,10 +4500,11 @@ UUID RenderCore::CreateMaterial() {
 
   // 设置默认纹理
   material.baseColorTex = &m_DefaultWhiteTexture;
-  material.metallicRoughnessTex = &m_DefaultWhiteTexture;
+  material.metallicTex = &m_DefaultWhiteTexture;
   material.normalTex = &m_DefaultNormalTexture;
   material.emissiveTex = &m_DefaultBlackTexture;
   material.occlusionTex = &m_DefaultWhiteTexture;
+  material.roughnessTex = &m_DefaultWhiteTexture;
 
   // 4. 保存为文件 (这样 AssetManager 才能注册它)
   if (!material.SaveToFile(matPath.u8string())) {
@@ -4576,6 +4584,9 @@ void RenderCore::SetMaterialTexture(const UUID &matID, uint32_t binding,
     case 1:
       texRes = &m_DefaultWhiteTexture;
       break;
+    case 5:
+      texRes = &m_DefaultWhiteTexture;
+      break;
     case 2:
       texRes = &m_DefaultNormalTexture;
       break;
@@ -4598,8 +4609,12 @@ void RenderCore::SetMaterialTexture(const UUID &matID, uint32_t binding,
     mat.material.baseColorTexture = texID;
     break;
   case 1:
-    mat.metallicRoughnessTex = texRes;
-    mat.material.metallicRoughnessTexture = texID;
+    mat.metallicTex = texRes;
+    mat.material.metallicTexture = texID;
+    break;
+  case 5:
+    mat.roughnessTex = texRes;
+    mat.material.roughnessTexture = texID;
     break;
   case 2:
     mat.normalTex = texRes;
@@ -4703,6 +4718,15 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
               colors.size() * sizeof(float));
   }
 
+  uint32_t hasTangents = 0;
+  file.read(reinterpret_cast<char *>(&hasTangents), sizeof(uint32_t));
+  std::vector<float> tangents;
+  if (hasTangents) {
+    tangents.resize(vertexCount * 4);
+    file.read(reinterpret_cast<char *>(tangents.data()),
+              tangents.size() * sizeof(float));
+  }
+
   std::vector<uint32_t> indices(indexCount);
   file.read(reinterpret_cast<char *>(indices.data()),
             indices.size() * sizeof(uint32_t));
@@ -4732,6 +4756,13 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
                                     colors[i * 4 + 2], colors[i * 4 + 3]);
     } else {
       vertices[i].color = glm::vec4(1.0f);
+    }
+
+    if (hasTangents && !tangents.empty()) {
+      vertices[i].tangent = glm::vec4(tangents[i * 4 + 0], tangents[i * 4 + 1],
+                                      tangents[i * 4 + 2], tangents[i * 4 + 3]);
+    } else {
+      vertices[i].tangent = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     }
   }
 

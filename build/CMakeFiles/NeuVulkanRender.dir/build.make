@@ -96,24 +96,24 @@ NeuVulkanRender.exe: libNeuRenderCoreLib.a
 NeuVulkanRender.exe: libNeuSceneLib.a
 NeuVulkanRender.exe: libNeuImGuiBackendLib.a
 NeuVulkanRender.exe: libNeuGUILib.a
-NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libimguid.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/lib/libimgui.a
 NeuVulkanRender.exe: libNeuWindowLib.a
-NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libSDL3.dll.a
-NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libimguizmo.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/lib/libSDL3.dll.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/lib/libimguizmo.a
 NeuVulkanRender.exe: libNeuAssetLib.a
 NeuVulkanRender.exe: libNeuSceneLib.a
 NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libvulkan-1.dll.a
 NeuVulkanRender.exe: libNeuLogLib.a
-NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libspdlogd.dll.a
-NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libfmtd.dll.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/lib/libspdlog.dll.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/lib/libfmt.dll.a
 NeuVulkanRender.exe: libNeuCoreLib.a
-NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/debug/lib/libglm.a
+NeuVulkanRender.exe: D:/vcpkg/installed/x64-mingw-dynamic/lib/libglm.a
 NeuVulkanRender.exe: CMakeFiles/NeuVulkanRender.dir/linkLibs.rsp
 NeuVulkanRender.exe: CMakeFiles/NeuVulkanRender.dir/objects1.rsp
 NeuVulkanRender.exe: CMakeFiles/NeuVulkanRender.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable NeuVulkanRender.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\NeuVulkanRender.dir\link.txt --verbose=$(VERBOSE)
-	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file D:/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/CppPrograms/NeuVulkanRender/build/NeuVulkanRender.exe -installedDir D:/vcpkg/installed/x64-mingw-dynamic/debug/bin -OutVariable out
+	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file D:/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/CppPrograms/NeuVulkanRender/build/NeuVulkanRender.exe -installedDir D:/vcpkg/installed/x64-mingw-dynamic/bin -OutVariable out
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold "Copying resource folder to build directory"
 	"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory D:/CppPrograms/NeuVulkanRender/resource D:/CppPrograms/NeuVulkanRender/build/resource
 

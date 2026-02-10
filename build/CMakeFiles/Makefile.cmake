@@ -114,4 +114,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/NeuSceneLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuRenderCoreLib.dir/DependInfo.cmake"
   "CMakeFiles/NeuVulkanRender.dir/DependInfo.cmake"
+  "CMakeFiles/CompileShaders.dir/DependInfo.cmake"
   )

@@ -188,6 +188,46 @@ target_link_libraries(NeuVulkanRender PRIVATE
     NeuSceneLib  # Explicit re-link to resolve circular dependency with NeuAssetLib
 )
 
+# ========== Shader 编译自动化 ==========
+
+# 查找 glslc 编译器
+find_program(GLSLC_EXE NAMES glslc HINTS ${Vulkan_BIN_DIR})
+
+if(GLSLC_EXE)
+    message(STATUS "Found glslc: ${GLSLC_EXE}")
+    
+    # 获取所有 GLSL 着色器文件
+    file(GLOB_RECURSE GLSL_SOURCE_FILES 
+        "${CMAKE_SOURCE_DIR}/resource/shaders/glsl/*.vert"
+        "${CMAKE_SOURCE_DIR}/resource/shaders/glsl/*.frag"
+    )
+
+    set(SPV_OUTPUT_FILES "")
+
+    foreach(GLSL_FILE ${GLSL_SOURCE_FILES})
+        get_filename_component(FILE_NAME ${GLSL_FILE} NAME)
+        set(SPV_FILE "${CMAKE_SOURCE_DIR}/resource/shaders/compiled/${FILE_NAME}.spv")
+        
+        # 添加编译命令
+        add_custom_command(
+            OUTPUT ${SPV_FILE}
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/resource/shaders/compiled"
+            COMMAND ${GLSLC_EXE} ${GLSL_FILE} -o ${SPV_FILE}
+            DEPENDS ${GLSL_FILE}
+            COMMENT "Compiling shader ${FILE_NAME}"
+        )
+        list(APPEND SPV_OUTPUT_FILES ${SPV_FILE})
+    endforeach()
+
+    # 创建一个伪目标，让所有着色器成为它的依赖
+    add_custom_target(CompileShaders ALL DEPENDS ${SPV_OUTPUT_FILES})
+    
+    # 让主程序依赖于着色器编译
+    add_dependencies(NeuVulkanRender CompileShaders)
+else()
+    message(WARNING "glslc not found! Shaders will not be automatically compiled.")
+endif()
+
 # 复制资源文件到构建目录
 add_custom_command(TARGET NeuVulkanRender POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

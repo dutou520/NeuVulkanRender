@@ -71,6 +71,7 @@ all: CMakeFiles/NeuAssetLib.dir/all
 all: CMakeFiles/NeuSceneLib.dir/all
 all: CMakeFiles/NeuRenderCoreLib.dir/all
 all: CMakeFiles/NeuVulkanRender.dir/all
+all: CMakeFiles/CompileShaders.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -87,6 +88,7 @@ clean: CMakeFiles/NeuAssetLib.dir/clean
 clean: CMakeFiles/NeuSceneLib.dir/clean
 clean: CMakeFiles/NeuRenderCoreLib.dir/clean
 clean: CMakeFiles/NeuVulkanRender.dir/clean
+clean: CMakeFiles/CompileShaders.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -96,7 +98,7 @@ clean: CMakeFiles/NeuVulkanRender.dir/clean
 CMakeFiles/NeuLogLib.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuLogLib.dir\build.make CMakeFiles/NeuLogLib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuLogLib.dir\build.make CMakeFiles/NeuLogLib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=15,16 "Built target NeuLogLib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=25,26 "Built target NeuLogLib"
 .PHONY : CMakeFiles/NeuLogLib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -122,7 +124,7 @@ CMakeFiles/NeuLogLib.dir/clean:
 CMakeFiles/NeuWindowLib.dir/all: CMakeFiles/NeuLogLib.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuWindowLib.dir\build.make CMakeFiles/NeuWindowLib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuWindowLib.dir\build.make CMakeFiles/NeuWindowLib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=30,31 "Built target NeuWindowLib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=40,41 "Built target NeuWindowLib"
 .PHONY : CMakeFiles/NeuWindowLib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -148,7 +150,7 @@ CMakeFiles/NeuWindowLib.dir/clean:
 CMakeFiles/NeuImGuiBackendLib.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuImGuiBackendLib.dir\build.make CMakeFiles/NeuImGuiBackendLib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuImGuiBackendLib.dir\build.make CMakeFiles/NeuImGuiBackendLib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=12,13,14 "Built target NeuImGuiBackendLib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=22,23,24 "Built target NeuImGuiBackendLib"
 .PHONY : CMakeFiles/NeuImGuiBackendLib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -175,7 +177,7 @@ CMakeFiles/NeuGUILib.dir/all: CMakeFiles/NeuLogLib.dir/all
 CMakeFiles/NeuGUILib.dir/all: CMakeFiles/NeuWindowLib.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuGUILib.dir\build.make CMakeFiles/NeuGUILib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuGUILib.dir\build.make CMakeFiles/NeuGUILib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=10,11 "Built target NeuGUILib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=20,21 "Built target NeuGUILib"
 .PHONY : CMakeFiles/NeuGUILib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -201,7 +203,7 @@ CMakeFiles/NeuGUILib.dir/clean:
 CMakeFiles/NeuCoreLib.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuCoreLib.dir\build.make CMakeFiles/NeuCoreLib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=7,8,9 "Built target NeuCoreLib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=17,18,19 "Built target NeuCoreLib"
 .PHONY : CMakeFiles/NeuCoreLib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -228,7 +230,7 @@ CMakeFiles/NeuAssetLib.dir/all: CMakeFiles/NeuLogLib.dir/all
 CMakeFiles/NeuAssetLib.dir/all: CMakeFiles/NeuCoreLib.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=1,2,3,4,5,6 "Built target NeuAssetLib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=11,12,13,14,15,16 "Built target NeuAssetLib"
 .PHONY : CMakeFiles/NeuAssetLib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -252,11 +254,11 @@ CMakeFiles/NeuAssetLib.dir/clean:
 
 # All Build rule for target.
 CMakeFiles/NeuSceneLib.dir/all: CMakeFiles/NeuLogLib.dir/all
-CMakeFiles/NeuSceneLib.dir/all: CMakeFiles/NeuAssetLib.dir/all
 CMakeFiles/NeuSceneLib.dir/all: CMakeFiles/NeuCoreLib.dir/all
+CMakeFiles/NeuSceneLib.dir/all: CMakeFiles/NeuAssetLib.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=21,22,23,24,25,26,27 "Built target NeuSceneLib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=31,32,33,34,35,36,37 "Built target NeuSceneLib"
 .PHONY : CMakeFiles/NeuSceneLib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -281,14 +283,14 @@ CMakeFiles/NeuSceneLib.dir/clean:
 # All Build rule for target.
 CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuLogLib.dir/all
 CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuWindowLib.dir/all
-CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuImGuiBackendLib.dir/all
-CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuAssetLib.dir/all
 CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuSceneLib.dir/all
+CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuImGuiBackendLib.dir/all
 CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuGUILib.dir/all
 CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuCoreLib.dir/all
+CMakeFiles/NeuRenderCoreLib.dir/all: CMakeFiles/NeuAssetLib.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=17,18,19,20 "Built target NeuRenderCoreLib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=27,28,29,30 "Built target NeuRenderCoreLib"
 .PHONY : CMakeFiles/NeuRenderCoreLib.dir/all
 
 # Build rule for subdir invocation for target.
@@ -313,20 +315,21 @@ CMakeFiles/NeuRenderCoreLib.dir/clean:
 # All Build rule for target.
 CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuLogLib.dir/all
 CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuWindowLib.dir/all
-CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuImGuiBackendLib.dir/all
-CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuAssetLib.dir/all
 CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuSceneLib.dir/all
+CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuImGuiBackendLib.dir/all
 CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuGUILib.dir/all
 CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuCoreLib.dir/all
+CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuAssetLib.dir/all
 CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/NeuRenderCoreLib.dir/all
+CMakeFiles/NeuVulkanRender.dir/all: CMakeFiles/CompileShaders.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=28,29 "Built target NeuVulkanRender"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=38,39 "Built target NeuVulkanRender"
 .PHONY : CMakeFiles/NeuVulkanRender.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/NeuVulkanRender.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start D:\CppPrograms\NeuVulkanRender\build\CMakeFiles 31
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\CppPrograms\NeuVulkanRender\build\CMakeFiles 41
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/NeuVulkanRender.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start D:\CppPrograms\NeuVulkanRender\build\CMakeFiles 0
 .PHONY : CMakeFiles/NeuVulkanRender.dir/rule
@@ -339,6 +342,32 @@ NeuVulkanRender: CMakeFiles/NeuVulkanRender.dir/rule
 CMakeFiles/NeuVulkanRender.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/clean
 .PHONY : CMakeFiles/NeuVulkanRender.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/CompileShaders.dir
+
+# All Build rule for target.
+CMakeFiles/CompileShaders.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CompileShaders.dir\build.make CMakeFiles/CompileShaders.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CompileShaders.dir\build.make CMakeFiles/CompileShaders.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10 "Built target CompileShaders"
+.PHONY : CMakeFiles/CompileShaders.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/CompileShaders.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\CppPrograms\NeuVulkanRender\build\CMakeFiles 10
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/CompileShaders.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start D:\CppPrograms\NeuVulkanRender\build\CMakeFiles 0
+.PHONY : CMakeFiles/CompileShaders.dir/rule
+
+# Convenience name for target.
+CompileShaders: CMakeFiles/CompileShaders.dir/rule
+.PHONY : CompileShaders
+
+# clean rule for target.
+CMakeFiles/CompileShaders.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CompileShaders.dir\build.make CMakeFiles/CompileShaders.dir/clean
+.PHONY : CMakeFiles/CompileShaders.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

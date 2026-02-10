@@ -5,16 +5,18 @@ layout(location = 0) in vec3 fragPosition;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec2 fragTexCoord;
 layout(location = 3) in vec4 fragColor;
+layout(location = 4) in vec4 fragTangent;
 
 // 输出到HDR场景颜色
 layout(location = 0) out vec4 outColor;
 
 // 材质纹理 (set 1) - 与gbuffer共用布局
 layout(set = 1, binding = 0) uniform sampler2D baseColorMap;
-layout(set = 1, binding = 1) uniform sampler2D metallicRoughnessMap;
+layout(set = 1, binding = 1) uniform sampler2D metallicMap;
 layout(set = 1, binding = 2) uniform sampler2D normalMap;
 layout(set = 1, binding = 3) uniform sampler2D emissiveMap;
 layout(set = 1, binding = 4) uniform sampler2D occlusionMap;
+layout(set = 1, binding = 5) uniform sampler2D roughnessMap;
 
 // 光照数据 (set 2)
 layout(set = 2, binding = 0) uniform LightData {
@@ -36,6 +38,7 @@ layout(push_constant) uniform PushConstants {
     layout(offset = 96) float shadingId;            // 着色模型 ID
     layout(offset = 100) float emissiveIntensity;   // 自发光强度
     layout(offset = 104) uint textureFlags;         // 纹理标志位
+    // bit 5: useRoughnessMap
 } material;
 
 // ===================== PBR 函数 =====================
@@ -93,10 +96,13 @@ void main() {
     // ========== 金属度/粗糙度 ==========
     float metallic = material.metallicFactor;
     float roughness = material.roughnessFactor;
+    
     if ((material.textureFlags & 2u) != 0u) {
-        vec4 mr = texture(metallicRoughnessMap, fragTexCoord);
-        metallic = mr.b * material.metallicFactor;
-        roughness = mr.g * material.roughnessFactor;
+        metallic = texture(metallicMap, fragTexCoord).b * material.metallicFactor;
+    }
+    
+    if ((material.textureFlags & 32u) != 0u) {
+        roughness = texture(roughnessMap, fragTexCoord).g * material.roughnessFactor;
     }
     
     // ========== 法线 ==========
@@ -106,16 +112,26 @@ void main() {
         tangentNormal.xy *= material.normalScale;
         tangentNormal = normalize(tangentNormal);
         
-        // 屏幕空间导数近似TBN
-        vec3 dpx = dFdx(fragPosition);
-        vec3 dpy = dFdy(fragPosition);
-        vec2 duvx = dFdx(fragTexCoord);
-        vec2 duvy = dFdy(fragTexCoord);
+        // 使用顶点切线构建 TBN 矩阵
+        vec3 worldNormal = normalize(fragNormal);
+        vec3 T, B;
         
-        vec3 T = normalize(dpx * duvy.y - dpy * duvx.y);
-        vec3 B = normalize(dpy * duvx.x - dpx * duvy.x);
-        mat3 TBN = mat3(T, B, N);
+        if (length(fragTangent.xyz) > 1e-4) {
+            T = normalize(fragTangent.xyz);
+            // 重新正交化
+            T = normalize(T - dot(T, worldNormal) * worldNormal);
+            B = cross(worldNormal, T) * fragTangent.w;
+        } else {
+            // 在没有切向数据时，尝试使用屏幕空间导数
+            vec3 dpx = dFdx(fragPosition);
+            vec3 dpy = dFdy(fragPosition);
+            vec2 duvx = dFdx(fragTexCoord);
+            vec2 duvy = dFdy(fragTexCoord);
+            T = normalize(dpx * duvy.y - dpy * duvx.y);
+            B = normalize(dpy * duvx.x - dpx * duvy.x);
+        }
         
+        mat3 TBN = mat3(T, B, worldNormal);
         N = normalize(TBN * tangentNormal);
     }
     

@@ -331,8 +331,10 @@ ImportResult ModelImporter::ImportGLTF(const std::string &filePath,
       if (pbr.metallicRoughnessTexture.index >= 0 &&
           pbr.metallicRoughnessTexture.index <
               static_cast<int>(result.textureIDs.size())) {
-        matJson["metallicRoughnessTexture"] =
+        std::string texIDStr =
             result.textureIDs[pbr.metallicRoughnessTexture.index].ToString();
+        matJson["metallicTexture"] = texIDStr;
+        matJson["roughnessTexture"] = texIDStr;
       }
       if (mat.normalTexture.index >= 0 &&
           mat.normalTexture.index <
@@ -441,6 +443,24 @@ ImportResult ModelImporter::ImportGLTF(const std::string &filePath,
           }
         }
 
+        // 切线
+        std::vector<float> tangents;
+        auto tanIt = prim.attributes.find("TANGENT");
+        if (tanIt != prim.attributes.end()) {
+          const tinygltf::Accessor &accessor = model.accessors[tanIt->second];
+          const tinygltf::BufferView &bufferView =
+              model.bufferViews[accessor.bufferView];
+          const tinygltf::Buffer &buffer = model.buffers[bufferView.buffer];
+
+          const float *tanData = reinterpret_cast<const float *>(
+              buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+
+          tangents.resize(accessor.count * 4);
+          for (size_t k = 0; k < accessor.count * 4; k++) {
+            tangents[k] = tanData[k];
+          }
+        }
+
         // 索引
         if (prim.indices >= 0) {
           const tinygltf::Accessor &accessor = model.accessors[prim.indices];
@@ -510,6 +530,14 @@ ImportResult ModelImporter::ImportGLTF(const std::string &filePath,
         uint32_t hasColorsFlag = 0; // GLTF 导入暂不支持顶点颜色
         meshFile.write(reinterpret_cast<const char *>(&hasColorsFlag),
                        sizeof(uint32_t));
+
+        uint32_t hasTangentsFlag = !tangents.empty() ? 1 : 0;
+        meshFile.write(reinterpret_cast<const char *>(&hasTangentsFlag),
+                       sizeof(uint32_t));
+        if (!tangents.empty()) {
+          meshFile.write(reinterpret_cast<const char *>(tangents.data()),
+                         tangents.size() * sizeof(float));
+        }
 
         // 写入索引数据
         meshFile.write(reinterpret_cast<const char *>(indices.data()),
@@ -785,6 +813,10 @@ ImportResult ModelImporter::ImportOBJ(const std::string &filePath,
 
       uint32_t hasColorsFlag = 0; // 不支持顶点颜色，写为0
       meshFile.write(reinterpret_cast<const char *>(&hasColorsFlag),
+                     sizeof(uint32_t));
+
+      uint32_t hasTangentsFlag = 0; // OBJ 导入暂不支持生成切线
+      meshFile.write(reinterpret_cast<const char *>(&hasTangentsFlag),
                      sizeof(uint32_t));
 
       meshFile.write(reinterpret_cast<const char *>(indices.data()),

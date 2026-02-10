@@ -232,6 +232,19 @@ NeuVulkanRender/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuVulkanRender.dir\build.make CMakeFiles/NeuVulkanRender.dir/build
 .PHONY : NeuVulkanRender/fast
 
+#=============================================================================
+# Target rules for targets named CompileShaders
+
+# Build rule for target.
+CompileShaders: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CompileShaders
+.PHONY : CompileShaders
+
+# fast build rule for target.
+CompileShaders/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CompileShaders.dir\build.make CMakeFiles/CompileShaders.dir/build
+.PHONY : CompileShaders/fast
+
 source/AssetManager.obj: source/AssetManager.cpp.obj
 .PHONY : source/AssetManager.obj
 
@@ -768,6 +781,7 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
+	@echo ... CompileShaders
 	@echo ... NeuAssetLib
 	@echo ... NeuCoreLib
 	@echo ... NeuGUILib

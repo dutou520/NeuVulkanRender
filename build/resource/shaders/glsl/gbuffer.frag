@@ -5,6 +5,7 @@ layout(location = 0) in vec3 fragPosition;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec2 fragTexCoord;
 layout(location = 3) in vec4 fragColor;
+layout(location = 4) in vec4 fragTangent;
 
 // GBuffer 输出 (Multiple Render Targets)
 layout(location = 0) out vec4 outAlbedoFlags;       // GBuffer1: RGB=Albedo(sRGB), A=MaterialFlags
@@ -14,10 +15,11 @@ layout(location = 3) out vec4 outShadingEmissive;   // GBuffer4: R=ShadingID, G=
 
 // 材质纹理 (set 1)
 layout(set = 1, binding = 0) uniform sampler2D baseColorMap;
-layout(set = 1, binding = 1) uniform sampler2D metallicRoughnessMap;
+layout(set = 1, binding = 1) uniform sampler2D metallicMap;
 layout(set = 1, binding = 2) uniform sampler2D normalMap;
 layout(set = 1, binding = 3) uniform sampler2D emissiveMap;
 layout(set = 1, binding = 4) uniform sampler2D occlusionMap;
+layout(set = 1, binding = 5) uniform sampler2D roughnessMap;
 
 // 材质参数 Push Constants
 // offset 0-63: mat4 model (in vertex shader)
@@ -32,10 +34,11 @@ layout(push_constant) uniform PushConstants {
     layout(offset = 100) float emissiveIntensity;   // 自发光强度
     layout(offset = 104) uint textureFlags;         // 纹理标志位
     // bit 0: useBaseColorMap
-    // bit 1: useMetallicRoughnessMap
+    // bit 1: useMetallicMap
     // bit 2: useNormalMap
     // bit 3: useEmissiveMap
     // bit 4: useOcclusionMap
+    // bit 5: useRoughnessMap
 } material;
 
 void main() {
@@ -52,11 +55,15 @@ void main() {
     // ========== 金属度/粗糙度 ==========
     float metallic = material.metallicFactor;
     float roughness = material.roughnessFactor;
+    
     if ((material.textureFlags & 2u) != 0u) {
-        // GLTF: G = Roughness, B = Metallic
-        vec4 mr = texture(metallicRoughnessMap, fragTexCoord);
-        metallic = mr.b * material.metallicFactor;
-        roughness = mr.g * material.roughnessFactor;
+        // Metallic: 通常存储在 B 或 R 通道，取决于导出约定。这里暂时保持 B 通道逻辑但仅从独立贴图采样。
+        metallic = texture(metallicMap, fragTexCoord).b * material.metallicFactor;
+    }
+    
+    if ((material.textureFlags & 32u) != 0u) {
+        // Roughness: 通常存储在 G 通道。
+        roughness = texture(roughnessMap, fragTexCoord).g * material.roughnessFactor;
     }
     
     // ========== 法线 ==========
@@ -67,18 +74,27 @@ void main() {
         tangentNormal.xy *= material.normalScale;
         tangentNormal = normalize(tangentNormal);
         
-        // 简化的法线扰动 (无TBN矩阵)
-        // 在没有切线数据时，使用屏幕空间导数近似TBN
-        vec3 dpx = dFdx(fragPosition);
-        vec3 dpy = dFdy(fragPosition);
-        vec2 duvx = dFdx(fragTexCoord);
-        vec2 duvy = dFdy(fragTexCoord);
-        
-        vec3 T = normalize(dpx * duvy.y - dpy * duvx.y);
-        vec3 B = normalize(dpy * duvx.x - dpx * duvy.x);
+        // 使用顶点切线构建 TBN 矩阵，如果缺失则回退到屏幕空间导数近似
         vec3 N = normalize(fragNormal);
-        mat3 TBN = mat3(T, B, N);
+        vec3 T, B;
         
+        if (length(fragTangent.xyz) > 1e-4) {
+            T = normalize(fragTangent.xyz);
+            // 重新正交化切线 (Gram-Schmidt process)
+            T = normalize(T - dot(T, N) * N);
+            // 计算投影到世界空间的副法线，考虑右手系/左手系 (fragTangent.w)
+            B = cross(N, T) * fragTangent.w;
+        } else {
+            // 在没有切线数据时，使用屏幕空间导数近似TBN
+            vec3 dpx = dFdx(fragPosition);
+            vec3 dpy = dFdy(fragPosition);
+            vec2 duvx = dFdx(fragTexCoord);
+            vec2 duvy = dFdy(fragTexCoord);
+            T = normalize(dpx * duvy.y - dpy * duvx.y);
+            B = normalize(dpy * duvx.x - dpx * duvy.x);
+        }
+        
+        mat3 TBN = mat3(T, B, N);
         normal = normalize(TBN * tangentNormal);
     }
     

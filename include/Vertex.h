@@ -16,6 +16,7 @@ struct Vertex {
   glm::vec3 normal;   // 顶点法线
   glm::vec2 texCoord; // 纹理坐标
   glm::vec4 color;    // 顶点颜色
+  glm::vec4 tangent;  // 顶点切线 (xyz: 方向, w: 符号用于计算副法线)
 
   /**
    * @brief 获取顶点输入绑定描述
@@ -31,9 +32,9 @@ struct Vertex {
   /**
    * @brief 获取顶点属性描述数组
    */
-  static std::array<VkVertexInputAttributeDescription, 4>
+  static std::array<VkVertexInputAttributeDescription, 5>
   getAttributeDescriptions() {
-    std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
+    std::array<VkVertexInputAttributeDescription, 5> attributeDescriptions{};
 
     // Position
     attributeDescriptions[0].binding = 0;
@@ -59,12 +60,19 @@ struct Vertex {
     attributeDescriptions[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
     attributeDescriptions[3].offset = offsetof(Vertex, color);
 
+    // Tangent
+    attributeDescriptions[4].binding = 0;
+    attributeDescriptions[4].location = 4;
+    attributeDescriptions[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[4].offset = offsetof(Vertex, tangent);
+
     return attributeDescriptions;
   }
 
   bool operator==(const Vertex &other) const {
     return position == other.position && normal == other.normal &&
-           texCoord == other.texCoord && color == other.color;
+           texCoord == other.texCoord && color == other.color &&
+           tangent == other.tangent;
   }
 };
 

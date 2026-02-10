@@ -57,6 +57,59 @@ EditorGUI::RenderMode EditorGUI::s_RenderMode = RenderMode::Shaded;
 bool EditorGUI::s_DockSpaceInitialized = false;
 std::string EditorGUI::s_ClipboardPath = "";
 
+static void RenderTextureSlot(const char *label, const UUID &materialID,
+                              uint32_t binding, TextureResource *texRes,
+                              const UUID &texID) {
+  ImGui::BeginGroup();
+  ImGui::Text("%s", label);
+
+  ImTextureID imTexID = RenderCore::GetImGuiTextureID(texID);
+
+  ImVec2 size(64, 64);
+  ImVec4 bg_col = ImVec4(0, 0, 0, 1);
+  ImVec4 tint_col = ImVec4(1, 1, 1, 1);
+
+  std::string idStr = std::string("##Slot") + std::to_string(binding);
+
+  // ImGui 1.89+ ImageButton signature
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+  if (ImGui::ImageButton(idStr.c_str(), imTexID, size, ImVec2(0, 0),
+                         ImVec2(1, 1), bg_col, tint_col)) {
+  }
+  ImGui::PopStyleVar();
+
+  if (ImGui::BeginDragDropTarget()) {
+    if (const ImGuiPayload *payload =
+            ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+      const char *path = (const char *)payload->Data;
+      UUID newTexID =
+          AssetManager::GetInstance().GetAssetGUID(std::filesystem::path(path));
+      if (newTexID.IsValid()) {
+        RenderCore::SetMaterialTexture(materialID, binding, newTexID);
+      }
+    }
+    ImGui::EndDragDropTarget();
+  }
+
+  ImGui::SameLine();
+  ImGui::BeginGroup();
+  std::string texName = "None/Default";
+  if (texRes && texID.IsValid()) {
+    texName = std::filesystem::path(texRes->filePath).filename().u8string();
+  }
+  ImGui::TextWrapped("File: %s", texName.c_str());
+
+  if (texID.IsValid()) {
+    if (ImGui::Button(
+            (std::string("Remove##") + std::to_string(binding)).c_str())) {
+      RenderCore::SetMaterialTexture(materialID, binding, UUID::Invalid());
+    }
+  }
+  ImGui::EndGroup();
+  ImGui::EndGroup();
+  ImGui::Spacing();
+}
+
 void EditorGUI::Initialize() {
   ImGui::GetIO().FontGlobalScale = 1.5f; // 全局 UI 字体放大 1.2-1.5 倍
   LOG_I("EditorGUI Initialized");
@@ -900,53 +953,10 @@ void EditorGUI::RenderInspector() {
                           ? "Transparent (Forward)"
                           : "Opaque (Deferred)");
 
-          // 显示基础颜色贴图的绑定状态
-          bool hasBaseTex = (matRes->material.textureFlags & 1);
-          std::string baseTexName = "None/Default";
-          if (hasBaseTex && matRes->baseColorTex) {
-            baseTexName = std::filesystem::path(matRes->baseColorTex->filePath)
-                              .filename()
-                              .u8string();
-          }
-          ImGui::Text("Texture Status: %s", baseTexName.c_str());
-
-          // 贴图槽位
-          float availWidth = ImGui::GetContentRegionAvail().x;
-          if (hasBaseTex) {
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
-            ImGui::Button("Base Color Map Slot", ImVec2(availWidth - 40, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 0, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("X##ResetBase", ImVec2(30, 30))) {
-              RenderCore::SetMaterialTexture(materialID, 0, UUID::Invalid());
-            }
-            ImGui::PopStyleVar();
-          } else {
-            ImGui::Button("Base Color Map Slot", ImVec2(-1, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 0, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-          }
+          // Base Color Map
+          RenderTextureSlot("Base Color Map", materialID, 0,
+                            matRes->baseColorTex,
+                            matRes->material.baseColorTexture);
         }
 
         // Metallic / Roughness
@@ -957,204 +967,40 @@ void EditorGUI::RenderInspector() {
           ImGui::SliderFloat("Roughness", &matRes->material.roughnessFactor,
                              0.0f, 1.0f);
 
-          bool hasMetTex = (matRes->material.textureFlags & 2);
-          std::string metTexName = "None/Default";
-          if (hasMetTex && matRes->metallicRoughnessTex) {
-            metTexName =
-                std::filesystem::path(matRes->metallicRoughnessTex->filePath)
-                    .filename()
-                    .u8string();
-          }
-          ImGui::Text("Texture: %s", metTexName.c_str());
+          // Metallic Map
+          RenderTextureSlot("Metallic Map", materialID, 1, matRes->metallicTex,
+                            matRes->material.metallicTexture);
 
-          float availWidth = ImGui::GetContentRegionAvail().x;
-          if (hasMetTex) {
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
-            ImGui::Button("Metallic/Roughness Map Slot",
-                          ImVec2(availWidth - 40, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 1, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("X##ResetMet", ImVec2(30, 30))) {
-              RenderCore::SetMaterialTexture(materialID, 1, UUID::Invalid());
-            }
-            ImGui::PopStyleVar();
-          } else {
-            ImGui::Button("Metallic/Roughness Map Slot", ImVec2(-1, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 1, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-          }
+          // Roughness Map
+          RenderTextureSlot("Roughness Map", materialID, 5,
+                            matRes->roughnessTex,
+                            matRes->material.roughnessTexture);
         }
 
         // Normal Map
         if (ImGui::CollapsingHeader("Normal Map")) {
           ImGui::SliderFloat("Scale", &matRes->material.normalScale, 0.0f,
                              2.0f);
-          bool hasNormTex = (matRes->material.textureFlags & 4);
-          std::string normTexName = "None/Default";
-          if (hasNormTex && matRes->normalTex) {
-            normTexName = std::filesystem::path(matRes->normalTex->filePath)
-                              .filename()
-                              .u8string();
-          }
-          ImGui::Text("Texture: %s", normTexName.c_str());
-
-          float availWidth = ImGui::GetContentRegionAvail().x;
-          if (hasNormTex) {
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
-            ImGui::Button("Normal Map Slot", ImVec2(availWidth - 40, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 2, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("X##ResetNorm", ImVec2(30, 30))) {
-              RenderCore::SetMaterialTexture(materialID, 2, UUID::Invalid());
-            }
-            ImGui::PopStyleVar();
-          } else {
-            ImGui::Button("Normal Map Slot", ImVec2(-1, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 2, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-          }
+          // Normal Map
+          RenderTextureSlot("Normal Map", materialID, 2, matRes->normalTex,
+                            matRes->material.normalTexture);
         }
 
         // Emission
         if (ImGui::CollapsingHeader("Emission")) {
           ImGui::DragFloat("Intensity", &matRes->material.emissiveIntensity,
                            0.1f, 0.0f, 100.0f);
-          bool hasEmissTex = (matRes->material.textureFlags & 8);
-          std::string emissTexName = "None/Default";
-          if (hasEmissTex && matRes->emissiveTex) {
-            emissTexName = std::filesystem::path(matRes->emissiveTex->filePath)
-                               .filename()
-                               .u8string();
-          }
-          ImGui::Text("Texture: %s", emissTexName.c_str());
-
-          float availWidth = ImGui::GetContentRegionAvail().x;
-          if (hasEmissTex) {
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
-            ImGui::Button("Emissive Map Slot", ImVec2(availWidth - 40, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 3, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("X##ResetEmiss", ImVec2(30, 30))) {
-              RenderCore::SetMaterialTexture(materialID, 3, UUID::Invalid());
-            }
-            ImGui::PopStyleVar();
-          } else {
-            ImGui::Button("Emissive Map Slot", ImVec2(-1, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 3, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-          }
+          // Emissive Map
+          RenderTextureSlot("Emissive Map", materialID, 3, matRes->emissiveTex,
+                            matRes->material.emissiveTexture);
         }
 
         // Occlusion
         if (ImGui::CollapsingHeader("Occlusion")) {
-          bool hasOccTex = (matRes->material.textureFlags & 16);
-          std::string occTexName = "None/Default";
-          if (hasOccTex && matRes->occlusionTex) {
-            occTexName = std::filesystem::path(matRes->occlusionTex->filePath)
-                             .filename()
-                             .u8string();
-          }
-          ImGui::Text("Texture: %s", occTexName.c_str());
-
-          float availWidth = ImGui::GetContentRegionAvail().x;
-          if (hasOccTex) {
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
-            ImGui::Button("Occlusion Map Slot", ImVec2(availWidth - 40, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 4, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("X##ResetOcc", ImVec2(30, 30))) {
-              RenderCore::SetMaterialTexture(materialID, 4, UUID::Invalid());
-            }
-            ImGui::PopStyleVar();
-          } else {
-            ImGui::Button("Occlusion Map Slot", ImVec2(-1, 30));
-            if (ImGui::BeginDragDropTarget()) {
-              if (const ImGuiPayload *payload =
-                      ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-                const char *path = (const char *)payload->Data;
-                UUID texID = AssetManager::GetInstance().GetAssetGUID(
-                    std::filesystem::path(path));
-                if (texID.IsValid()) {
-                  RenderCore::SetMaterialTexture(materialID, 4, texID);
-                }
-              }
-              ImGui::EndDragDropTarget();
-            }
-          }
+          // Occlusion Map
+          RenderTextureSlot("Occlusion Map", materialID, 4,
+                            matRes->occlusionTex,
+                            matRes->material.occlusionTexture);
         }
       }
     }

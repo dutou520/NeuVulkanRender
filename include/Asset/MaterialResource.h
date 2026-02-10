@@ -25,7 +25,8 @@ struct MaterialResource {
 
   // 加载的纹理指针 (缓存引用)
   TextureResource *baseColorTex = nullptr;
-  TextureResource *metallicRoughnessTex = nullptr;
+  TextureResource *metallicTex = nullptr;
+  TextureResource *roughnessTex = nullptr;
   TextureResource *normalTex = nullptr;
   TextureResource *emissiveTex = nullptr;
   TextureResource *occlusionTex = nullptr;
@@ -57,8 +58,8 @@ struct MaterialResource {
 
   /**
    * @brief 获取使用的纹理标志 (用于 shader)
-   * @return bit0=baseColor, bit1=metallicRoughness, bit2=normal, bit3=emissive,
-   * bit4=occlusion
+   * @return bit0=baseColor, bit1=metallic, bit2=normal, bit3=emissive,
+   * bit4=occlusion, bit5=roughness
    */
   uint32_t GetTextureFlags() const;
 };

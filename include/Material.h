@@ -29,11 +29,12 @@ struct Material {
   MaterialType type = MaterialType::Opaque;
 
   // ========== 纹理引用 (UUID - 空表示无纹理) ==========
-  UUID baseColorTexture;         // 基础颜色贴图
-  UUID metallicRoughnessTexture; // 金属度/粗糙度贴图 (G=Roughness, B=Metallic)
-  UUID normalTexture;            // 法线贴图
-  UUID emissiveTexture;          // 自发光贴图
-  UUID occlusionTexture;         // 环境遮蔽贴图
+  UUID baseColorTexture; // 基础颜色贴图
+  UUID metallicTexture;  // 金属度贴图 (B/R channel depending on convention)
+  UUID roughnessTexture; // 粗糙度贴图 (G channel)
+  UUID normalTexture;    // 法线贴图
+  UUID emissiveTexture;  // 自发光贴图
+  UUID occlusionTexture; // 环境遮蔽贴图
 
   // ========== PBR 因子 (与纹理相乘) ==========
   glm::vec4 baseColorFactor = glm::vec4(1.0f); // 基础颜色因子 (RGBA)
@@ -55,7 +56,7 @@ struct Material {
   float alpha = 1.0f;
   float shadingId = 0.0f; // 0=Lit, 1=Unlit
   uint32_t textureFlags =
-      0; // 位掩码: 1=Base, 2=Met/Rough, 4=Norm, 8=Emiss, 16=Occ
+      0; // 位掩码: 1=Base, 2=Metallic, 4=Norm, 8=Emiss, 16=Occ, 32=Roughness
 
   // 自发光属性 (所有材质支持，默认不发光)
   glm::vec3 emissiveColor = glm::vec3(1.0f); // 自发光颜色
@@ -158,9 +159,9 @@ struct Material {
    * @brief 检查是否有任何纹理
    */
   bool HasTextures() const {
-    return !baseColorTexture.IsEmpty() || !metallicRoughnessTexture.IsEmpty() ||
-           !normalTexture.IsEmpty() || !emissiveTexture.IsEmpty() ||
-           !occlusionTexture.IsEmpty();
+    return !baseColorTexture.IsEmpty() || !metallicTexture.IsEmpty() ||
+           !roughnessTexture.IsEmpty() || !normalTexture.IsEmpty() ||
+           !emissiveTexture.IsEmpty() || !occlusionTexture.IsEmpty();
   }
 
   /**
@@ -177,8 +178,10 @@ struct Material {
     // 纹理引用
     if (!baseColorTexture.IsEmpty())
       j["baseColorTexture"] = baseColorTexture.ToString();
-    if (!metallicRoughnessTexture.IsEmpty())
-      j["metallicRoughnessTexture"] = metallicRoughnessTexture.ToString();
+    if (!metallicTexture.IsEmpty())
+      j["metallicTexture"] = metallicTexture.ToString();
+    if (!roughnessTexture.IsEmpty())
+      j["roughnessTexture"] = roughnessTexture.ToString();
     if (!normalTexture.IsEmpty())
       j["normalTexture"] = normalTexture.ToString();
     if (!emissiveTexture.IsEmpty())
@@ -229,9 +232,12 @@ struct Material {
     if (j.contains("baseColorTexture"))
       mat.baseColorTexture =
           UUID::FromString(j["baseColorTexture"].get<std::string>());
-    if (j.contains("metallicRoughnessTexture"))
-      mat.metallicRoughnessTexture =
-          UUID::FromString(j["metallicRoughnessTexture"].get<std::string>());
+    if (j.contains("metallicTexture"))
+      mat.metallicTexture =
+          UUID::FromString(j["metallicTexture"].get<std::string>());
+    if (j.contains("roughnessTexture"))
+      mat.roughnessTexture =
+          UUID::FromString(j["roughnessTexture"].get<std::string>());
     if (j.contains("normalTexture"))
       mat.normalTexture =
           UUID::FromString(j["normalTexture"].get<std::string>());
