@@ -114,6 +114,9 @@ public:
     return m_Framebuffers[frameIndex];
   }
 
+  // Clear images and framebuffers but keep renderPass
+  void ClearResources(VkDevice device);
+
   // Set Framebuffer (called by RenderCore)
   void SetFramebuffer(int frameIndex, VkFramebuffer fb) {
     m_Framebuffers[frameIndex] = fb;

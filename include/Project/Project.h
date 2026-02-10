@@ -27,6 +27,7 @@ public:
   // 场景管理
   void AddScene(const std::string &scenePath);
   void RemoveScene(const std::string &scenePath);
+  void ClearScenes();
   const std::vector<std::string> &GetScenePaths() const { return m_ScenePaths; }
 
   // Getters

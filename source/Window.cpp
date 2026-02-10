@@ -8,6 +8,7 @@ namespace neurender {
 // Initialize static member variables
 SDL_Window *Window::m_Window = nullptr;
 bool Window::m_ShouldClose = false;
+bool Window::m_CloseRequested = false;
 int Window::m_Width = 0;
 int Window::m_Height = 0;
 
@@ -42,6 +43,7 @@ void Window::Init(int width, int height, const char *title) {
   m_Width = width;
   m_Height = height;
   m_ShouldClose = false;
+  m_CloseRequested = false;
 
   LOG_I("Window initialized successfully: {0}x{1}", width, height);
 }
@@ -69,12 +71,12 @@ void Window::PollEvents() {
     ImGui_ImplSDL3_ProcessEvent(&event);
     // Handle application quit event
     if (event.type == SDL_EVENT_QUIT) {
-      m_ShouldClose = true;
+      RequestClose();
     }
     // Handle window close request
     if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
         event.window.windowID == SDL_GetWindowID(m_Window)) {
-      m_ShouldClose = true;
+      RequestClose();
     }
     // Handle window resizing
     if (event.type == SDL_EVENT_WINDOW_RESIZED &&

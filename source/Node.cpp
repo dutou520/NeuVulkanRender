@@ -217,4 +217,21 @@ std::unique_ptr<Node> Node::FromJson(const nlohmann::json &j) {
   return node;
 }
 
+std::unique_ptr<Node> Node::Clone() const {
+  nlohmann::json j = ToJson();
+  auto copy = FromJson(j);
+  if (copy) {
+    copy->GenerateNewUUIDs();
+    copy->SetName(GetName() + " (Copy)");
+  }
+  return copy;
+}
+
+void Node::GenerateNewUUIDs() {
+  m_UUID = UUID::Generate();
+  for (auto &child : m_Children) {
+    child->GenerateNewUUIDs();
+  }
+}
+
 } // namespace neurender

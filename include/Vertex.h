@@ -83,6 +83,7 @@ struct LightDataUBO {
   alignas(16) glm::vec3 lightDir;
   alignas(16) glm::vec3 lightColor;
   alignas(16) glm::vec3 viewPos;
+  alignas(16) glm::mat4 invViewProj; // 逆 视图-投影 矩阵
 };
 
 /**

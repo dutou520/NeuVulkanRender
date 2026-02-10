@@ -2,7 +2,6 @@
 #include "Core/UUID.h"
 #include "Nodes/Node.h"
 
-
 namespace neurender {
 
 /**

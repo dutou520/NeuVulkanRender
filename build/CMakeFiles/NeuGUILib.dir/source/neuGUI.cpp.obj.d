@@ -535,6 +535,67 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MaterialResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
+ D:/CppPrograms/NeuVulkanRender/include/Window.h \
+ D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_stdinc.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform_defines.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_begin_code.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_close_code.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_assert.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_asyncio.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_atomic.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_audio.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_endian.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_error.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mutex.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_thread.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_properties.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_iostream.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_bits.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_blendmode.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_camera.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pixels.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_surface.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_rect.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_clipboard.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_cpuinfo.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_dialog.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_video.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_events.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gamepad.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_guid.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_joystick.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_power.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_sensor.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keyboard.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_keycode.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_scancode.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_mouse.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_pen.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_touch.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_filesystem.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_gpu.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_haptic.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hidapi.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_hints.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_init.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_loadso.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_locale.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_log.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_messagebox.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_metal.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_misc.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_platform.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_process.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_render.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_storage.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_system.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_time.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_timer.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_tray.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_version.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_oldnames.h \
  D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
  D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \
@@ -562,6 +623,10 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg_buffer.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h \
+ C:/msys64/mingw64/include/c++/14.1.0/fstream \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc \
  D:/vcpkg/installed/x64-mingw-dynamic/include/imgui_internal.h \
  C:/msys64/mingw64/include/c++/14.1.0/math.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/immintrin.h \

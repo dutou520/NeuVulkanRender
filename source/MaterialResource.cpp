@@ -37,10 +37,10 @@ bool MaterialResource::SaveToFile(const std::string &path) const {
   try {
     nlohmann::json j = material.ToJson();
 
-    std::filesystem::path filePath(path);
-    std::filesystem::create_directories(filePath.parent_path());
+    std::filesystem::path fullPath = std::filesystem::u8path(path);
+    std::filesystem::create_directories(fullPath.parent_path());
 
-    std::ofstream file(path);
+    std::ofstream file(fullPath);
     if (!file.is_open()) {
       LOG_E("Failed to create material file: {}", path);
       return false;

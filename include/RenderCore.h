@@ -38,10 +38,13 @@ public:
   // ========== 材质管理接口 (Public) ==========
   static UUID CreateMaterial();
   static void DeleteMaterial(const UUID &id);
+  static void SaveAllMaterials();
   static std::vector<UUID> GetAllMaterials();
   static void SetMaterialTexture(const UUID &matID, uint32_t binding,
                                  const UUID &texID);
   static MaterialResource *GetMaterialResource(const UUID &materialID);
+  static TextureResource *GetTextureResource(const UUID &textureID);
+  static ImTextureID GetImGuiTextureID(const UUID &textureID);
 
 private:
   static void CreateInstance();
@@ -55,6 +58,7 @@ private:
   static void CreateCommandPool();
   static void CreateCommandBuffers();
   static void CreateSyncObjects();
+  static void CreateRenderFinishedSemaphores();
   static void CreateDescriptorPool();
   static void InitImGui();
   static void SetupDebugMessenger();
@@ -92,6 +96,9 @@ private:
   static void CreateBloomFramebuffers();
   static void CreateBloomPipelines();
   static void CreatePostProcessDescriptorSets();
+  static void CreateGBufferFramebuffers();
+  static void CreateCompositionFramebuffers();
+  static void CreateForwardFramebuffers();
 
   // ========== 辅助函数 ==========
   static VkShaderModule CreateShaderModule(const std::vector<char> &code);
@@ -115,7 +122,6 @@ private:
   // ==============================
   static std::unordered_map<UUID, TextureResource> m_TextureCache;
   static bool LoadTextureResource(const UUID &textureID);
-  static TextureResource *GetTextureResource(const UUID &textureID);
 
   // ============================== Material Resource Cache
   // ==============================
@@ -402,6 +408,17 @@ public:
     return m_CurrentProject;
   }
 
+  // ========== 性能设置接口 ==========
+  static void SetVSync(bool enabled) {
+    if (m_VSync != enabled) {
+      m_VSync = enabled;
+      m_FramebufferResized = true; // 触发交换链重建以应用新的呈现模式
+    }
+  }
+  static bool IsVSyncEnabled() { return m_VSync; }
+  static void SetTargetFPS(int fps) { m_TargetFPS = fps; }
+  static int GetTargetFPS() { return m_TargetFPS; }
+
   // ========== 模型加载方法 ==========
   /**
    * @brief 从OBJ文件加载模型
@@ -437,5 +454,9 @@ private:
 
   // 工程管理
   static std::shared_ptr<Project> m_CurrentProject;
+
+  // 性能控制
+  static bool m_VSync;
+  static int m_TargetFPS;
 };
 } // namespace neurender

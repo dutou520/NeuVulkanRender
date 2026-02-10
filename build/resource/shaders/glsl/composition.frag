@@ -14,7 +14,7 @@ layout(set = 1, binding = 0) uniform LightData {
     vec3 lightColor;
     float _pad2;
     vec3 viewPos;
-    float _pad3;
+    mat4 invViewProj; // 逆 视图-投影 矩阵
 } light;
 
 // 点光源数据
@@ -257,9 +257,10 @@ void main() {
     // 直接读取自发光颜色 (GBA通道存储RGB)
     vec3 emissive = vec3(g4.g, g4.b, g4.a);
     
-    // 重建世界位置 (简化版, 实际应使用深度)
-    // TODO: 从深度重建世界位置
-    vec3 worldPos = vec3(0.0);
+    // 重建世界位置
+    vec4 clipPos = vec4(fragTexCoord * 2.0 - 1.0, depth, 1.0);
+    vec4 worldPosH = light.invViewProj * clipPos;
+    vec3 worldPos = worldPosH.xyz / worldPosH.w;
     
     // 根据着色 ID 选择着色逻辑
     vec3 finalColor;

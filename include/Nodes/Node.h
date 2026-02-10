@@ -61,6 +61,10 @@ public:
   virtual nlohmann::json ToJson() const;
   static std::unique_ptr<Node> FromJson(const nlohmann::json &j);
 
+  // Deep copy with new UUIDs
+  virtual std::unique_ptr<Node> Clone() const;
+  void GenerateNewUUIDs();
+
   // 节点类型标识
   virtual std::string GetNodeType() const { return "Node"; }
 

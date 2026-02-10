@@ -2,8 +2,20 @@
 #include "Window.h"
 #include "neuLog.h"
 #include <spdlog/spdlog.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <Windows.h>
+#endif
+
+void setConsoleUtf8Encoding() {
+#if defined(_WIN32) || defined(_WIN64)
+  SetConsoleOutputCP(CP_UTF8);
+#else
+  // Linux/macOS：终端默认UTF-8，无需额外设置
+#endif
+}
 
 int main(int argc, char *argv[]) {
+  setConsoleUtf8Encoding();
   // Set global locale to UTF-8 for robust filesystem handling on Windows
   try {
     std::locale::global(std::locale(".UTF8"));
@@ -14,7 +26,7 @@ int main(int argc, char *argv[]) {
   neurender::NeuLog::Init();
   LOG_I("Starting NeuVulkanRender...");
 
-  neurender::Window::Init(1920, 1080, "NeuVulkanRender Engine");
+  neurender::Window::Init(2560, 1440, "NeuVulkanRender");
 
   try {
     neurender::RenderCore::Init();

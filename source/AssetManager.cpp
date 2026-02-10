@@ -14,8 +14,9 @@ void AssetManager::Initialize(const std::string &assetsPath) {
   m_AssetsPath = assetsPath;
 
   // 确保 Assets 目录存在
-  if (!std::filesystem::exists(m_AssetsPath)) {
-    std::filesystem::create_directories(m_AssetsPath);
+  std::filesystem::path p = std::filesystem::u8path(m_AssetsPath);
+  if (!std::filesystem::exists(p)) {
+    std::filesystem::create_directories(p);
     LOG_I("Created Assets directory: {}", m_AssetsPath);
   }
 
@@ -27,7 +28,8 @@ void AssetManager::ScanAssets() {
   m_GUIDToPath.clear();
   m_PathToGUID.clear();
 
-  if (m_AssetsPath.empty() || !std::filesystem::exists(m_AssetsPath)) {
+  std::filesystem::path assetsPathObj = std::filesystem::u8path(m_AssetsPath);
+  if (m_AssetsPath.empty() || !std::filesystem::exists(assetsPathObj)) {
     LOG_W("Assets path not set or does not exist: {}", m_AssetsPath);
     return;
   }
@@ -36,7 +38,7 @@ void AssetManager::ScanAssets() {
   uint32_t metaCount = 0;
   try {
     for (const auto &entry :
-         std::filesystem::recursive_directory_iterator(m_AssetsPath)) {
+         std::filesystem::recursive_directory_iterator(assetsPathObj)) {
       try {
         if (entry.is_regular_file() && entry.path().extension() == ".meta") {
           ProcessMetaFile(entry.path());
@@ -77,10 +79,10 @@ void AssetManager::ProcessMetaFile(const std::filesystem::path &metaPath) {
 
     // 注册映射
     m_GUIDToPath[meta.guid] = assetPath;
-    m_PathToGUID[assetPath.generic_string()] = meta.guid;
+    m_PathToGUID[assetPath.u8string()] = meta.guid;
 
     LOG_I("Registered asset: {} -> {}", meta.guid.ToString(),
-          assetPath.generic_string());
+          assetPath.u8string());
   } catch (const std::exception &e) {
     LOG_E("Failed to process meta file {}: {}", metaPath.string(), e.what());
   }
@@ -91,7 +93,7 @@ std::string AssetManager::GetAssetPath(const UUID &guid) const {
   if (it != m_GUIDToPath.end()) {
     // Return potentially lossy string for compatibility, but the internal path
     // is safe
-    return it->second.string();
+    return it->second.u8string();
   }
   return "";
 }
@@ -105,7 +107,8 @@ std::filesystem::path AssetManager::GetAssetPathObj(const UUID &guid) const {
 }
 
 UUID AssetManager::GetAssetGUID(const std::string &path) const {
-  auto it = m_PathToGUID.find(path);
+  std::filesystem::path p = std::filesystem::u8path(path);
+  auto it = m_PathToGUID.find(p.u8string());
   if (it != m_PathToGUID.end()) {
     return it->second;
   }
@@ -113,7 +116,7 @@ UUID AssetManager::GetAssetGUID(const std::string &path) const {
 }
 
 UUID AssetManager::GetAssetGUID(const std::filesystem::path &path) const {
-  return GetAssetGUID(path.generic_string());
+  return GetAssetGUID(path.u8string());
 }
 
 UUID AssetManager::RegisterAsset(const std::string &assetPath,
@@ -132,7 +135,7 @@ UUID AssetManager::RegisterAsset(const std::filesystem::path &assetPath,
   // 创建新的元数据
   MetaFile meta;
   meta.guid = UUID::Generate();
-  meta.originalPath = assetPath.generic_string();
+  meta.originalPath = assetPath.u8string();
   meta.assetType = assetType;
 
   // 获取当前时间戳
@@ -150,9 +153,9 @@ UUID AssetManager::RegisterAsset(const std::filesystem::path &assetPath,
 
   // 注册映射
   m_GUIDToPath[meta.guid] = assetPath;
-  m_PathToGUID[assetPath.generic_string()] = meta.guid;
+  m_PathToGUID[assetPath.u8string()] = meta.guid;
 
-  LOG_I("Registered asset: {} with GUID: {}", assetPath.generic_string(),
+  LOG_I("Registered asset: {} with GUID: {}", assetPath.u8string(),
         meta.guid.ToString());
   return meta.guid;
 }
@@ -162,17 +165,18 @@ bool AssetManager::HasAsset(const UUID &guid) const {
 }
 
 bool AssetManager::HasAsset(const std::string &path) const {
-  return m_PathToGUID.find(path) != m_PathToGUID.end();
+  std::filesystem::path p = std::filesystem::u8path(path);
+  return m_PathToGUID.find(p.u8string()) != m_PathToGUID.end();
 }
 
 bool AssetManager::HasAsset(const std::filesystem::path &path) const {
-  return HasAsset(path.generic_string());
+  return HasAsset(path.u8string());
 }
 
 void AssetManager::UnregisterAsset(const UUID &guid) {
   auto it = m_GUIDToPath.find(guid);
   if (it != m_GUIDToPath.end()) {
-    std::string pathStr = it->second.generic_string();
+    std::string pathStr = it->second.u8string();
     m_PathToGUID.erase(pathStr);
     m_GUIDToPath.erase(it);
     LOG_I("Unregistered asset: {}", guid.ToString());
@@ -180,7 +184,7 @@ void AssetManager::UnregisterAsset(const UUID &guid) {
 }
 
 void AssetManager::UnregisterAsset(const std::filesystem::path &assetPath) {
-  std::string pathStr = assetPath.generic_string();
+  std::string pathStr = assetPath.u8string();
   auto it = m_PathToGUID.find(pathStr);
   if (it != m_PathToGUID.end()) {
     m_GUIDToPath.erase(it->second);

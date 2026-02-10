@@ -61,7 +61,7 @@ void GBuffer::Create(VkDevice device, VkPhysicalDevice physicalDevice,
   LOG_I("GBuffer created: {}x{} with {} frames", width, height, framesInFlight);
 }
 
-void GBuffer::Destroy(VkDevice device) {
+void GBuffer::ClearResources(VkDevice device) {
   if (!m_IsValid)
     return;
 
@@ -105,12 +105,16 @@ void GBuffer::Destroy(VkDevice device) {
   m_Depth.clear();
   m_Framebuffers.clear();
 
+  m_IsValid = false;
+}
+
+void GBuffer::Destroy(VkDevice device) {
   if (renderPass != VK_NULL_HANDLE) {
     vkDestroyRenderPass(device, renderPass, nullptr);
     renderPass = VK_NULL_HANDLE;
   }
 
-  m_IsValid = false;
+  ClearResources(device);
   LOG_I("GBuffer destroyed");
 }
 

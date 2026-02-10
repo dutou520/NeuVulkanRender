@@ -49,6 +49,7 @@ private:
   static void MenuFile();
   static void MenuCreate();
   static void MenuDebug();
+  static void MenuPerformance();
 
   // 创建节点和场景
   static void CreateScene();
@@ -87,9 +88,19 @@ private:
   static std::string s_SelectedFile;
   static bool s_ShowNewFolderDialog;
   static char s_NewFolderName[256];
+  static bool s_ShowRenameDialog;
+  static char s_RenameBuffer[256];
+  static std::string s_RenameTargetFile;
 
   // Clipboard for cut/paste operations
   static std::string s_ClipboardPath;
+
+  // Pending node operations (to avoid modifying tree during traversal)
+  static Node *s_PendingReparentSource;
+  static Node *s_PendingReparentTarget;
+  static Node *s_PendingDeleteNode;
+  static Node *s_PendingCloneSource;
+  static void ProcessPendingNodeOperations();
 
   // 渲染模式
   enum class RenderMode {

@@ -109,6 +109,10 @@ bool RenderCore::m_UseCustomGeometry = false;
 // ========== 工程管理静态成员定义 ==========
 std::shared_ptr<Project> RenderCore::m_CurrentProject = nullptr;
 
+// ========== 性能控制静态成员定义 ==========
+bool RenderCore::m_VSync = true;
+int RenderCore::m_TargetFPS = 60;
+
 // ========== 前向渲染系统静态成员定义 ==========
 VkRenderPass RenderCore::m_ForwardRenderPass = VK_NULL_HANDLE;
 VkPipeline RenderCore::m_ForwardPipeline = VK_NULL_HANDLE;
@@ -449,9 +453,12 @@ void RenderCore::Shutdown() {
   // 9. 销毁 同步对象
   for (size_t i = 0; i < m_ImageAvailableSemaphores.size(); i++) {
     vkDestroySemaphore(m_Device, m_ImageAvailableSemaphores[i], nullptr);
-    vkDestroySemaphore(m_Device, m_RenderFinishedSemaphores[i], nullptr);
     vkDestroyFence(m_Device, m_InFlightFences[i], nullptr);
   }
+  m_ImageAvailableSemaphores.clear();
+  m_InFlightFences.clear();
+
+  // m_RenderFinishedSemaphores are destroyed in CleanupSwapchain()
 
   // 10. 销毁 命令池与设备、实例
   vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
@@ -724,8 +731,30 @@ void RenderCore::CreateSwapchain() {
   createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   createInfo.preTransform = capabilities.currentTransform;
   createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-  createInfo.presentMode =
-      VK_PRESENT_MODE_FIFO_KHR; // Guaranteed to be available
+  // 选择呈现模式
+  VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR; // 默认 VSync (必有)
+  if (!m_VSync) {
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(m_PhysicalDevice, m_Surface,
+                                              &presentModeCount, nullptr);
+    std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(
+        m_PhysicalDevice, m_Surface, &presentModeCount, presentModes.data());
+
+    for (const auto &availablePresentMode : presentModes) {
+      if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+        presentMode = availablePresentMode;
+        break;
+      }
+      if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+        presentMode = availablePresentMode;
+        // Keep looking for MAILBOX as it's better, but IMMEDIATE is okay for
+        // now
+      }
+    }
+  }
+
+  createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
   createInfo.oldSwapchain = VK_NULL_HANDLE;
 
@@ -878,7 +907,6 @@ void RenderCore::CreateCommandBuffers() {
 
 void RenderCore::CreateSyncObjects() {
   m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkSemaphoreCreateInfo semaphoreInfo{};
@@ -891,12 +919,29 @@ void RenderCore::CreateSyncObjects() {
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     if (vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr,
                           &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr,
-                          &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
         vkCreateFence(m_Device, &fenceInfo, nullptr, &m_InFlightFences[i]) !=
             VK_SUCCESS) {
       throw std::runtime_error(
           "failed to create synchronization objects for a frame!");
+    }
+  }
+
+  // NOTE: m_RenderFinishedSemaphores are created in
+  // CreateRenderFinishedSemaphores() because they should be per-swapchain-image
+  // to avoid reuse warnings.
+  CreateRenderFinishedSemaphores();
+}
+
+void RenderCore::CreateRenderFinishedSemaphores() {
+  m_RenderFinishedSemaphores.resize(m_SwapchainImages.size());
+
+  VkSemaphoreCreateInfo semaphoreInfo{};
+  semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+  for (size_t i = 0; i < m_SwapchainImages.size(); i++) {
+    if (vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr,
+                          &m_RenderFinishedSemaphores[i]) != VK_SUCCESS) {
+      throw std::runtime_error("failed to create render finished semaphores!");
     }
   }
 }
@@ -1418,6 +1463,23 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
 }
 
 void RenderCore::DrawFrame() {
+  // 1. 时间与帧率限制
+  float currentTime = SDL_GetTicks() / 1000.0f;
+  m_DeltaTime = currentTime - m_LastFrameTime;
+
+  // 如果帧率过高，进行休眠以达到目标帧率 (例如 GUI 固定的 60FPS)
+  if (m_TargetFPS > 0) {
+    float minDelta = 1.0f / m_TargetFPS;
+    if (m_DeltaTime < minDelta) {
+      float sleepTime = minDelta - m_DeltaTime;
+      SDL_Delay(static_cast<uint32_t>(sleepTime * 1000.0f));
+      // 重新计算 currentTime 和 m_DeltaTime
+      currentTime = SDL_GetTicks() / 1000.0f;
+      m_DeltaTime = currentTime - m_LastFrameTime;
+    }
+  }
+  m_LastFrameTime = currentTime;
+
   vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE,
                   UINT64_MAX);
 
@@ -1479,7 +1541,7 @@ void RenderCore::DrawFrame() {
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
 
-  VkSemaphore signalSemaphores[] = {m_RenderFinishedSemaphores[m_CurrentFrame]};
+  VkSemaphore signalSemaphores[] = {m_RenderFinishedSemaphores[imageIndex]};
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -1516,10 +1578,38 @@ void RenderCore::CleanupSwapchain() {
   for (auto framebuffer : m_SwapchainFramebuffers) {
     vkDestroyFramebuffer(m_Device, framebuffer, nullptr);
   }
+  m_SwapchainFramebuffers.clear();
+
+  for (auto fb : m_CompositionFramebuffers) {
+    if (fb != VK_NULL_HANDLE)
+      vkDestroyFramebuffer(m_Device, fb, nullptr);
+  }
+  m_CompositionFramebuffers.clear();
+
+  for (auto fb : g_ForwardFramebuffers) {
+    if (fb != VK_NULL_HANDLE)
+      vkDestroyFramebuffer(m_Device, fb, nullptr);
+  }
+  g_ForwardFramebuffers.clear();
+
+  if (m_BloomBrightFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBrightFramebuffer, nullptr);
+    m_BloomBrightFramebuffer = VK_NULL_HANDLE;
+  }
+  if (m_BloomBlurFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBlurFramebuffer, nullptr);
+    m_BloomBlurFramebuffer = VK_NULL_HANDLE;
+  }
 
   for (auto imageView : m_SwapchainImageViews) {
     vkDestroyImageView(m_Device, imageView, nullptr);
   }
+  m_SwapchainImageViews.clear();
+
+  for (auto semaphore : m_RenderFinishedSemaphores) {
+    vkDestroySemaphore(m_Device, semaphore, nullptr);
+  }
+  m_RenderFinishedSemaphores.clear();
 
   vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
 }
@@ -1535,7 +1625,8 @@ void RenderCore::RecreateSwapchain() {
   CleanupSwapchain();
 
   // Destroy resources that depend on swapchain size
-  m_GBuffer.Destroy(m_Device);
+  m_GBuffer.ClearResources(m_Device); // Use ClearResources to keep RenderPass
+
   for (auto &sc : m_SceneColor) {
     if (sc.view != VK_NULL_HANDLE) {
       vkDestroyImageView(m_Device, sc.view, nullptr);
@@ -1559,29 +1650,20 @@ void RenderCore::RecreateSwapchain() {
     m_BloomBlurTexture.view = VK_NULL_HANDLE;
   }
 
-  for (auto fb : m_CompositionFramebuffers) {
-    if (fb != VK_NULL_HANDLE)
-      vkDestroyFramebuffer(m_Device, fb, nullptr);
-  }
-  m_CompositionFramebuffers.clear();
-
-  if (m_BloomBrightFramebuffer != VK_NULL_HANDLE) {
-    vkDestroyFramebuffer(m_Device, m_BloomBrightFramebuffer, nullptr);
-    m_BloomBrightFramebuffer = VK_NULL_HANDLE;
-  }
-  if (m_BloomBlurFramebuffer != VK_NULL_HANDLE) {
-    vkDestroyFramebuffer(m_Device, m_BloomBlurFramebuffer, nullptr);
-    m_BloomBlurFramebuffer = VK_NULL_HANDLE;
-  }
-
   // Re-create everything
   CreateSwapchain();
   CreateImageViews();
+  CreateRenderFinishedSemaphores();
   CreateGBuffer();
   CreateSceneRenderTarget();
   CreateBloomResources();
+
+  // Recreate all framebuffers
+  CreateGBufferFramebuffers();
+  CreateCompositionFramebuffers();
   CreateFramebuffers();
   CreateBloomFramebuffers();
+  CreateForwardFramebuffers();
 
   // CreateDescriptorSets and CreatePostProcessDescriptorSets allocate and
   // update. This might lead to gradual descriptor pool fill-up, but since it's
@@ -1813,6 +1895,13 @@ void RenderCore::CreateGBufferRenderPass() {
   }
 
   // Create GBuffer framebuffers (Double Buffered)
+  CreateGBufferFramebuffers();
+
+  m_GBuffer.renderPass = m_GBufferRenderPass;
+  LOG_I("GBuffer render pass and framebuffers created successfully");
+}
+
+void RenderCore::CreateGBufferFramebuffers() {
   for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     std::vector<VkImageView> gbufferAttachments =
         m_GBuffer.GetColorAttachmentViews(i);
@@ -1835,9 +1924,6 @@ void RenderCore::CreateGBufferRenderPass() {
     }
     m_GBuffer.SetFramebuffer(i, fb);
   }
-
-  m_GBuffer.renderPass = m_GBufferRenderPass;
-  LOG_I("GBuffer render pass and framebuffers created successfully");
 }
 
 void RenderCore::CreateCompositionRenderPass() {
@@ -1899,6 +1985,12 @@ void RenderCore::CreateCompositionRenderPass() {
   }
 
   // Create composition framebuffers (Double Buffered)
+  CreateCompositionFramebuffers();
+
+  LOG_I("Composition render pass and framebuffers created successfully");
+}
+
+void RenderCore::CreateCompositionFramebuffers() {
   m_CompositionFramebuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -1918,8 +2010,6 @@ void RenderCore::CreateCompositionRenderPass() {
       throw std::runtime_error("Failed to create composition framebuffer!");
     }
   }
-
-  LOG_I("Composition render pass and framebuffers created successfully");
 }
 
 void RenderCore::CreateDescriptorSetLayouts() {
@@ -2739,7 +2829,8 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
   LightDataUBO lightData{};
   lightData.lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
   lightData.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-  lightData.viewPos = m_Camera.GetPosition(); // 使用相机位置
+  lightData.viewPos = m_Camera.GetPosition();
+  lightData.invViewProj = glm::inverse(ubo.proj * ubo.view);
 
   memcpy(m_LightUniformBuffersMapped[currentImage], &lightData,
          sizeof(lightData));
@@ -2799,10 +2890,8 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
 }
 
 void RenderCore::ProcessInput() {
-  // 计算 delta time
-  float currentTime = SDL_GetTicks() / 1000.0f;
-  m_DeltaTime = currentTime - m_LastFrameTime;
-  m_LastFrameTime = currentTime;
+  // 注意：m_DeltaTime 已经在 DrawFrame 开始处计算过了
+  // 这里不再重复计算，以保证一致性
 
   // 检查是否按下右键启用相机控制
   float mouseXf, mouseYf;
@@ -2940,6 +3029,12 @@ void RenderCore::CreateForwardRenderPass() {
   }
 
   // Create Forward Framebuffers (Double Buffered)
+  CreateForwardFramebuffers();
+
+  LOG_I("Forward render pass and framebuffers created successfully");
+}
+
+void RenderCore::CreateForwardFramebuffers() {
   g_ForwardFramebuffers.resize(MAX_FRAMES_IN_FLIGHT);
   for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     std::array<VkImageView, 2> fbAttachments = {m_SceneColor[i].view,
@@ -2960,8 +3055,6 @@ void RenderCore::CreateForwardRenderPass() {
       throw std::runtime_error("Failed to create forward framebuffer!");
     }
   }
-
-  LOG_I("Forward render pass and framebuffers created successfully");
 }
 
 void RenderCore::CreateForwardPipeline() {
@@ -4224,6 +4317,18 @@ TextureResource *RenderCore::GetTextureResource(const UUID &textureID) {
   return &m_DefaultWhiteTexture;
 }
 
+ImTextureID RenderCore::GetImGuiTextureID(const UUID &textureID) {
+  TextureResource *tex = GetTextureResource(textureID);
+  if (!tex || !tex->isLoaded)
+    return (ImTextureID)0;
+
+  if (tex->descriptorSet == VK_NULL_HANDLE) {
+    tex->descriptorSet = ImGui_ImplVulkan_AddTexture(
+        tex->sampler, tex->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
+  return (ImTextureID)tex->descriptorSet;
+}
+
 void RenderCore::CreateMaterialDescriptorSet(MaterialResource *material) {
   VkDescriptorSetAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -4340,11 +4445,43 @@ MaterialResource *RenderCore::GetMaterialResource(const UUID &materialID) {
 // ==============================
 
 UUID RenderCore::CreateMaterial() {
-  MaterialResource material;
-  material.SetName("New Material");
-  material.uuid = UUID();
+  auto project = GetCurrentProject();
+  if (!project) {
+    LOG_E("No project loaded, cannot create material");
+    return UUID::Invalid();
+  }
 
-  // Default PBR params
+  // 1. 确定保存路径 (Assets/Materials 开发目录下)
+  std::filesystem::path assetsPath = project->GetAssetsPath();
+  std::filesystem::path matFolder = assetsPath / "Materials";
+  try {
+    std::filesystem::create_directories(matFolder);
+  } catch (const std::exception &e) {
+    LOG_E("Failed to create materials directory: {}", e.what());
+    // 如果创建文件夹失败，尝试直接放在 Assets 根目录
+    matFolder = assetsPath;
+  }
+
+  // 2. 寻找唯一的文件名
+  std::string baseName = "NewMaterial";
+  std::filesystem::path matPath;
+  int counter = 0;
+  do {
+    std::string fileName = baseName +
+                           (counter == 0 ? "" : "_" + std::to_string(counter)) +
+                           ".mat.json";
+    matPath = matFolder / fileName;
+    counter++;
+  } while (std::filesystem::exists(matPath));
+
+  // 3. 初始化材质资源
+  MaterialResource material;
+  std::string matName = matPath.stem().u8string();
+  material.SetName(matName);
+  material.material.name = matName;
+  material.uuid = UUID::Generate(); // 临时，后续会被 RegisterAsset 的 GUID 覆盖
+
+  // 默认 PBR 参数
   material.material.baseColorFactor = glm::vec4(1.0f);
   material.material.metallicFactor = 0.0f;
   material.material.roughnessFactor = 0.5f;
@@ -4354,21 +4491,45 @@ UUID RenderCore::CreateMaterial() {
   material.material.shadingId = 0.0f; // Default Lit
   material.material.textureFlags = 0;
 
-  // Set default textures
+  // 设置默认纹理
   material.baseColorTex = &m_DefaultWhiteTexture;
   material.metallicRoughnessTex = &m_DefaultWhiteTexture;
   material.normalTex = &m_DefaultNormalTexture;
   material.emissiveTex = &m_DefaultBlackTexture;
   material.occlusionTex = &m_DefaultWhiteTexture;
 
-  // Create Descriptor Set
-  CreateMaterialDescriptorSet(&material);
+  // 4. 保存为文件 (这样 AssetManager 才能注册它)
+  if (!material.SaveToFile(matPath.u8string())) {
+    LOG_E("Failed to save new material to: {}", matPath.u8string());
+    return UUID::Invalid();
+  }
 
-  UUID id = material.uuid;
+  // 5. 注册到资产管理器
+  UUID id = AssetManager::GetInstance().RegisterAsset(matPath, "material");
+  if (!id.IsValid()) {
+    LOG_E("Failed to register new material asset");
+    return UUID::Invalid();
+  }
+
+  material.uuid = id;
+  material.filePath = matPath.u8string();
+
+  // 6. 创建描述符集并存入缓存
+  CreateMaterialDescriptorSet(&material);
   m_MaterialCache[id] = std::move(material);
 
-  LOG_I("Created new material: {}", id.ToString());
+  LOG_I("Created and saved new material: {} at {}", id.ToString(),
+        matPath.u8string());
   return id;
+}
+
+void RenderCore::SaveAllMaterials() {
+  for (auto &pair : m_MaterialCache) {
+    if (!pair.second.filePath.empty()) {
+      pair.second.SaveToFile(pair.second.filePath);
+    }
+  }
+  LOG_I("Saved all materials to disk.");
 }
 
 void RenderCore::DeleteMaterial(const UUID &id) {
@@ -4430,22 +4591,27 @@ void RenderCore::SetMaterialTexture(const UUID &matID, uint32_t binding,
     }
   }
 
-  // Update pointer
+  // Update pointer and internal UUIDs
   switch (binding) {
   case 0:
     mat.baseColorTex = texRes;
+    mat.material.baseColorTexture = texID;
     break;
   case 1:
     mat.metallicRoughnessTex = texRes;
+    mat.material.metallicRoughnessTexture = texID;
     break;
   case 2:
     mat.normalTex = texRes;
+    mat.material.normalTexture = texID;
     break;
   case 3:
     mat.emissiveTex = texRes;
+    mat.material.emissiveTexture = texID;
     break;
   case 4:
     mat.occlusionTex = texRes;
+    mat.material.occlusionTexture = texID;
     break;
   }
 
@@ -4491,7 +4657,7 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
   }
   std::ifstream file(meshPath, std::ios::binary);
   if (!file.is_open()) {
-    LOG_E("Failed to open mesh file: {}", meshPath.string());
+    LOG_E("Failed to open mesh file: {}", meshPath.u8string());
     return false;
   }
 
@@ -4502,7 +4668,7 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
   file.read(reinterpret_cast<char *>(&indexCount), sizeof(uint32_t));
 
   if (vertexCount == 0 || indexCount == 0) {
-    LOG_E("Empty mesh data in file: {}", meshPath.string());
+    LOG_E("Empty mesh data in file: {}", meshPath.u8string());
     return false;
   }
 
@@ -4510,8 +4676,8 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
   file.read(reinterpret_cast<char *>(positions.data()),
             positions.size() * sizeof(float));
 
-  bool hasNormals = false;
-  file.read(reinterpret_cast<char *>(&hasNormals), sizeof(bool));
+  uint32_t hasNormals = 0;
+  file.read(reinterpret_cast<char *>(&hasNormals), sizeof(uint32_t));
   std::vector<float> normals;
   if (hasNormals) {
     normals.resize(vertexCount * 3);
@@ -4519,13 +4685,22 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
               normals.size() * sizeof(float));
   }
 
-  bool hasTexcoords = false;
-  file.read(reinterpret_cast<char *>(&hasTexcoords), sizeof(bool));
+  uint32_t hasTexcoords = 0;
+  file.read(reinterpret_cast<char *>(&hasTexcoords), sizeof(uint32_t));
   std::vector<float> texcoords;
   if (hasTexcoords) {
     texcoords.resize(vertexCount * 2);
     file.read(reinterpret_cast<char *>(texcoords.data()),
               texcoords.size() * sizeof(float));
+  }
+
+  uint32_t hasColors = 0;
+  file.read(reinterpret_cast<char *>(&hasColors), sizeof(uint32_t));
+  std::vector<float> colors;
+  if (hasColors) {
+    colors.resize(vertexCount * 4);
+    file.read(reinterpret_cast<char *>(colors.data()),
+              colors.size() * sizeof(float));
   }
 
   std::vector<uint32_t> indices(indexCount);
@@ -4538,18 +4713,25 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
     vertices[i].position = glm::vec3(positions[i * 3 + 0], positions[i * 3 + 1],
                                      positions[i * 3 + 2]);
 
-    if (hasNormals) {
+    if (hasNormals && !normals.empty()) {
       vertices[i].normal =
           glm::vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]);
     } else {
       vertices[i].normal = glm::vec3(0.0f, 1.0f, 0.0f);
     }
 
-    if (hasTexcoords) {
+    if (hasTexcoords && !texcoords.empty()) {
       vertices[i].texCoord =
           glm::vec2(texcoords[i * 2 + 0], texcoords[i * 2 + 1]);
     } else {
       vertices[i].texCoord = glm::vec2(0.0f, 0.0f);
+    }
+
+    if (hasColors && !colors.empty()) {
+      vertices[i].color = glm::vec4(colors[i * 4 + 0], colors[i * 4 + 1],
+                                    colors[i * 4 + 2], colors[i * 4 + 3]);
+    } else {
+      vertices[i].color = glm::vec4(1.0f);
     }
   }
 
@@ -4619,7 +4801,7 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
 
   res.loaded = true;
   m_MeshCache[meshID] = res;
-  LOG_I("Loaded mesh resource: {}", meshPath.string());
+  LOG_I("Loaded mesh resource: {}", meshPath.u8string());
   return true;
 }
 

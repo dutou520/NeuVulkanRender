@@ -1,11 +1,14 @@
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <vector>
+
 #include "Asset/TextureResource.h"
 #include "neuLog.h"
 
 #include <stb_image.h>
-
-#include <algorithm>
-#include <cmath>
-#include <cstring>
 
 namespace neurender {
 
@@ -14,13 +17,31 @@ bool TextureResource::LoadFromFile(VkDevice device,
                                    VkCommandPool commandPool,
                                    VkQueue graphicsQueue,
                                    const std::string &path) {
-  // 加载图像数据
+  // 使用 std::ifstream 和 u8path 加载图像数据到内存 (支持 Windows 下的 UTF-8
+  // 路径)
+  std::ifstream ifs(std::filesystem::u8path(path),
+                    std::ios::binary | std::ios::ate);
+  if (!ifs) {
+    LOG_E("Failed to open texture file: {}", path);
+    return false;
+  }
+
+  std::streamsize fileSize = ifs.tellg();
+  ifs.seekg(0, std::ios::beg);
+
+  std::vector<unsigned char> buffer(static_cast<size_t>(fileSize));
+  if (!ifs.read(reinterpret_cast<char *>(buffer.data()), fileSize)) {
+    LOG_E("Failed to read texture file: {}", path);
+    return false;
+  }
+
   int texWidth, texHeight, texChannels;
-  stbi_uc *pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels,
-                              STBI_rgb_alpha);
+  stbi_uc *pixels = stbi_load_from_memory(
+      buffer.data(), static_cast<int>(buffer.size()), &texWidth, &texHeight,
+      &texChannels, STBI_rgb_alpha);
 
   if (!pixels) {
-    LOG_E("Failed to load texture: {}", path);
+    LOG_E("STB failed to decode texture: {}", path);
     return false;
   }
 
@@ -231,7 +252,7 @@ bool TextureResource::CreateSampler(VkDevice device,
   samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
   samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
   samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  samplerInfo.anisotropyEnable = VK_TRUE;
+  samplerInfo.anisotropyEnable = VK_FALSE;
   samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
   samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
   samplerInfo.unnormalizedCoordinates = VK_FALSE;

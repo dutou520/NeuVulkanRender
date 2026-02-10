@@ -20,6 +20,7 @@ struct TextureResource {
   VkDeviceMemory memory = VK_NULL_HANDLE;
   VkImageView imageView = VK_NULL_HANDLE;
   VkSampler sampler = VK_NULL_HANDLE;
+  VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
   // 纹理属性
   uint32_t width = 0;

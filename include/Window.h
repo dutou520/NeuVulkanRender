@@ -22,11 +22,15 @@ public:
   static int GetWidth() { return m_Width; }
   static int GetHeight() { return m_Height; }
   static void Close() { m_ShouldClose = true; }
+  static bool IsCloseRequested() { return m_CloseRequested; }
+  static void RequestClose() { m_CloseRequested = true; }
+  static void ResetCloseRequest() { m_CloseRequested = false; }
   static bool IsMinimized();
 
 private:
   static SDL_Window *m_Window;
   static bool m_ShouldClose;
+  static bool m_CloseRequested;
   static int m_Width;
   static int m_Height;
 };

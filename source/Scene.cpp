@@ -19,7 +19,7 @@ std::shared_ptr<Scene> Scene::Create(const std::string &name) {
 }
 
 std::shared_ptr<Scene> Scene::Load(const std::string &filePath) {
-  std::ifstream file(filePath);
+  std::ifstream file(std::filesystem::u8path(filePath));
   if (!file.is_open()) {
     LOG_E("Failed to open scene file: {}", filePath);
     return nullptr;
@@ -41,18 +41,18 @@ std::shared_ptr<Scene> Scene::Load(const std::string &filePath) {
 
 bool Scene::Save(const std::string &filePath) const {
   // Create parent directories if they don't exist
-  std::filesystem::path p(filePath);
+  std::filesystem::path p = std::filesystem::u8path(filePath);
   if (p.has_parent_path()) {
     std::error_code ec;
     std::filesystem::create_directories(p.parent_path(), ec);
     if (ec) {
-      LOG_E("Failed to create directory {}: {}", p.parent_path().string(),
+      LOG_E("Failed to create directory {}: {}", p.parent_path().u8string(),
             ec.message());
       return false;
     }
   }
 
-  std::ofstream file(filePath);
+  std::ofstream file(p);
   if (!file.is_open()) {
     LOG_E("Failed to save scene file: {}", filePath);
     return false;

@@ -29,12 +29,13 @@ std::shared_ptr<Project> Project::Create(const std::string &projectPath,
   auto project = std::make_shared<Project>(name);
   project->m_ProjectPath = projectPath;
   project->m_AssetsPath =
-      (std::filesystem::path(projectPath) / "Assets").u8string();
+      (std::filesystem::u8path(projectPath) / "Assets").u8string();
 
   // 2. 创建物理目录结构
   // 创建项目根目录和资源子目录
-  std::filesystem::create_directories(projectPath);
-  std::filesystem::create_directories(project->m_AssetsPath);
+  std::filesystem::create_directories(std::filesystem::u8path(projectPath));
+  std::filesystem::create_directories(
+      std::filesystem::u8path(project->m_AssetsPath));
 
   // 3. 将项目元数据保存到 project.json
   if (!project->Save()) {
@@ -55,7 +56,7 @@ std::shared_ptr<Project> Project::Create(const std::string &projectPath,
  * @return 返回加载的项目实例的智能指针，失败则返回 nullptr
  */
 std::shared_ptr<Project> Project::Load(const std::string &projectPath) {
-  std::filesystem::path projectPathObj(projectPath);
+  std::filesystem::path projectPathObj = std::filesystem::u8path(projectPath);
   std::filesystem::path projectFile = projectPathObj / "project.json";
 
   // 打开 project.json 文件
@@ -92,7 +93,7 @@ std::shared_ptr<Project> Project::Load(const std::string &projectPath) {
  */
 bool Project::Save() const {
   std::filesystem::path projectFile =
-      std::filesystem::path(m_ProjectPath) / "project.json";
+      std::filesystem::u8path(m_ProjectPath) / "project.json";
 
   std::ofstream file(projectFile);
   if (!file.is_open()) {
@@ -128,6 +129,8 @@ void Project::RemoveScene(const std::string &scenePath) {
       std::remove(m_ScenePaths.begin(), m_ScenePaths.end(), scenePath),
       m_ScenePaths.end());
 }
+
+void Project::ClearScenes() { m_ScenePaths.clear(); }
 
 /**
  * @brief 将项目信息序列化为 JSON 对象

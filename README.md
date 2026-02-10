@@ -7,6 +7,8 @@ MinGW静态库
 在右键按住的情况下
 WASD移动，鼠标旋转视角，ctrl/shift下降，space上升
 
+### 强行关闭程序
+taskkill /F /IM NeuVulkanRender.exe
 
 ## Albedo渲染系统数据流与实现架构
 展示NeuVulkanRender项目中Albedo渲染的完整数据流架构，从材质定义[1a]、GBuffer存储[2a]到最终光照合成[3c]的全过程，以及为纹理渲染准备的UV坐标传递机制[5a]。
