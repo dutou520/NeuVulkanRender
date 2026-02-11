@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "D:/CppPrograms/NeuVulkanRender/source/CameraNode.cpp" "CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj" "gcc" "CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/LightNode.cpp" "CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj" "gcc" "CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/MeshNode.cpp" "CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.obj" "gcc" "CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/Node.cpp" "CMakeFiles/NeuSceneLib.dir/source/Node.cpp.obj" "gcc" "CMakeFiles/NeuSceneLib.dir/source/Node.cpp.obj.d"

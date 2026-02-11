@@ -1,5 +1,6 @@
 #include "Asset/ModelImporter.h"
 #include "Asset/AssetManager.h"
+#include "Core/Math.h"
 #include "neuLog.h"
 
 #include <algorithm>
@@ -392,6 +393,7 @@ ImportResult ModelImporter::ImportGLTF(const std::string &filePath,
         std::vector<float> texcoords;
         std::vector<uint32_t> indices;
 
+        AABB primAABB;
         // 位置
         auto posIt = prim.attributes.find("POSITION");
         if (posIt != prim.attributes.end()) {
@@ -404,8 +406,14 @@ ImportResult ModelImporter::ImportGLTF(const std::string &filePath,
               buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
 
           positions.resize(accessor.count * 3);
-          for (size_t k = 0; k < accessor.count * 3; k++) {
-            positions[k] = posData[k];
+          for (size_t k = 0; k < accessor.count; k++) {
+            float x = posData[k * 3 + 0];
+            float y = posData[k * 3 + 1];
+            float z = posData[k * 3 + 2];
+            positions[k * 3 + 0] = x;
+            positions[k * 3 + 1] = y;
+            positions[k * 3 + 2] = z;
+            primAABB.Merge(glm::vec3(x, y, z));
           }
         }
 
@@ -506,6 +514,12 @@ ImportResult ModelImporter::ImportGLTF(const std::string &filePath,
         uint32_t indexCount = static_cast<uint32_t>(indices.size());
         meshFile.write(reinterpret_cast<const char *>(&indexCount),
                        sizeof(uint32_t));
+
+        // 写入 AABB
+        meshFile.write(reinterpret_cast<const char *>(&primAABB.min),
+                       sizeof(glm::vec3));
+        meshFile.write(reinterpret_cast<const char *>(&primAABB.max),
+                       sizeof(glm::vec3));
 
         // 写入位置数据
         meshFile.write(reinterpret_cast<const char *>(positions.data()),
@@ -785,6 +799,12 @@ ImportResult ModelImporter::ImportOBJ(const std::string &filePath,
         indexOffset += fv;
       }
 
+      AABB shapeAABB;
+      for (size_t k = 0; k < positions.size(); k += 3) {
+        shapeAABB.Merge(
+            glm::vec3(positions[k], positions[k + 1], positions[k + 2]));
+      }
+
       // 保存网格数据
       std::ofstream meshFile(meshPath, std::ios::binary);
 
@@ -795,6 +815,12 @@ ImportResult ModelImporter::ImportOBJ(const std::string &filePath,
       uint32_t indexCount = static_cast<uint32_t>(indices.size());
       meshFile.write(reinterpret_cast<const char *>(&indexCount),
                      sizeof(uint32_t));
+
+      // 写入 AABB
+      meshFile.write(reinterpret_cast<const char *>(&shapeAABB.min),
+                     sizeof(glm::vec3));
+      meshFile.write(reinterpret_cast<const char *>(&shapeAABB.max),
+                     sizeof(glm::vec3));
 
       meshFile.write(reinterpret_cast<const char *>(positions.data()),
                      positions.size() * sizeof(float));

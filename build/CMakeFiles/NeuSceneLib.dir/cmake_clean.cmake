@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj"
+  "CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj.d"
   "CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj"
   "CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj.d"
   "CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.obj"

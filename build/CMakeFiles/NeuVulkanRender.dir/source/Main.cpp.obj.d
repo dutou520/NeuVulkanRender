@@ -490,6 +490,7 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MaterialResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
+ D:/CppPrograms/NeuVulkanRender/include/Core/Math.h \
  D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
  D:/CppPrograms/NeuVulkanRender/include/Window.h \

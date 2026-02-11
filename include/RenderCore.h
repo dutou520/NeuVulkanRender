@@ -69,6 +69,9 @@ private:
   static void RecordCommandBuffer(VkCommandBuffer commandBuffer,
                                   uint32_t imageIndex);
 
+  // 阴影相关
+  static glm::mat4 m_LightVP;
+
   // ========== 延迟渲染方法 ==========
   static void CreateGBuffer();
   static void CreateGBufferRenderPass();
@@ -373,6 +376,8 @@ private:
     VkBuffer indexBuffer;
     uint32_t indexCount;
     float distanceToCamera; // 用于透明物体排序
+    bool isInViewFrustum = false;
+    bool isInLightFrustum = false;
   };
 
   static std::vector<RenderObject> m_RenderObjects;

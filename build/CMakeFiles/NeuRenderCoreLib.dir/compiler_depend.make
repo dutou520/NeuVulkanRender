@@ -789,6 +789,7 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: D:/CppPrograms/NeuVul
   D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
   D:/CppPrograms/NeuVulkanRender/include/Camera.h \
+  D:/CppPrograms/NeuVulkanRender/include/Core/Math.h \
   D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
   D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
   D:/CppPrograms/NeuVulkanRender/include/GBuffer.h \
@@ -2213,6 +2214,8 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_relational.hpp:
 D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h:
+
+D:/CppPrograms/NeuVulkanRender/include/Core/Math.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Core/Object.h:
 

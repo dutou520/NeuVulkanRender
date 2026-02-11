@@ -1625,6 +1625,7 @@ CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj: D:/CppPrograms/NeuVulka
   neulog_export.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/ModelImporter.h \
+  D:/CppPrograms/NeuVulkanRender/include/Core/Math.h \
   D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
   D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
   D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h \
@@ -3594,6 +3595,8 @@ D:/CppPrograms/NeuVulkanRender/ThirParty/stb/stb_image.h:
 D:/CppPrograms/NeuVulkanRender/ThirParty/tinygltf/tiny_gltf.h:
 
 D:/CppPrograms/NeuVulkanRender/ThirParty/tinyobjloader/tiny_obj_loader.h:
+
+D:/CppPrograms/NeuVulkanRender/include/Core/Math.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Core/Object.h:
 

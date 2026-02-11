@@ -26,6 +26,8 @@ public:
   static void RequestClose() { m_CloseRequested = true; }
   static void ResetCloseRequest() { m_CloseRequested = false; }
   static bool IsMinimized();
+  static bool IsGUIVisible() { return m_ShowGUI; }
+  static void SetGUIVisible(bool visible) { m_ShowGUI = visible; }
 
 private:
   static SDL_Window *m_Window;
@@ -33,5 +35,6 @@ private:
   static bool m_CloseRequested;
   static int m_Width;
   static int m_Height;
+  static bool m_ShowGUI;
 };
 } // namespace neurender

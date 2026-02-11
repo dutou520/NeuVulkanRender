@@ -160,6 +160,7 @@ RenderCore::PostProcessSettings RenderCore::m_PostProcessSettings;
 
 // ========== 场景对象静态成员定义 ==========
 std::vector<RenderCore::RenderObject> RenderCore::m_RenderObjects;
+glm::mat4 RenderCore::m_LightVP = glm::mat4(1.0f);
 
 // ========== 纹理和材质缓存静态成员定义 ==========
 std::unordered_map<UUID, TextureResource> RenderCore::m_TextureCache;
@@ -999,7 +1000,7 @@ void RenderCore::InitImGui() {
   if (std::filesystem::exists(fontPath)) {
     io.Fonts->AddFontFromFileTTF(fontPath, 16.0f, &fontConfig,
                                  io.Fonts->GetGlyphRangesChineseFull());
-    LOG_I("Loaded Chinese font: Song");
+    LOG_I("Loaded Chinese font: SourceHanSansSC-Regular");
   } else {
     LOG_W("Chinese font not found at {}, using default font", fontPath);
   }
@@ -1132,7 +1133,7 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
 
     // Render opaque objects
     for (const auto &obj : m_RenderObjects) {
-      if (obj.material.IsTransparent())
+      if (obj.material.IsTransparent() || !obj.isInViewFrustum)
         continue;
 
       // Bind Partial Material Descriptor Set (Textures)
@@ -1165,6 +1166,9 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
       vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
       vkCmdBindIndexBuffer(commandBuffer, obj.indexBuffer, 0,
                            VK_INDEX_TYPE_UINT32);
+
+      // 不透明物体开启背面剔除
+      vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_BACK_BIT);
       vkCmdDrawIndexed(commandBuffer, obj.indexCount, 1, 0, 0, 0);
     }
 
@@ -1297,6 +1301,13 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
       vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
       vkCmdBindIndexBuffer(commandBuffer, obj.indexBuffer, 0,
                            VK_INDEX_TYPE_UINT32);
+
+      // 分两次渲染：先渲染背面，再渲染正面
+      // 注意：这需要管线支持 VK_DYNAMIC_STATE_CULL_MODE
+      vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_FRONT_BIT);
+      vkCmdDrawIndexed(commandBuffer, obj.indexCount, 1, 0, 0, 0);
+
+      vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_BACK_BIT);
       vkCmdDrawIndexed(commandBuffer, obj.indexCount, 1, 0, 0, 0);
     }
     vkCmdEndRenderPass(commandBuffer);
@@ -1509,8 +1520,9 @@ void RenderCore::DrawFrame() {
   ImGui::NewFrame();
 
   // Draw UI
-  neuGUI::Render(); // Call the UI render function
-
+  if (Window::IsGUIVisible()) {
+    neuGUI::Render(); // Call the UI render function
+  }
   ImGui::Render();
 
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame],
@@ -2834,6 +2846,27 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
   lightData.viewPos = m_Camera.GetPosition();
   lightData.invViewProj = glm::inverse(ubo.proj * ubo.view);
 
+  // 计算视锥体包围球并设置光源相机
+  Frustum currentFrustum;
+  currentFrustum.FromViewProj(ubo.proj * ubo.view);
+  glm::vec3 sphereCenter;
+  float sphereRadius;
+  currentFrustum.GetBoundingSphere(lightData.invViewProj, sphereCenter,
+                                   sphereRadius);
+
+  // 阴影距离暂定并建立平行光方向包围盒
+  float shadowDistance = sphereRadius;
+  glm::vec3 lightPos = sphereCenter - lightData.lightDir * shadowDistance;
+  glm::mat4 lightView =
+      glm::lookAt(lightPos, sphereCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+  glm::mat4 lightProj = glm::ortho(-sphereRadius, sphereRadius, -sphereRadius,
+                                   sphereRadius, 0.1f, shadowDistance * 2.0f);
+  lightData.u_LightVP = lightProj * lightView;
+  lightData.u_LightNear = 0.1f;
+  lightData.u_LightFar = shadowDistance * 2.0f;
+
+  m_LightVP = lightData.u_LightVP;
+
   memcpy(m_LightUniformBuffersMapped[currentImage], &lightData,
          sizeof(lightData));
 
@@ -3011,10 +3044,19 @@ void RenderCore::CreateForwardRenderPass() {
   VkSubpassDependency dependency{};
   dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
   dependency.dstSubpass = 0;
-  dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  // 源阶段：等待之前的颜色写入和深度写入完成
+  dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+  dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+  // 目标阶段：在颜色输出（用于混合）和深度测试阶段进行等待
+  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+  // 目标访问：需要读取/写入颜色（混合操作）以及读取深度（测试不写入）
+  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                             VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
   VkRenderPassCreateInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -3157,7 +3199,8 @@ void RenderCore::CreateForwardPipeline() {
   colorBlending.pAttachments = &colorBlendAttachment;
 
   std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT,
-                                               VK_DYNAMIC_STATE_SCISSOR};
+                                               VK_DYNAMIC_STATE_SCISSOR,
+                                               VK_DYNAMIC_STATE_CULL_MODE};
   VkPipelineDynamicStateCreateInfo dynamicState{};
   dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
   dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
@@ -4682,6 +4725,10 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
   file.read(reinterpret_cast<char *>(&vertexCount), sizeof(uint32_t));
   file.read(reinterpret_cast<char *>(&indexCount), sizeof(uint32_t));
 
+  AABB localAABB;
+  file.read(reinterpret_cast<char *>(&localAABB.min), sizeof(glm::vec3));
+  file.read(reinterpret_cast<char *>(&localAABB.max), sizeof(glm::vec3));
+
   if (vertexCount == 0 || indexCount == 0) {
     LOG_E("Empty mesh data in file: {}", meshPath.u8string());
     return false;
@@ -4769,6 +4816,7 @@ bool RenderCore::LoadMeshResource(const UUID &meshID) {
   // 创建缓冲区
   MeshResource res;
   res.indexCount = indexCount;
+  res.localAABB = localAABB;
 
   // 顶点缓冲 (Vertex Buffer) 创建
   {
@@ -4853,6 +4901,14 @@ void RenderCore::CollectSceneRenderables() {
     scene->GetRootNode()->CollectRenderables(renderer, glm::mat4(1.0f));
   }
 
+  // 计算视锥体
+  float aspectRatio =
+      (float)m_SwapchainExtent.width / (float)m_SwapchainExtent.height;
+  glm::mat4 viewProj =
+      m_Camera.GetProjectionMatrix(aspectRatio) * m_Camera.GetViewMatrix();
+  Frustum currentFrustum;
+  currentFrustum.FromViewProj(viewProj);
+
   // 遍历收集到的所有渲染命令
   for (const auto &cmd : renderer.GetRenderCommands()) {
     // 确保网格资源已加载到 GPU
@@ -4863,12 +4919,35 @@ void RenderCore::CollectSceneRenderables() {
     // 从缓存中获取已加载的一网格资源（包括顶点缓冲和索引缓冲）
     const auto &meshRes = m_MeshCache[cmd.meshID];
 
+    // 视锥体裁剪
+    AABB worldAABB = meshRes.localAABB.Transform(cmd.transform);
+    bool inView = currentFrustum.TestAABB(worldAABB);
+
+    // 获取材质资源以判断透明度
+    MaterialResource *pMatRes01 = GetMaterialResource(cmd.materialID);
+    bool isTransparent = pMatRes01 ? pMatRes01->material.IsTransparent()
+                                   : m_DefaultMaterial.material.IsTransparent();
+
+    // 光源空间裁剪 (阴影相机)
+    Frustum lightFrustum;
+    lightFrustum.FromViewProj(m_LightVP);
+    bool inLight = inView;
+    if (!isTransparent) {
+      inLight = lightFrustum.TestAABB(worldAABB);
+    }
+
+    if (!inView && !inLight) {
+      continue;
+    }
+
     // 构建渲染对象（RenderObject），这是渲染管线直接处理的结构
     RenderObject obj{};
     obj.modelMatrix = cmd.transform;         // 模型变换矩阵
     obj.vertexBuffer = meshRes.vertexBuffer; // 顶点缓冲区句柄
     obj.indexBuffer = meshRes.indexBuffer;   // 索引缓冲区句柄
     obj.indexCount = meshRes.indexCount;     // 索引数量
+    obj.isInViewFrustum = inView;
+    obj.isInLightFrustum = inLight;
 
     // 加载并设置材质
     MaterialResource *pMatRes = GetMaterialResource(cmd.materialID);

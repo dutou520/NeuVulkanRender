@@ -1,6 +1,8 @@
 #include "Nodes/Node.h"
+#include "Nodes/CameraNode.h"
 #include "Nodes/MeshNode.h"
 #include "Nodes/PointLightNode.h"
+
 
 namespace neurender {
 
@@ -177,6 +179,8 @@ std::unique_ptr<Node> Node::FromJson(const nlohmann::json &j) {
     return MeshNode::FromJson(j);
   } else if (type == "PointLightNode") {
     return PointLightNode::FromJson(j);
+  } else if (type == "CameraNode") {
+    return CameraNode::FromJson(j);
   }
 
   // 基础 Node逻辑

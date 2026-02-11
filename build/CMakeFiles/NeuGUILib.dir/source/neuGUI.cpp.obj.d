@@ -504,6 +504,7 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/detail/macro_unscope.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
  D:/CppPrograms/NeuVulkanRender/include/Scene/Scene.h \
+ D:/CppPrograms/NeuVulkanRender/include/Nodes/CameraNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/PointLightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
@@ -535,6 +536,7 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MaterialResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
+ D:/CppPrograms/NeuVulkanRender/include/Core/Math.h \
  D:/CppPrograms/NeuVulkanRender/include/Window.h \
  D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \

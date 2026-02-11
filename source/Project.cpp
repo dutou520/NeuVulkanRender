@@ -143,6 +143,7 @@ nlohmann::json Project::ToJson() const {
   j["assetsPath"] = "Assets";           // 资源根目录名（相对项目路径）
   j["activeScene"] = m_ActiveScenePath; // 当前激活的场景路径
   j["scenes"] = m_ScenePaths;           // 项目包含的所有场景列表
+  j["guiSettings"] = m_GuiSettings;     // GUI 界面相关设置
   return j;
 }
 
@@ -170,6 +171,11 @@ std::shared_ptr<Project> Project::FromJson(const nlohmann::json &j,
     for (const auto &scenePath : j["scenes"]) {
       project->m_ScenePaths.push_back(scenePath.get<std::string>());
     }
+  }
+
+  // 读取 GUI 设置
+  if (j.contains("guiSettings")) {
+    project->m_GuiSettings = j["guiSettings"];
   }
 
   return project;

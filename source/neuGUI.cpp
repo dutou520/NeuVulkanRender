@@ -1,6 +1,7 @@
 #include "neuGUI.h"
 #include "Asset/AssetManager.h"
 #include "Asset/ModelImporter.h"
+#include "Nodes/CameraNode.h"
 #include "Nodes/MeshNode.h"
 #include "Nodes/Node.h"
 #include "Nodes/PointLightNode.h"
@@ -755,37 +756,36 @@ void EditorGUI::RenderNodeTree(Node *node) {
 void EditorGUI::RenderInspector() {
   ImGui::Begin("详细信息");
 
-  if (!s_SelectedNode) {
-    ImGui::TextDisabled("无物体被选中");
-    ImGui::End();
-    return;
+  if (s_SelectedNode) {
+    // 顶部：对象名称和UUID
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+    ImGui::BeginChild("InspectorHeader", ImVec2(0, 80), true);
+
+    // 对象名称（可编辑）
+    char nameBuffer[256];
+    strncpy(nameBuffer, s_SelectedNode->GetName().c_str(), sizeof(nameBuffer));
+    nameBuffer[sizeof(nameBuffer) - 1] = '\0';
+    if (ImGui::InputText("##Name", nameBuffer, sizeof(nameBuffer))) {
+      s_SelectedNode->SetName(nameBuffer);
+    }
+
+    // UUID（只读）
+    ImGui::Text("UUID: %s", s_SelectedNode->GetUUID().ToString().c_str());
+
+    // 激活状态
+    bool isActive = s_SelectedNode->IsActive();
+    if (ImGui::Checkbox("Active", &isActive)) {
+      s_SelectedNode->SetActive(isActive);
+    }
+
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+
+    ImGui::Separator();
+  } else {
+    ImGui::TextDisabled("No object selected");
+    ImGui::Separator();
   }
-
-  // 顶部：对象名称和UUID
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-  ImGui::BeginChild("InspectorHeader", ImVec2(0, 80), true);
-
-  // 对象名称（可编辑）
-  char nameBuffer[256];
-  strncpy(nameBuffer, s_SelectedNode->GetName().c_str(), sizeof(nameBuffer));
-  nameBuffer[sizeof(nameBuffer) - 1] = '\0';
-  if (ImGui::InputText("##Name", nameBuffer, sizeof(nameBuffer))) {
-    s_SelectedNode->SetName(nameBuffer);
-  }
-
-  // UUID（只读）
-  ImGui::Text("UUID: %s", s_SelectedNode->GetUUID().ToString().c_str());
-
-  // 激活状态
-  bool isActive = s_SelectedNode->IsActive();
-  if (ImGui::Checkbox("Active", &isActive)) {
-    s_SelectedNode->SetActive(isActive);
-  }
-
-  ImGui::EndChild();
-  ImGui::PopStyleVar();
-
-  ImGui::Separator();
 
   // 使用水平分割：左侧Tab栏，右侧内容
   ImGui::BeginChild("InspectorContent", ImVec2(0, 0), false);
@@ -801,6 +801,11 @@ void EditorGUI::RenderInspector() {
     s_CurrentInspectorTab = 0;
   }
 
+  // View Tab（常驻）
+  if (VerticalTab("View", s_CurrentInspectorTab == 7, ImVec2(100.0f, 40.0f))) {
+    s_CurrentInspectorTab = 7;
+  }
+
   // PostProcess Tab（常驻）
   if (VerticalTab("PostProcess", s_CurrentInspectorTab == 5,
                   ImVec2(100.0f, 40.0f))) {
@@ -808,26 +813,33 @@ void EditorGUI::RenderInspector() {
   }
 
   // Transform Tab
-  if (VerticalTab("Transform", s_CurrentInspectorTab == 1,
-                  ImVec2(100.0f, 40.0f))) {
-    s_CurrentInspectorTab = 1;
-  }
+  if (s_SelectedNode) {
+    if (VerticalTab("Transform", s_CurrentInspectorTab == 1,
+                    ImVec2(100.0f, 40.0f))) {
+      s_CurrentInspectorTab = 1;
+    }
 
-  // 根据节点类型显示不同Tab
-  std::string nodeType = s_SelectedNode->GetNodeType();
-  if (nodeType == "MeshNode") {
-    if (VerticalTab("Mesh", s_CurrentInspectorTab == 2,
-                    ImVec2(100.0f, 40.0f))) {
-      s_CurrentInspectorTab = 2;
-    }
-    if (VerticalTab("Material", s_CurrentInspectorTab == 3,
-                    ImVec2(100.0f, 40.0f))) {
-      s_CurrentInspectorTab = 3;
-    }
-  } else if (nodeType == "PointLightNode" || nodeType == "LightNode") {
-    if (VerticalTab("Light", s_CurrentInspectorTab == 4,
-                    ImVec2(100.0f, 40.0f))) {
-      s_CurrentInspectorTab = 4;
+    // 根据节点类型显示不同Tab
+    std::string nodeType = s_SelectedNode->GetNodeType();
+    if (nodeType == "MeshNode") {
+      if (VerticalTab("Mesh", s_CurrentInspectorTab == 2,
+                      ImVec2(100.0f, 40.0f))) {
+        s_CurrentInspectorTab = 2;
+      }
+      if (VerticalTab("Material", s_CurrentInspectorTab == 3,
+                      ImVec2(100.0f, 40.0f))) {
+        s_CurrentInspectorTab = 3;
+      }
+    } else if (nodeType == "PointLightNode" || nodeType == "LightNode") {
+      if (VerticalTab("Light", s_CurrentInspectorTab == 4,
+                      ImVec2(100.0f, 40.0f))) {
+        s_CurrentInspectorTab = 4;
+      }
+    } else if (nodeType == "CameraNode") {
+      if (VerticalTab("Camera", s_CurrentInspectorTab == 6,
+                      ImVec2(100.0f, 40.0f))) {
+        s_CurrentInspectorTab = 6;
+      }
     }
   }
 
@@ -839,28 +851,63 @@ void EditorGUI::RenderInspector() {
 
   switch (s_CurrentInspectorTab) {
   case 0: // World
+  {
     ImGui::Text("World Environment Settings");
     ImGui::Separator();
-    // TODO: 世界环境设置
-    ImGui::Text("Ambient Light");
-    ImGui::Text("Skybox");
-    ImGui::Text("Fog");
-    break;
+    ImGui::Text("Ambient Light (TODO)");
+    ImGui::Text("Skybox (TODO)");
+    ImGui::Text("Fog (TODO)");
+  } break;
+
+  case 7: // Camera View settings (Permanent)
+  {
+    ImGui::Text("Editor Camera Settings");
+    ImGui::Separator();
+
+    auto &camera = RenderCore::GetCamera();
+    float speed = camera.GetMovementSpeed();
+    float sensitivity = camera.GetMouseSensitivity();
+    float fov = camera.GetFov();
+    float nearPlane = camera.GetNearPlane();
+    float farPlane = camera.GetFarPlane();
+
+    if (ImGui::DragFloat("Movement Speed", &speed, 0.1f, 0.0f, 100.0f))
+      camera.SetMovementSpeed(speed);
+    if (ImGui::DragFloat("Mouse Sensitivity", &sensitivity, 0.001f, 0.001f,
+                         1.0f))
+      camera.SetMouseSensitivity(sensitivity);
+    if (ImGui::DragFloat("FOV", &fov, 1.0f, 1.0f, 120.0f))
+      camera.SetFov(fov);
+    if (ImGui::DragFloat("Near Plane", &nearPlane, 0.01f, 0.01f, 10.0f))
+      camera.SetNearPlane(nearPlane);
+    if (ImGui::DragFloat("Far Plane", &farPlane, 1.0f, 10.0f, 10000.0f))
+      camera.SetFarPlane(farPlane);
+
+    if (ImGui::Button("Restore Defaults")) {
+      camera.SetMovementSpeed(2.5f);
+      camera.SetMouseSensitivity(0.1f);
+      camera.SetFov(45.0f);
+      camera.SetNearPlane(0.1f);
+      camera.SetFarPlane(100.0f);
+    }
+  } break;
 
   case 1: // Transform
-    RenderTransformEditor(s_SelectedNode);
+    if (s_SelectedNode)
+      RenderTransformEditor(s_SelectedNode);
     break;
 
   case 2: // Mesh
-    if (nodeType == "MeshNode") {
+    if (s_SelectedNode && s_SelectedNode->GetNodeType() == "MeshNode") {
       RenderMeshNodeInspector(s_SelectedNode);
     }
     break;
 
   case 3: // Material
-    if (nodeType == "MeshNode") {
+    if (s_SelectedNode && s_SelectedNode->GetNodeType() == "MeshNode") {
       ImGui::Text("Material Properties");
       ImGui::Separator();
+      // ... content continues ...
 
       // 获取 MeshNode 的材质
       auto *meshNode = static_cast<MeshNode *>(s_SelectedNode);
@@ -1007,8 +1054,14 @@ void EditorGUI::RenderInspector() {
     break;
 
   case 4: // Light
-    if (nodeType == "PointLightNode") {
+    if (s_SelectedNode && s_SelectedNode->GetNodeType() == "PointLightNode") {
       RenderPointLightInspector(static_cast<PointLightNode *>(s_SelectedNode));
+    }
+    break;
+
+  case 6: // Camera
+    if (s_SelectedNode && s_SelectedNode->GetNodeType() == "CameraNode") {
+      RenderCameraNodeInspector(s_SelectedNode);
     }
     break;
 
@@ -1059,6 +1112,73 @@ void EditorGUI::RenderMeshNodeInspector(Node *node) {
   ImGui::Text("Mesh: (TODO)");
   ImGui::Text("Vertices: 0");
   ImGui::Text("Triangles: 0");
+}
+
+void EditorGUI::RenderCameraNodeInspector(Node *node) {
+  if (!node || node->GetNodeType() != "CameraNode")
+    return;
+  auto *camNode = static_cast<CameraNode *>(node);
+
+  ImGui::Text("Camera Properties");
+  ImGui::Separator();
+
+  float speed = camNode->GetMovementSpeed();
+  if (ImGui::DragFloat("Movement Speed", &speed, 0.1f, 0.0f, 100.0f))
+    camNode->SetMovementSpeed(speed);
+
+  float sensitivity = camNode->GetMouseSensitivity();
+  if (ImGui::DragFloat("Mouse Sensitivity", &sensitivity, 0.01f, 0.01f, 1.0f))
+    camNode->SetMouseSensitivity(sensitivity);
+
+  float fov = camNode->GetFov();
+  if (ImGui::DragFloat("FOV", &fov, 1.0f, 1.0f, 120.0f))
+    camNode->SetFov(fov);
+
+  float nearPlane = camNode->GetNearPlane();
+  if (ImGui::DragFloat("Near Plane", &nearPlane, 0.01f, 0.01f, 10.0f))
+    camNode->SetNearPlane(nearPlane);
+
+  float farPlane = camNode->GetFarPlane();
+  if (ImGui::DragFloat("Far Plane", &farPlane, 1.0f, 10.0f, 10000.0f))
+    camNode->SetFarPlane(farPlane);
+
+  ImGui::Separator();
+
+  if (ImGui::Button("记录当前视角", ImVec2(-1, 0))) {
+    auto &mainCam = RenderCore::GetCamera();
+    camNode->SetPosition(mainCam.GetPosition());
+
+    // Convert yaw/pitch to rotation for the node if needed,
+    // but Node uses Euler angles. Camera uses yaw/pitch.
+    // For simplicity, we can just store the orientation.
+    // However, Node's rotation is YXZ.
+    camNode->SetRotation(
+        glm::vec3(-mainCam.GetPitch(), -mainCam.GetYaw() - 90.0f, 0.0f));
+
+    camNode->SetFov(mainCam.GetFov());
+    camNode->SetNearPlane(mainCam.GetNearPlane());
+    camNode->SetFarPlane(mainCam.GetFarPlane());
+    camNode->SetMovementSpeed(mainCam.GetMovementSpeed());
+    camNode->SetMouseSensitivity(mainCam.GetMouseSensitivity());
+    LOG_I("Aligned CameraNode to current view");
+  }
+
+  if (ImGui::Button("对齐视角到相机", ImVec2(-1, 0))) {
+    auto &mainCam = RenderCore::GetCamera();
+    mainCam.SetPosition(camNode->GetPosition());
+
+    // Set yaw/pitch from node rotation
+    glm::vec3 rot = camNode->GetRotation();
+    mainCam.SetYaw(-rot.y - 90.0f);
+    mainCam.SetPitch(-rot.x);
+
+    mainCam.SetFov(camNode->GetFov());
+    mainCam.SetNearPlane(camNode->GetNearPlane());
+    mainCam.SetFarPlane(camNode->GetFarPlane());
+    mainCam.SetMovementSpeed(camNode->GetMovementSpeed());
+    mainCam.SetMouseSensitivity(camNode->GetMouseSensitivity());
+    LOG_I("Aligned current view to CameraNode");
+  }
 }
 
 void EditorGUI::RenderPointLightInspector(PointLightNode *light) {
@@ -1754,9 +1874,14 @@ void EditorGUI::CreateDirectionalLight() {
 }
 
 void EditorGUI::CreateCamera() {
-  auto node = std::make_unique<Node>("Camera");
+  if (!s_CurrentScene) {
+    LOG_W("No scene loaded, cannot create camera");
+    return;
+  }
+
+  auto node = std::make_unique<CameraNode>("Camera");
   s_CurrentScene->AddNode(std::move(node));
-  LOG_I("Created Camera");
+  LOG_I("Created CameraNode");
 }
 
 // ========== 工程管理函数 ==========
@@ -1882,12 +2007,28 @@ void EditorGUI::LoadProject() {
         }
       }
 
-      // 如果没有加载到场景，或没有激活场景，选择第一个
       if (s_Scenes.empty()) {
         LOG_I("No scenes found, project is empty");
       } else if (!s_CurrentScene && !s_Scenes.empty()) {
         s_ActiveSceneIndex = 0;
         s_CurrentScene = s_Scenes[0];
+      }
+
+      // 恢复视角设置
+      const auto &guiSettings = project->GetGuiSettings();
+      if (guiSettings.contains("viewCam")) {
+        auto &camera = RenderCore::GetCamera();
+        const auto &camJson = guiSettings["viewCam"];
+        camera.SetPosition(
+            glm::vec3(camJson["pos"][0], camJson["pos"][1], camJson["pos"][2]));
+        camera.ProcessMouseMovement(
+            camJson.value("yaw", -90.0f) - camera.GetYaw(),
+            camJson.value("pitch", 0.0f) - camera.GetPitch(), false);
+        camera.SetFov(camJson.value("fov", 45.0f));
+        camera.SetMovementSpeed(camJson.value("speed", 2.5f));
+        camera.SetMouseSensitivity(camJson.value("sensitivity", 0.1f));
+        camera.SetNearPlane(camJson.value("near", 0.1f));
+        camera.SetFarPlane(camJson.value("far", 100.0f));
       }
 
       LOG_I("Loaded project from: {}", projectPath);
@@ -1948,6 +2089,21 @@ void EditorGUI::SaveProject() {
   } else {
     project->SetActiveScenePath("");
   }
+
+  // 保存视角设置
+  auto &camera = RenderCore::GetCamera();
+  nlohmann::json guiSettings;
+  guiSettings["viewCam"] = {{"pos",
+                             {camera.GetPosition().x, camera.GetPosition().y,
+                              camera.GetPosition().z}},
+                            {"yaw", camera.GetYaw()},
+                            {"pitch", camera.GetPitch()},
+                            {"fov", camera.GetFov()},
+                            {"speed", camera.GetMovementSpeed()},
+                            {"sensitivity", camera.GetMouseSensitivity()},
+                            {"near", camera.GetNearPlane()},
+                            {"far", camera.GetFarPlane()}};
+  project->SetGuiSettings(guiSettings);
 
   // 保存工程文件
   // 保存所有材质资源

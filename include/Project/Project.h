@@ -43,11 +43,18 @@ public:
   static std::shared_ptr<Project> FromJson(const nlohmann::json &j,
                                            const std::string &projectPath);
 
+  // GUI 设置持久化
+  const nlohmann::json &GetGuiSettings() const { return m_GuiSettings; }
+  void SetGuiSettings(const nlohmann::json &settings) {
+    m_GuiSettings = settings;
+  }
+
 private:
   std::string m_ProjectPath;             // 工程根目录
   std::string m_AssetsPath;              // Assets 目录路径
   std::string m_ActiveScenePath;         // 当前激活的场景路径
   std::vector<std::string> m_ScenePaths; // 所有场景文件路径
+  nlohmann::json m_GuiSettings;          // GUI 相关常驻设置
 };
 
 } // namespace neurender

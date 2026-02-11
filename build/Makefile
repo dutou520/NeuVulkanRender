@@ -293,6 +293,30 @@ source/Camera.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuRenderCoreLib.dir\build.make CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.s
 .PHONY : source/Camera.cpp.s
 
+source/CameraNode.obj: source/CameraNode.cpp.obj
+.PHONY : source/CameraNode.obj
+
+# target to build an object file
+source/CameraNode.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj
+.PHONY : source/CameraNode.cpp.obj
+
+source/CameraNode.i: source/CameraNode.cpp.i
+.PHONY : source/CameraNode.i
+
+# target to preprocess a source file
+source/CameraNode.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.i
+.PHONY : source/CameraNode.cpp.i
+
+source/CameraNode.s: source/CameraNode.cpp.s
+.PHONY : source/CameraNode.s
+
+# target to generate assembly for a file
+source/CameraNode.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.s
+.PHONY : source/CameraNode.cpp.s
+
 source/GBuffer.obj: source/GBuffer.cpp.obj
 .PHONY : source/GBuffer.obj
 
@@ -797,6 +821,9 @@ help:
 	@echo ... source/Camera.obj
 	@echo ... source/Camera.i
 	@echo ... source/Camera.s
+	@echo ... source/CameraNode.obj
+	@echo ... source/CameraNode.i
+	@echo ... source/CameraNode.s
 	@echo ... source/GBuffer.obj
 	@echo ... source/GBuffer.i
 	@echo ... source/GBuffer.s

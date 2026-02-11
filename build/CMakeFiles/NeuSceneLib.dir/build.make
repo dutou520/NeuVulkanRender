@@ -158,6 +158,21 @@ CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.s"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\CppPrograms\NeuVulkanRender\source\PointLightNode.cpp -o CMakeFiles\NeuSceneLib.dir\source\PointLightNode.cpp.s
 
+CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj: CMakeFiles/NeuSceneLib.dir/flags.make
+CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj: CMakeFiles/NeuSceneLib.dir/includes_CXX.rsp
+CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj: D:/CppPrograms/NeuVulkanRender/source/CameraNode.cpp
+CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj: CMakeFiles/NeuSceneLib.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj -MF CMakeFiles\NeuSceneLib.dir\source\CameraNode.cpp.obj.d -o CMakeFiles\NeuSceneLib.dir\source\CameraNode.cpp.obj -c D:\CppPrograms\NeuVulkanRender\source\CameraNode.cpp
+
+CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.i"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\CppPrograms\NeuVulkanRender\source\CameraNode.cpp > CMakeFiles\NeuSceneLib.dir\source\CameraNode.cpp.i
+
+CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.s"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\CppPrograms\NeuVulkanRender\source\CameraNode.cpp -o CMakeFiles\NeuSceneLib.dir\source\CameraNode.cpp.s
+
 # Object files for target NeuSceneLib
 NeuSceneLib_OBJECTS = \
 "CMakeFiles/NeuSceneLib.dir/source/Scene.cpp.obj" \
@@ -165,7 +180,8 @@ NeuSceneLib_OBJECTS = \
 "CMakeFiles/NeuSceneLib.dir/source/Node.cpp.obj" \
 "CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.obj" \
 "CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj" \
-"CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.obj"
+"CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.obj" \
+"CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj"
 
 # External object files for target NeuSceneLib
 NeuSceneLib_EXTERNAL_OBJECTS =
@@ -176,9 +192,10 @@ libNeuSceneLib.a: CMakeFiles/NeuSceneLib.dir/source/Node.cpp.obj
 libNeuSceneLib.a: CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.obj
 libNeuSceneLib.a: CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj
 libNeuSceneLib.a: CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.obj
+libNeuSceneLib.a: CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj
 libNeuSceneLib.a: CMakeFiles/NeuSceneLib.dir/build.make
 libNeuSceneLib.a: CMakeFiles/NeuSceneLib.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX static library libNeuSceneLib.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX static library libNeuSceneLib.a"
 	$(CMAKE_COMMAND) -P CMakeFiles\NeuSceneLib.dir\cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\NeuSceneLib.dir\link.txt --verbose=$(VERBOSE)
 

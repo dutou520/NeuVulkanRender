@@ -92,13 +92,16 @@ struct LightDataUBO {
   alignas(16) glm::vec3 lightColor;
   alignas(16) glm::vec3 viewPos;
   alignas(16) glm::mat4 invViewProj; // 逆 视图-投影 矩阵
+  alignas(16) glm::mat4 u_LightVP;   // 光源 视图-投影 矩阵
+  alignas(4) float u_LightNear;
+  alignas(4) float u_LightFar;
 };
 
 /**
  * @brief 点光源最大数量
  */
 constexpr uint32_t MAX_POINT_LIGHTS = 128;
-
+constexpr uint32_t FORWARD_RENDER_MAX_POINT_LIGHTS = 6;
 /**
  * @brief 单个点光源数据 (用于Shader传输)
  */

@@ -11,6 +11,7 @@ bool Window::m_ShouldClose = false;
 bool Window::m_CloseRequested = false;
 int Window::m_Width = 0;
 int Window::m_Height = 0;
+bool Window::m_ShowGUI = true;
 
 /**
  * @brief Initializes the SDL window and Vulkan-related settings.
@@ -29,7 +30,8 @@ void Window::Init(int width, int height, const char *title) {
   // Define window flags: enable Vulkan support, resizable window, and high-DPI
   // support
   SDL_WindowFlags window_flags =
-      (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+      (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY |
+                        SDL_WINDOW_BORDERLESS);
 
   // Create the SDL window
   m_Window = SDL_CreateWindow(title, width, height, window_flags);
@@ -83,6 +85,13 @@ void Window::PollEvents() {
         event.window.windowID == SDL_GetWindowID(m_Window)) {
       m_Width = event.window.data1;
       m_Height = event.window.data2;
+    }
+    // Handle keyboard input: toggle GUI with 'F' key
+    if (event.type == SDL_EVENT_KEY_DOWN) {
+      if (event.key.key == SDLK_F) {
+        m_ShowGUI = !m_ShowGUI;
+        LOG_I("GUI visibility toggled: {0}", m_ShowGUI ? "Visible" : "Hidden");
+      }
     }
   }
 }

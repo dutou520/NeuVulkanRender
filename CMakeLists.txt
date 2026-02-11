@@ -122,6 +122,7 @@ add_library(NeuSceneLib STATIC
     source/MeshNode.cpp
     source/LightNode.cpp
     source/PointLightNode.cpp
+    source/CameraNode.cpp
 )
 generate_export_header(NeuSceneLib EXPORT_MACRO_NAME NEUSCENE_API BASE_NAME NeuScene)
 target_compile_definitions(NeuSceneLib PUBLIC NEUSCENE_STATIC_DEFINE)

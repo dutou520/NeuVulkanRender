@@ -66,6 +66,8 @@ public:
   float GetFov() const { return m_Fov; }
   float GetMovementSpeed() const { return m_MovementSpeed; }
   float GetMouseSensitivity() const { return m_MouseSensitivity; }
+  float GetNearPlane() const { return m_NearPlane; }
+  float GetFarPlane() const { return m_FarPlane; }
 
   // Setters
   void SetPosition(const glm::vec3 &position) { m_Position = position; }
@@ -76,6 +78,14 @@ public:
   void SetFov(float fov) { m_Fov = glm::clamp(fov, 1.0f, 120.0f); }
   void SetNearPlane(float nearPlane) { m_NearPlane = nearPlane; }
   void SetFarPlane(float farPlane) { m_FarPlane = farPlane; }
+  void SetYaw(float yaw) {
+    m_Yaw = yaw;
+    UpdateCameraVectors();
+  }
+  void SetPitch(float pitch) {
+    m_Pitch = pitch;
+    UpdateCameraVectors();
+  }
 
 private:
   void UpdateCameraVectors();

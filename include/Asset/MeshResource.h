@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Math.h"
 #include <vulkan/vulkan.h>
 
 namespace neurender {
@@ -14,6 +15,7 @@ struct MeshResource {
   VkDeviceMemory indexMemory = VK_NULL_HANDLE;
   uint32_t indexCount = 0;
   bool loaded = false;
+  AABB localAABB;
 };
 
 } // namespace neurender

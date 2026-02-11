@@ -552,10 +552,12 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: D:/CppPrograms/NeuVulkanRender/s
   D:/CppPrograms/NeuVulkanRender/include/Asset/ModelImporter.h \
   D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
   D:/CppPrograms/NeuVulkanRender/include/Camera.h \
+  D:/CppPrograms/NeuVulkanRender/include/Core/Math.h \
   D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
   D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
   D:/CppPrograms/NeuVulkanRender/include/GBuffer.h \
   D:/CppPrograms/NeuVulkanRender/include/Material.h \
+  D:/CppPrograms/NeuVulkanRender/include/Nodes/CameraNode.h \
   D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h \
   D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h \
   D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h \
@@ -2267,11 +2269,15 @@ D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec4.inl:
 
 D:/CppPrograms/NeuVulkanRender/include/Camera.h:
 
+D:/CppPrograms/NeuVulkanRender/include/Core/Math.h:
+
 D:/CppPrograms/NeuVulkanRender/include/Core/Object.h:
 
 D:/CppPrograms/NeuVulkanRender/include/GBuffer.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Material.h:
+
+D:/CppPrograms/NeuVulkanRender/include/Nodes/CameraNode.h:
 
 D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h:
 
