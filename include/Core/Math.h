@@ -88,7 +88,12 @@ struct Frustum {
     center = glm::vec3(0, 0, 0);
     for (int i = 0; i < 8; i++) {
       glm::vec4 worldPos = invViewProj * clipCorners[i];
-      corners[i] = glm::vec3(worldPos) / worldPos.w;
+      // 防护：避免除以0的未定义行为
+      if (glm::abs(worldPos.w) < 1e-6f) {
+        corners[i] = glm::vec3(worldPos); // 透视除法失效时直接使用
+      } else {
+        corners[i] = glm::vec3(worldPos) / worldPos.w; // 标准透视除法
+      }
       center += corners[i];
     }
     center /= 8.0f;

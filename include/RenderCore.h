@@ -89,6 +89,28 @@ private:
   static void CreateForwardPipeline();
   static void SortTransparentObjects();
 
+  // ========== Shadow Pass方法 ==========
+  static void CreateShadowPass();
+  static void CreateShadowRenderPass();
+  static void CreateShadowPipeline();
+  static void CreateShadowMap();
+  static void CreateShadowSampler();
+  static void CreatePCSSParamsBuffers();
+  static void CreateShadowUniformBuffers(); // 新增
+  static void CreateShadowDescriptorSets(); // 新增
+  static void GeneratePoissonDisk();
+  static void LoadNoiseTexture();
+  static void UpdateLightCamera();
+  static void CalculateFrustumBoundingSphere(const Camera &camera,
+                                             float maxDistance,
+                                             glm::vec3 &outCenter,
+                                             float &outRadius);
+
+  // Shadow Pass 成员变量
+  static std::vector<VkBuffer> m_ShadowUniformBuffers;
+  static std::vector<VkDeviceMemory> m_ShadowUniformBuffersMemory;
+  static std::vector<void *> m_ShadowUniformBuffersMapped;
+
   // ========== 后处理管线方法 ==========
   static void CreateSceneRenderTarget();
   static void CreatePostProcessRenderPass();
@@ -306,6 +328,32 @@ private:
   // GBuffer Sampler
   static VkSampler m_GBufferSampler;
 
+  // ============================== Shadow Pass系统
+  // ============================== Shadow Pass渲染通道
+  static VkRenderPass m_ShadowRenderPass;
+  static VkPipeline m_ShadowPipeline;
+  static VkPipelineLayout m_ShadowPipelineLayout;
+  static VkDescriptorSetLayout m_ShadowDescriptorSetLayout;
+  static std::vector<VkDescriptorSet> m_ShadowDescriptorSets;
+  static std::vector<VkFramebuffer> m_ShadowFramebuffers;
+
+  // Shadow Map深度附件
+  static GBufferAttachment m_ShadowMap;
+
+  // Shadow采样器
+  static VkSampler m_ShadowSampler;
+
+  // 噪声纹理(64x64蓝噪声)
+  static TextureResource m_NoiseTexture;
+
+  // PCSS参数Uniform Buffer
+  static std::vector<VkBuffer> m_PCSSParamsBuffers;
+  static std::vector<VkDeviceMemory> m_PCSSParamsMemory;
+  static std::vector<void *> m_PCSSParamsMapped;
+
+  // Poisson Disk采样点
+  static std::vector<glm::vec2> m_PoissonDisk;
+
   // ============================== 前向渲染系统 (半透明物体)
   // ==============================
   static VkRenderPass m_ForwardRenderPass;
@@ -424,6 +472,22 @@ public:
   static void SetTargetFPS(int fps) { m_TargetFPS = fps; }
   static int GetTargetFPS() { return m_TargetFPS; }
 
+  // ========== PCSS阴影设置接口 ==========
+  struct PCSSSettings {
+    glm::vec3 lightDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.3f));
+    float lightSize = 15.0f;
+    float shadowDistance = 30.0f;
+    float bias = 0.000001f;     // Shadow Bias参数
+    float minFilterSize = 0.2f; // 基础模糊半径(像素单位)
+    uint32_t blockerSamples = 16;
+    uint32_t pcfSamples = 32;
+    uint32_t shadowMapRes = 2048;
+    bool enableDirectionalLight = true;
+    bool enableShadow = true;
+  };
+  static PCSSSettings &GetPCSSSettings() { return m_PCSSSettings; }
+  static void SetShadowMapResolution(uint32_t res);
+
   // ========== 模型加载方法 ==========
   /**
    * @brief 从OBJ文件加载模型
@@ -463,5 +527,8 @@ private:
   // 性能控制
   static bool m_VSync;
   static int m_TargetFPS;
+
+  // PCSS阴影设置
+  static PCSSSettings m_PCSSSettings;
 };
 } // namespace neurender

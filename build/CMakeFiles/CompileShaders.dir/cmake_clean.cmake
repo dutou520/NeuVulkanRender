@@ -10,6 +10,8 @@ file(REMOVE_RECURSE
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/gbuffer.vert.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.frag.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.vert.spv"
+  "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.frag.spv"
+  "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.vert.spv"
 )
 
 # Per-language clean rules from dependency scanning.

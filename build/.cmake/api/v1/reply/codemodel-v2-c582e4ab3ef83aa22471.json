@@ -1,0 +1,141 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "NeuVulkanRender",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "CompileShaders::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-CompileShaders-Debug-6fbc1f1683792472b941.json",
+					"name" : "CompileShaders",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuAssetLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuAssetLib-Debug-0a04582bfe51b442e34d.json",
+					"name" : "NeuAssetLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuCoreLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuCoreLib-Debug-bc5ea5be6cde0765d221.json",
+					"name" : "NeuCoreLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuGUILib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuGUILib-Debug-a3622d511f14371028d0.json",
+					"name" : "NeuGUILib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuImGuiBackendLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuImGuiBackendLib-Debug-fb3f928e776082438088.json",
+					"name" : "NeuImGuiBackendLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuLogLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuLogLib-Debug-00653ab41495c6f59da1.json",
+					"name" : "NeuLogLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuRenderCoreLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuRenderCoreLib-Debug-94fb2a43a21831c7167b.json",
+					"name" : "NeuRenderCoreLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuSceneLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuSceneLib-Debug-953db16d0c954254012a.json",
+					"name" : "NeuSceneLib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuVulkanRender::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuVulkanRender-Debug-0bc90e207d5d36f9ff9e.json",
+					"name" : "NeuVulkanRender",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuWindowLib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuWindowLib-Debug-070ecef93fe1c89898de.json",
+					"name" : "NeuWindowLib",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/CppPrograms/NeuVulkanRender/build",
+		"source" : "D:/CppPrograms/NeuVulkanRender"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

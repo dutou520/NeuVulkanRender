@@ -6,6 +6,7 @@ layout(set = 0, binding = 1) uniform sampler2D gbuffer2; // Specular + Occlusion
 layout(set = 0, binding = 2) uniform sampler2D gbuffer3; // Normal + Smoothness
 layout(set = 0, binding = 3) uniform sampler2D gbuffer4; // ShadingID + Emissive
 layout(set = 0, binding = 4) uniform sampler2D depthBuffer; // Depth
+layout(set = 0, binding = 5) uniform sampler2D shadowMap; // Shadow Map
 
 // 方向光数据
 layout(set = 1, binding = 0) uniform LightData {
@@ -15,6 +16,9 @@ layout(set = 1, binding = 0) uniform LightData {
     float _pad2;
     vec3 viewPos;
     mat4 invViewProj; // 逆 视图-投影 矩阵
+    mat4 u_LightVP;   // 光源 视图-投影 矩阵
+    float u_LightNear;
+    float u_LightFar;
 } light;
 
 // 点光源数据
@@ -31,6 +35,19 @@ layout(set = 1, binding = 1) uniform PointLightsData {
     PointLight lights[MAX_POINT_LIGHTS];
     uint count;
 } pointLights;
+
+// PCSS参数
+layout(set = 1, binding = 2) uniform PCSSParams {
+    float u_LightSize;
+    float u_ShadowDistance;
+    uint u_BlockerSamples;
+    uint u_PCFSamples;
+    uint u_ShadowMapRes;
+    uint enableDirectionalLight;
+    uint enableShadow;
+    float u_Bias;
+    float u_MinFilterSize;
+} pcss;
 
 // 视口信息
 layout(push_constant) uniform PushConstants {
@@ -115,8 +132,119 @@ float calculateAttenuation(float distance, float radius) {
 
 // ===================== 着色函数 =====================
 
+// Poisson Disk采样点(16个)
+const vec2 poissonDisk[16] = vec2[](
+    vec2(-0.94201624, -0.39906216),
+    vec2(0.94558609, -0.76890725),
+    vec2(-0.094184101, -0.92938870),
+    vec2(0.34495938, 0.29387760),
+    vec2(-0.91588581, 0.45771432),
+    vec2(-0.81544232, -0.87912464),
+    vec2(-0.38277543, 0.27676845),
+    vec2(0.97484398, 0.75648379),
+    vec2(0.44323325, -0.97511554),
+    vec2(0.53742981, -0.47373420),
+    vec2(-0.26496911, -0.41893023),
+    vec2(0.79197514, 0.19090188),
+    vec2(-0.24188840, 0.99706507),
+    vec2(-0.81409955, 0.91437590),
+    vec2(0.19984126, 0.78641367),
+    vec2(0.14383161, -0.14100790)
+);
+
+// PCSS第一步: 遮挡物搜索
+float findBlockerDistance(vec3 shadowCoord, float searchRadius) {
+    float blockerSum = 0.0;
+    int blockerCount = 0;
+    
+    uint samples = min(pcss.u_BlockerSamples, 16u);
+    for (uint i = 0u; i < samples; i++) {
+        vec2 offset = poissonDisk[i] * searchRadius;
+        float shadowDepth = texture(shadowMap, shadowCoord.xy + offset).r;
+        
+        if (shadowDepth < shadowCoord.z - pcss.u_Bias) {
+            blockerSum += shadowDepth;
+            blockerCount++;
+        }
+    }
+    
+    if (blockerCount == 0) {
+        return -1.0; // 无遮挡
+    }
+    
+    return blockerSum / float(blockerCount);
+}
+
+// PCSS第二步: 半影半径计算
+float penumbraSize(float zReceiver, float zBlocker) {
+    return (zReceiver - zBlocker) * pcss.u_LightSize / zBlocker;
+}
+
+// PCSS第三步: PCF滤波
+float PCF_Filter(vec3 shadowCoord, float filterRadius) {
+    float shadow = 0.0;
+    uint samples = min(pcss.u_PCFSamples, 16u);
+    
+    for (uint i = 0u; i < samples; i++) {
+        vec2 offset = poissonDisk[i] * filterRadius;
+        float shadowDepth = texture(shadowMap, shadowCoord.xy + offset).r;
+        shadow += (shadowCoord.z - pcss.u_Bias <= shadowDepth) ? 1.0 : 0.0;
+    }
+    
+    return shadow / float(samples);
+}
+
+// PCSS完整实现
+float calculatePCSSShadow(vec3 worldPos) {
+    // 如果阴影未启用,返回完全光照
+    if (pcss.enableShadow == 0u) {
+        return 1.0;
+    }
+    
+    // 转换到光源空间
+    vec4 lightSpacePos = light.u_LightVP * vec4(worldPos, 1.0);
+    vec3 shadowCoord = lightSpacePos.xyz / lightSpacePos.w;
+    
+    // 转换到[0,1]范围
+    shadowCoord.xy = shadowCoord.xy * 0.5 + 0.5;
+    
+    // 边界检查
+    if (shadowCoord.x < 0.0 || shadowCoord.x > 1.0 ||
+        shadowCoord.y < 0.0 || shadowCoord.y > 1.0 ||
+        shadowCoord.z < 0.0 || shadowCoord.z > 1.0) {
+        return 1.0;
+    }
+    
+    // 计算搜索半径
+    float texelSize = 1.0 / float(pcss.u_ShadowMapRes);
+    float searchRadius = pcss.u_LightSize * texelSize;
+    
+    // 第一步: 遮挡物搜索
+    float avgBlockerDepth = findBlockerDistance(shadowCoord, searchRadius);
+    
+    // 如果没有遮挡物,完全光照
+    if (avgBlockerDepth < 0.0) {
+        return 1.0;
+    }
+    
+    // 第二步: 半影半径计算
+    float penumbra = penumbraSize(shadowCoord.z, avgBlockerDepth);
+    float filterRadius = penumbra * texelSize;
+    
+    // 应用最小模糊半径 (Min Filter Size)
+    filterRadius = max(filterRadius, pcss.u_MinFilterSize * texelSize);
+    
+    // 第三步: PCF滤波
+    return PCF_Filter(shadowCoord, filterRadius);
+}
+
 // 计算单个方向光的PBR贡献
-vec3 calculateDirectionalLight(vec3 N, vec3 V, vec3 albedo, vec3 F0, float roughness) {
+vec3 calculateDirectionalLight(vec3 N, vec3 V, vec3 albedo, vec3 F0, float roughness, vec3 worldPos) {
+    // 如果平行光未启用,返回黑色
+    if (pcss.enableDirectionalLight == 0u) {
+        return vec3(0.0);
+    }
+    
     vec3 L = normalize(light.lightDir);
     vec3 H = normalize(V + L);
     
@@ -136,7 +264,10 @@ vec3 calculateDirectionalLight(vec3 N, vec3 V, vec3 albedo, vec3 F0, float rough
     
     vec3 diffuse = kD * albedo / PI;
     
-    return (diffuse + specularBRDF) * light.lightColor * NdotL;
+    // 计算阴影因子
+    float shadowFactor = calculatePCSSShadow(worldPos);
+    
+    return (diffuse + specularBRDF) * light.lightColor * NdotL * shadowFactor;
 }
 
 // 计算单个点光源的PBR贡献
@@ -192,7 +323,7 @@ vec3 shadePBR(vec3 albedo, vec3 normal, vec3 specular, float smoothness,
     vec3 Lo = vec3(0.0);
     
     // 方向光贡献
-    Lo += calculateDirectionalLight(N, V, albedo, F0, roughness);
+    Lo += calculateDirectionalLight(N, V, albedo, F0, roughness, worldPos);
     
     // 点光源贡献
     for (uint i = 0u; i < pointLights.count && i < MAX_POINT_LIGHTS; i++) {

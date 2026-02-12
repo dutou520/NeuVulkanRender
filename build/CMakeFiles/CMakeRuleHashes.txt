@@ -10,3 +10,5 @@ ee3fcf1dc7e8ae9d3b67abf3f86a0b6f D:/CppPrograms/NeuVulkanRender/resource/shaders
 05549f2be50b905328b374353ea1a99c D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/gbuffer.vert.spv
 4a64d437426084cee591599b53aec4f8 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.frag.spv
 98a9fc4d2867ac50a1898f50690333ed D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.vert.spv
+f83e6b05bddd2e2752a8acf187274141 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.frag.spv
+87ca0ed0987cfd9673205fbeb6c42131 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.vert.spv

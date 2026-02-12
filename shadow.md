@@ -94,5 +94,60 @@ $$w_{penumbra} = \frac{(d_{receiver} - d_{avg}) \times u\_LightSize}{d_{avg}}$$
 3. 视锥体剔除、背面剔除（只需要考虑不透明物体）
 4. 构建变换矩阵$$ShadowMatrix = P_{ortho} \times V_{light}$$
 5. 把Shadow Pass生成的Shadow Map 传入延迟渲染Pass 、向前半透明物体渲染pass的片元着色器，进行深度比较。
-6. 在GUI开放
+6. 处理 Shadow Map 的深度偏移 (Depth Bias)
+
+为了解决 **Shadow Acne（阴影粉刺）**（由于阴影贴图分辨率有限导致的自遮挡黑斑），在绘制 Shadow Map 时需要添加偏移。
+
+- **Vulkan 实现**：在 `VkPipelineRasterizationStateCreateInfo` 中设置 `depthBiasEnable = VK_TRUE`。
+    
+- **动态状态**：建议将 `VK_DYNAMIC_STATE_DEPTH_BIAS` 加入流水线，以便在运行时根据光源角度动态调整 `vkCmdSetDepthBias`。
+    
+
+7. 配置阴影采样器 (Sampler Setup)
+
+PCSS 需要在 Shader 中手动进行多次采样，因此采样器的配置至关重要：
+
+- **Filter**：设置为 `VK_FILTER_LINEAR`。
+    
+- **Address Mode**：设置为 `VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER`。
+    
+- **Border Color**：设置为 `VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE`（确保超出阴影贴图范围的区域被视为“未遮挡”，深度值为 1.0）。
+    
+
+8. 显存同步与布局转换 (Barrier & Synchronization)
+
+这是 Vulkan 的核心。你需要确保阴影图在被读取前已经完全写入。
+
+- **写入时**：`oldLayout = VK_IMAGE_LAYOUT_UNDEFINED`, `newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL`。
+    
+- **读取前**：在 Shadow Pass 结束和 Lighting Pass 开始之间插入一个 **Image Memory Barrier**：
+    
+    - `srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT`
+        
+    - `dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT`
+        
+    - `newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`
+        
+
+9. 实现 Poisson Disk 采样与噪声注入
+
+PCSS 的精髓在于随机性。
+
+- **采样点生成**：在 C++ 端生成一组随机分布在单位圆内的点坐标（Poisson Disk），通过 Uniform Buffer 或常量数组传入 Shader。
+- **噪声纹理**：加载一张小尺寸（如 64x64）的蓝噪声（Blue Noise）贴图resource\textures\noise-texture-64x64.png。在 Shader 中使用 `gl_FragCoord` 采样该噪声，得到一个随机旋转角度来旋转采样圆盘。
+
+
+10. Shader 中的坐标变换 (Projective Coordinates)
+
+在片元着色器中，将世界空间坐标变换到阴影空间：
+
+1. `shadowCoords = u_LightVP * vec4(worldPos, 1.0)`
+    
+2. **归一化设备坐标 (NDC) 转换**：
+    
+    - $uv = shadowCoords.xy \times 0.5 + 0.5$
+        
+    - **注意**：在 Vulkan 中，Y 轴是反向的，如果你的投影矩阵没有处理这一点，UV 转换可能需要改为 `uv.y = 1.0 - uv.y`。
+        
+3. 深度对比：$d_{receiver} = shadowCoords.z$。
 

@@ -82,6 +82,11 @@ std::vector<VkBuffer> RenderCore::m_PointLightUniformBuffers;
 std::vector<VkDeviceMemory> RenderCore::m_PointLightUniformBuffersMemory;
 std::vector<void *> RenderCore::m_PointLightUniformBuffersMapped;
 
+// Shadow Pass Uniform Buffers
+std::vector<VkBuffer> RenderCore::m_ShadowUniformBuffers;
+std::vector<VkDeviceMemory> RenderCore::m_ShadowUniformBuffersMemory;
+std::vector<void *> RenderCore::m_ShadowUniformBuffersMapped;
+
 VkBuffer RenderCore::m_VertexBuffer = VK_NULL_HANDLE;
 VkDeviceMemory RenderCore::m_VertexBufferMemory = VK_NULL_HANDLE;
 VkBuffer RenderCore::m_IndexBuffer = VK_NULL_HANDLE;
@@ -119,6 +124,22 @@ VkPipeline RenderCore::m_ForwardPipeline = VK_NULL_HANDLE;
 VkPipelineLayout RenderCore::m_ForwardPipelineLayout = VK_NULL_HANDLE;
 VkDescriptorSetLayout RenderCore::m_ForwardDescriptorSetLayout = VK_NULL_HANDLE;
 std::vector<VkDescriptorSet> RenderCore::m_ForwardDescriptorSets;
+
+// ========== Shadow Pass系统静态成员定义 ==========
+VkRenderPass RenderCore::m_ShadowRenderPass = VK_NULL_HANDLE;
+VkPipeline RenderCore::m_ShadowPipeline = VK_NULL_HANDLE;
+VkPipelineLayout RenderCore::m_ShadowPipelineLayout = VK_NULL_HANDLE;
+VkDescriptorSetLayout RenderCore::m_ShadowDescriptorSetLayout = VK_NULL_HANDLE;
+std::vector<VkDescriptorSet> RenderCore::m_ShadowDescriptorSets;
+std::vector<VkFramebuffer> RenderCore::m_ShadowFramebuffers;
+GBufferAttachment RenderCore::m_ShadowMap;
+VkSampler RenderCore::m_ShadowSampler = VK_NULL_HANDLE;
+TextureResource RenderCore::m_NoiseTexture;
+std::vector<VkBuffer> RenderCore::m_PCSSParamsBuffers;
+std::vector<VkDeviceMemory> RenderCore::m_PCSSParamsMemory;
+std::vector<void *> RenderCore::m_PCSSParamsMapped;
+std::vector<glm::vec2> RenderCore::m_PoissonDisk;
+RenderCore::PCSSSettings RenderCore::m_PCSSSettings;
 
 // ========== 后处理系统静态成员定义 ==========
 std::vector<GBufferAttachment> RenderCore::m_SceneColor;
@@ -269,7 +290,19 @@ void RenderCore::Init() {
 
   CreateGeometryPipeline();    // 创建几何管线
   CreateCompositionPipeline(); // 创建合成管线
-  CreateDescriptorSets();      // 创建描述符集
+
+  // ========== Shadow Pass初始化 ==========
+  CreateShadowMap();            // 创建阴影贴图
+  CreateShadowRenderPass();     // 创建阴影渲染通道
+  CreateShadowPipeline();       // 创建阴影管线
+  CreateShadowSampler();        // 创建阴影采样器
+  CreatePCSSParamsBuffers();    // 创建PCSS参数缓冲
+  CreateShadowUniformBuffers(); // 创建阴影Uniform缓冲
+  CreateShadowDescriptorSets(); // 创建阴影描述符集
+  GeneratePoissonDisk();        // 生成Poisson Disk采样点
+  LoadNoiseTexture();           // 加载噪声纹理
+
+  CreateDescriptorSets(); // 创建描述符集
 
   // ========== 前向渲染初始化 ==========
   CreateForwardRenderPass(); // 创建前向渲染通道
@@ -1070,6 +1103,120 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
+  // ========== Pass 0: Shadow Pass ==========
+  if (m_PCSSSettings.enableShadow && m_PCSSSettings.enableDirectionalLight) {
+    // Transition shadow map to depth attachment optimal
+    VkImageMemoryBarrier shadowBarrier{};
+    shadowBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    // 第一帧使用UNDEFINED,后续帧使用SHADER_READ_ONLY_OPTIMAL
+    static bool firstFrame = true;
+    shadowBarrier.oldLayout = firstFrame
+                                  ? VK_IMAGE_LAYOUT_UNDEFINED
+                                  : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    shadowBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    shadowBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    shadowBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    shadowBarrier.image = m_ShadowMap.image;
+    shadowBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    shadowBarrier.subresourceRange.baseMipLevel = 0;
+    shadowBarrier.subresourceRange.levelCount = 1;
+    shadowBarrier.subresourceRange.baseArrayLayer = 0;
+    shadowBarrier.subresourceRange.layerCount = 1;
+    shadowBarrier.srcAccessMask = firstFrame ? 0 : VK_ACCESS_SHADER_READ_BIT;
+    shadowBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    vkCmdPipelineBarrier(commandBuffer,
+                         firstFrame ? VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT
+                                    : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                         VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0,
+                         nullptr, 0, nullptr, 1, &shadowBarrier);
+
+    VkRenderPassBeginInfo shadowPassInfo{};
+    shadowPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    shadowPassInfo.renderPass = m_ShadowRenderPass;
+    shadowPassInfo.framebuffer =
+        m_ShadowFramebuffers[0]; // Shadow map不需要多帧
+    shadowPassInfo.renderArea.offset = {0, 0};
+    shadowPassInfo.renderArea.extent = {m_PCSSSettings.shadowMapRes,
+                                        m_PCSSSettings.shadowMapRes};
+
+    VkClearValue clearValue{};
+    clearValue.depthStencil = {1.0f, 0};
+    shadowPassInfo.clearValueCount = 1;
+    shadowPassInfo.pClearValues = &clearValue;
+
+    vkCmdBeginRenderPass(commandBuffer, &shadowPassInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      m_ShadowPipeline);
+
+    // Bind UBO descriptor set for shadow pass (Light VP matrix)
+    vkCmdBindDescriptorSets(
+        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ShadowPipelineLayout,
+        0, 1, &m_ShadowDescriptorSets[m_CurrentFrame], 0, nullptr);
+
+    // Set viewport and scissor for shadow map
+    VkViewport shadowViewport{};
+    shadowViewport.x = 0.0f;
+    shadowViewport.y = 0.0f;
+    shadowViewport.width = static_cast<float>(m_PCSSSettings.shadowMapRes);
+    shadowViewport.height = static_cast<float>(m_PCSSSettings.shadowMapRes);
+    shadowViewport.minDepth = 0.0f;
+    shadowViewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &shadowViewport);
+
+    VkRect2D shadowScissor{};
+    shadowScissor.offset = {0, 0};
+    shadowScissor.extent = {m_PCSSSettings.shadowMapRes,
+                            m_PCSSSettings.shadowMapRes};
+    vkCmdSetScissor(commandBuffer, 0, 1, &shadowScissor);
+
+    // Render all opaque objects to shadow map
+    int renderedCount = 0;
+    int skippedTransparent = 0;
+    int totalObjects = static_cast<int>(m_RenderObjects.size());
+
+    for (const auto &obj : m_RenderObjects) {
+      // Skip transparent objects (but NOT based on camera frustum!)
+      // Shadow Pass uses light frustum, not camera frustum
+      if (obj.material.IsTransparent()) {
+        skippedTransparent++;
+        continue;
+      }
+
+      VkBuffer vertexBuffers[] = {obj.vertexBuffer};
+      VkDeviceSize offsets[] = {0};
+      vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+      vkCmdBindIndexBuffer(commandBuffer, obj.indexBuffer, 0,
+                           VK_INDEX_TYPE_UINT32);
+
+      // Push model matrix
+      vkCmdPushConstants(commandBuffer, m_ShadowPipelineLayout,
+                         VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
+                         &obj.modelMatrix);
+
+      vkCmdDrawIndexed(commandBuffer, obj.indexCount, 1, 0, 0, 0);
+      renderedCount++;
+    }
+
+    vkCmdEndRenderPass(commandBuffer);
+
+    // Transition shadow map to shader read optimal
+    shadowBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    shadowBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    shadowBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    shadowBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(commandBuffer,
+                         VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr,
+                         0, nullptr, 1, &shadowBarrier);
+
+    // 第一帧完成后设置标志
+    firstFrame = false;
+  }
+
   // ========== Pass 1: GBuffer Geometry Pass ==========
   {
     VkRenderPassBeginInfo gbufferPassInfo{};
@@ -1530,6 +1677,9 @@ void RenderCore::DrawFrame() {
 
   // 处理输入（相机控制）
   ProcessInput();
+
+  // Update light camera for shadow mapping
+  UpdateLightCamera();
 
   // Update uniform buffers (MVP matrices and light data)
   UpdateUniformBuffer(m_CurrentFrame);
@@ -2045,9 +2195,10 @@ void RenderCore::CreateDescriptorSetLayouts() {
         "Failed to create geometry descriptor set layout!");
   }
 
-  // Composition pass: GBuffer samplers (5 total: 4 color + 1 depth)
-  std::array<VkDescriptorSetLayoutBinding, 5> gbufferBindings{};
-  for (uint32_t i = 0; i < 5; i++) {
+  // Composition pass: GBuffer samplers (6 total: 4 color + 1 depth + 1 shadow
+  // map)
+  std::array<VkDescriptorSetLayoutBinding, 6> gbufferBindings{};
+  for (uint32_t i = 0; i < 6; i++) {
     gbufferBindings[i].binding = i;
     gbufferBindings[i].descriptorType =
         VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -2154,8 +2305,8 @@ void RenderCore::CreateDescriptorSetLayouts() {
   }
 
   // Composition pass: Light data UBO (binding 0: directional, binding 1: point
-  // lights)
-  std::array<VkDescriptorSetLayoutBinding, 2> lightBindings{};
+  // lights, binding 2: PCSS params)
+  std::array<VkDescriptorSetLayoutBinding, 3> lightBindings{};
 
   // Binding 0: Directional light
   lightBindings[0].binding = 0;
@@ -2170,6 +2321,13 @@ void RenderCore::CreateDescriptorSetLayouts() {
   lightBindings[1].descriptorCount = 1;
   lightBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   lightBindings[1].pImmutableSamplers = nullptr;
+
+  // Binding 2: PCSS parameters
+  lightBindings[2].binding = 2;
+  lightBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightBindings[2].descriptorCount = 1;
+  lightBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  lightBindings[2].pImmutableSamplers = nullptr;
 
   VkDescriptorSetLayoutCreateInfo lightLayoutInfo{};
   lightLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -2643,7 +2801,7 @@ void RenderCore::CreateDescriptorSets() {
 
   // Update composition GBuffer descriptor sets
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    std::array<VkDescriptorImageInfo, 5> imageInfos{};
+    std::array<VkDescriptorImageInfo, 6> imageInfos{};
 
     // GBuffer1
     imageInfos[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -2670,8 +2828,13 @@ void RenderCore::CreateDescriptorSets() {
     imageInfos[4].imageView = m_GBuffer.GetDepth(i).view;
     imageInfos[4].sampler = m_GBuffer.GetDepth(i).sampler;
 
-    std::array<VkWriteDescriptorSet, 5> descriptorWrites{};
-    for (uint32_t j = 0; j < 5; j++) {
+    // Shadow Map
+    imageInfos[5].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfos[5].imageView = m_ShadowMap.view;
+    imageInfos[5].sampler = m_ShadowSampler;
+
+    std::array<VkWriteDescriptorSet, 6> descriptorWrites{};
+    for (uint32_t j = 0; j < 6; j++) {
       descriptorWrites[j].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       descriptorWrites[j].dstSet = m_CompositionGBufferDescriptorSets[i];
       descriptorWrites[j].dstBinding = j;
@@ -2714,7 +2877,13 @@ void RenderCore::CreateDescriptorSets() {
     pointLightBufferInfo.offset = 0;
     pointLightBufferInfo.range = sizeof(PointLightsUBO);
 
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+    // PCSS parameters buffer info (binding 2)
+    VkDescriptorBufferInfo pcssBufferInfo{};
+    pcssBufferInfo.buffer = m_PCSSParamsBuffers[i];
+    pcssBufferInfo.offset = 0;
+    pcssBufferInfo.range = sizeof(PCSSParamsUBO);
+
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
     // Binding 0: Directional light
     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -2733,6 +2902,15 @@ void RenderCore::CreateDescriptorSets() {
     descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[1].descriptorCount = 1;
     descriptorWrites[1].pBufferInfo = &pointLightBufferInfo;
+
+    // Binding 2: PCSS parameters
+    descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[2].dstSet = m_CompositionLightDescriptorSets[i];
+    descriptorWrites[2].dstBinding = 2;
+    descriptorWrites[2].dstArrayElement = 0;
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[2].descriptorCount = 1;
+    descriptorWrites[2].pBufferInfo = &pcssBufferInfo;
 
     vkUpdateDescriptorSets(m_Device,
                            static_cast<uint32_t>(descriptorWrites.size()),
@@ -2841,34 +3019,33 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
 
   // Update light data (directional)
   LightDataUBO lightData{};
-  lightData.lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+  lightData.lightDir = glm::normalize(m_PCSSSettings.lightDirection);
   lightData.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
   lightData.viewPos = m_Camera.GetPosition();
   lightData.invViewProj = glm::inverse(ubo.proj * ubo.view);
 
-  // 计算视锥体包围球并设置光源相机
-  Frustum currentFrustum;
-  currentFrustum.FromViewProj(ubo.proj * ubo.view);
-  glm::vec3 sphereCenter;
-  float sphereRadius;
-  currentFrustum.GetBoundingSphere(lightData.invViewProj, sphereCenter,
-                                   sphereRadius);
-
-  // 阴影距离暂定并建立平行光方向包围盒
-  float shadowDistance = sphereRadius;
-  glm::vec3 lightPos = sphereCenter - lightData.lightDir * shadowDistance;
-  glm::mat4 lightView =
-      glm::lookAt(lightPos, sphereCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-  glm::mat4 lightProj = glm::ortho(-sphereRadius, sphereRadius, -sphereRadius,
-                                   sphereRadius, 0.1f, shadowDistance * 2.0f);
-  lightData.u_LightVP = lightProj * lightView;
+  // 使用UpdateLightCamera计算的光源VP矩阵
+  lightData.u_LightVP = m_LightVP;
   lightData.u_LightNear = 0.1f;
-  lightData.u_LightFar = shadowDistance * 2.0f;
-
-  m_LightVP = lightData.u_LightVP;
+  lightData.u_LightFar = m_PCSSSettings.shadowDistance * 2.0f;
 
   memcpy(m_LightUniformBuffersMapped[currentImage], &lightData,
          sizeof(lightData));
+
+  // Update PCSS parameters
+  PCSSParamsUBO pcssParams{};
+  pcssParams.u_LightSize = m_PCSSSettings.lightSize;
+  pcssParams.u_ShadowDistance = m_PCSSSettings.shadowDistance;
+  pcssParams.u_Bias = m_PCSSSettings.bias;
+  pcssParams.u_BlockerSamples = m_PCSSSettings.blockerSamples;
+  pcssParams.u_PCFSamples = m_PCSSSettings.pcfSamples;
+  pcssParams.u_ShadowMapRes = m_PCSSSettings.shadowMapRes;
+  pcssParams.enableDirectionalLight =
+      m_PCSSSettings.enableDirectionalLight ? 1u : 0u;
+  pcssParams.enableShadow = m_PCSSSettings.enableShadow ? 1u : 0u;
+  pcssParams.u_MinFilterSize = m_PCSSSettings.minFilterSize;
+
+  memcpy(m_PCSSParamsMapped[currentImage], &pcssParams, sizeof(pcssParams));
 
   // Update point lights data by traversing scene
   PointLightsUBO pointLightsData{};
@@ -4961,6 +5138,597 @@ void RenderCore::CollectSceneRenderables() {
 
     // 将组装好的渲染对象放入待渲染列表
     m_RenderObjects.push_back(obj);
+  }
+}
+
+// ========== Shadow Pass实现 ==========
+
+void RenderCore::CreateShadowMap() {
+  uint32_t shadowRes = m_PCSSSettings.shadowMapRes;
+
+  // 创建深度图像
+  VkImageCreateInfo imageInfo{};
+  imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+  imageInfo.imageType = VK_IMAGE_TYPE_2D;
+  imageInfo.format = VK_FORMAT_D32_SFLOAT;
+  imageInfo.extent.width = shadowRes;
+  imageInfo.extent.height = shadowRes;
+  imageInfo.extent.depth = 1;
+  imageInfo.mipLevels = 1;
+  imageInfo.arrayLayers = 1;
+  imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+  imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+  imageInfo.usage =
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+  imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+  if (vkCreateImage(m_Device, &imageInfo, nullptr, &m_ShadowMap.image) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("Failed to create shadow map image!");
+  }
+
+  // 分配内存
+  VkMemoryRequirements memRequirements;
+  vkGetImageMemoryRequirements(m_Device, m_ShadowMap.image, &memRequirements);
+
+  VkMemoryAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memRequirements.size;
+  allocInfo.memoryTypeIndex = FindMemoryType(
+      memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+  if (vkAllocateMemory(m_Device, &allocInfo, nullptr, &m_ShadowMap.memory) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("Failed to allocate shadow map memory!");
+  }
+
+  vkBindImageMemory(m_Device, m_ShadowMap.image, m_ShadowMap.memory, 0);
+
+  // 创建图像视图
+  VkImageViewCreateInfo viewInfo{};
+  viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  viewInfo.image = m_ShadowMap.image;
+  viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+  viewInfo.format = VK_FORMAT_D32_SFLOAT;
+  viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+  viewInfo.subresourceRange.baseMipLevel = 0;
+  viewInfo.subresourceRange.levelCount = 1;
+  viewInfo.subresourceRange.baseArrayLayer = 0;
+  viewInfo.subresourceRange.layerCount = 1;
+
+  if (vkCreateImageView(m_Device, &viewInfo, nullptr, &m_ShadowMap.view) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("Failed to create shadow map image view!");
+  }
+
+  LOG_I("Shadow Map created: {}x{}", shadowRes, shadowRes);
+}
+
+void RenderCore::CreateShadowRenderPass() {
+  VkAttachmentDescription depthAttachment{};
+  depthAttachment.format = VK_FORMAT_D32_SFLOAT;
+  depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+  depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+  depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+  depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  depthAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+  VkAttachmentReference depthAttachmentRef{};
+  depthAttachmentRef.attachment = 0;
+  depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+  VkSubpassDescription subpass{};
+  subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  subpass.colorAttachmentCount = 0;
+  subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+  VkSubpassDependency dependency{};
+  dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependency.dstSubpass = 0;
+  dependency.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  dependency.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+  dependency.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  dependency.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+  VkRenderPassCreateInfo renderPassInfo{};
+  renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+  renderPassInfo.attachmentCount = 1;
+  renderPassInfo.pAttachments = &depthAttachment;
+  renderPassInfo.subpassCount = 1;
+  renderPassInfo.pSubpasses = &subpass;
+  renderPassInfo.dependencyCount = 1;
+  renderPassInfo.pDependencies = &dependency;
+
+  if (vkCreateRenderPass(m_Device, &renderPassInfo, nullptr,
+                         &m_ShadowRenderPass) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create shadow render pass!");
+  }
+
+  // 创建Framebuffer
+  VkFramebufferCreateInfo framebufferInfo{};
+  framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  framebufferInfo.renderPass = m_ShadowRenderPass;
+  framebufferInfo.attachmentCount = 1;
+  framebufferInfo.pAttachments = &m_ShadowMap.view;
+  framebufferInfo.width = m_PCSSSettings.shadowMapRes;
+  framebufferInfo.height = m_PCSSSettings.shadowMapRes;
+  framebufferInfo.layers = 1;
+
+  m_ShadowFramebuffers.resize(1);
+  if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr,
+                          &m_ShadowFramebuffers[0]) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create shadow framebuffer!");
+  }
+
+  LOG_I("Shadow Render Pass created");
+}
+
+void RenderCore::CreateShadowPipeline() {
+  // 加载着色器
+  auto vertShaderCode = ReadShaderFile("resource/shaders/spv/shadow.vert.spv");
+  auto fragShaderCode = ReadShaderFile("resource/shaders/spv/shadow.frag.spv");
+
+  VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
+  VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCode);
+
+  VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+  vertShaderStageInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+  vertShaderStageInfo.module = vertShaderModule;
+  vertShaderStageInfo.pName = "main";
+
+  VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+  fragShaderStageInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  fragShaderStageInfo.module = fragShaderModule;
+  fragShaderStageInfo.pName = "main";
+
+  VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo,
+                                                    fragShaderStageInfo};
+
+  // 顶点输入
+  auto bindingDescription = Vertex::getBindingDescription();
+  auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+  VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+  vertexInputInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+  vertexInputInfo.vertexBindingDescriptionCount = 1;
+  vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+  vertexInputInfo.vertexAttributeDescriptionCount = 1; // 只需要位置
+  vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+  inputAssembly.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = static_cast<float>(m_PCSSSettings.shadowMapRes);
+  viewport.height = static_cast<float>(m_PCSSSettings.shadowMapRes);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+
+  VkRect2D scissor{};
+  scissor.offset = {0, 0};
+  scissor.extent = {m_PCSSSettings.shadowMapRes, m_PCSSSettings.shadowMapRes};
+
+  VkPipelineViewportStateCreateInfo viewportState{};
+  viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewportState.viewportCount = 1;
+  viewportState.pViewports = &viewport;
+  viewportState.scissorCount = 1;
+  viewportState.pScissors = &scissor;
+
+  // 光栅化 - 启用深度偏移
+  VkPipelineRasterizationStateCreateInfo rasterizer{};
+  rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+  rasterizer.depthClampEnable = VK_FALSE;
+  rasterizer.rasterizerDiscardEnable = VK_FALSE;
+  rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+  rasterizer.lineWidth = 1.0f;
+  rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+  rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+  rasterizer.depthBiasEnable = VK_TRUE;
+  rasterizer.depthBiasConstantFactor = 1.25f;
+  rasterizer.depthBiasClamp = 0.0f;
+  rasterizer.depthBiasSlopeFactor = 1.75f;
+
+  VkPipelineMultisampleStateCreateInfo multisampling{};
+  multisampling.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+  multisampling.sampleShadingEnable = VK_FALSE;
+  multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+  VkPipelineDepthStencilStateCreateInfo depthStencil{};
+  depthStencil.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+  depthStencil.depthTestEnable = VK_TRUE;
+  depthStencil.depthWriteEnable = VK_TRUE;
+  depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+  depthStencil.depthBoundsTestEnable = VK_FALSE;
+  depthStencil.stencilTestEnable = VK_FALSE;
+
+  // 无颜色混合
+  VkPipelineColorBlendStateCreateInfo colorBlending{};
+  colorBlending.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+  colorBlending.logicOpEnable = VK_FALSE;
+  colorBlending.attachmentCount = 0;
+
+  // Push Constants for Model Matrix
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  pushConstantRange.offset = 0;
+  pushConstantRange.size = sizeof(glm::mat4);
+
+  // Pipeline Layout
+  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+  pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipelineLayoutInfo.setLayoutCount = 1;
+  pipelineLayoutInfo.pSetLayouts =
+      &m_GeometryDescriptorSetLayout; // 使用相同的UBO布局
+  pipelineLayoutInfo.pushConstantRangeCount = 1;
+  pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+  if (vkCreatePipelineLayout(m_Device, &pipelineLayoutInfo, nullptr,
+                             &m_ShadowPipelineLayout) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create shadow pipeline layout!");
+  }
+
+  VkGraphicsPipelineCreateInfo pipelineInfo{};
+  pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+  pipelineInfo.stageCount = 2;
+  pipelineInfo.pStages = shaderStages;
+  pipelineInfo.pVertexInputState = &vertexInputInfo;
+  pipelineInfo.pInputAssemblyState = &inputAssembly;
+  pipelineInfo.pViewportState = &viewportState;
+  pipelineInfo.pRasterizationState = &rasterizer;
+  pipelineInfo.pMultisampleState = &multisampling;
+  pipelineInfo.pDepthStencilState = &depthStencil;
+  pipelineInfo.pColorBlendState = &colorBlending;
+  pipelineInfo.layout = m_ShadowPipelineLayout;
+  pipelineInfo.renderPass = m_ShadowRenderPass;
+  pipelineInfo.subpass = 0;
+
+  if (vkCreateGraphicsPipelines(m_Device, VK_NULL_HANDLE, 1, &pipelineInfo,
+                                nullptr, &m_ShadowPipeline) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create shadow pipeline!");
+  }
+
+  vkDestroyShaderModule(m_Device, fragShaderModule, nullptr);
+  vkDestroyShaderModule(m_Device, vertShaderModule, nullptr);
+
+  LOG_I("Shadow Pipeline created");
+}
+
+void RenderCore::CreateShadowSampler() {
+  VkSamplerCreateInfo samplerInfo{};
+  samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+  samplerInfo.magFilter = VK_FILTER_LINEAR;
+  samplerInfo.minFilter = VK_FILTER_LINEAR;
+  samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  samplerInfo.anisotropyEnable = VK_FALSE;
+  samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+  samplerInfo.unnormalizedCoordinates = VK_FALSE;
+  samplerInfo.compareEnable = VK_FALSE;
+  samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+  if (vkCreateSampler(m_Device, &samplerInfo, nullptr, &m_ShadowSampler) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("Failed to create shadow sampler!");
+  }
+
+  LOG_I("Shadow Sampler created");
+}
+
+void RenderCore::CreatePCSSParamsBuffers() {
+  VkDeviceSize bufferSize = sizeof(PCSSParamsUBO);
+
+  m_PCSSParamsBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  m_PCSSParamsMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  m_PCSSParamsMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 m_PCSSParamsBuffers[i], m_PCSSParamsMemory[i]);
+
+    vkMapMemory(m_Device, m_PCSSParamsMemory[i], 0, bufferSize, 0,
+                &m_PCSSParamsMapped[i]);
+  }
+
+  LOG_I("PCSS Params Buffers created");
+}
+
+void RenderCore::GeneratePoissonDisk() {
+  // 生成Poisson Disk采样点 (预计算64个点)
+  m_PoissonDisk = {glm::vec2(-0.94201624f, -0.39906216f),
+                   glm::vec2(0.94558609f, -0.76890725f),
+                   glm::vec2(-0.094184101f, -0.92938870f),
+                   glm::vec2(0.34495938f, 0.29387760f),
+                   glm::vec2(-0.91588581f, 0.45771432f),
+                   glm::vec2(-0.81544232f, -0.87912464f),
+                   glm::vec2(-0.38277543f, 0.27676845f),
+                   glm::vec2(0.97484398f, 0.75648379f),
+                   glm::vec2(0.44323325f, -0.97511554f),
+                   glm::vec2(0.53742981f, -0.47373420f),
+                   glm::vec2(-0.26496911f, -0.41893023f),
+                   glm::vec2(0.79197514f, 0.19090188f),
+                   glm::vec2(-0.24188840f, 0.99706507f),
+                   glm::vec2(-0.81409955f, 0.91437590f),
+                   glm::vec2(0.19984126f, 0.78641367f),
+                   glm::vec2(0.14383161f, -0.14100790f)};
+
+  LOG_I("Poisson Disk generated with {} samples", m_PoissonDisk.size());
+}
+
+void RenderCore::LoadNoiseTexture() {
+  std::string filePath = "resource/textures/noise-texture-64x64.png";
+  if (m_NoiseTexture.LoadFromFile(m_Device, m_PhysicalDevice, m_CommandPool,
+                                  m_GraphicsQueue, filePath)) {
+    LOG_I("Noise texture loaded successfully from {}", filePath);
+  } else {
+    LOG_W("Failed to load noise texture from {}, creating fallback", filePath);
+    // Create a 1x1 fallback noise (white)
+    unsigned char pixels[] = {255, 255, 255, 255};
+    m_NoiseTexture.CreateFromData(m_Device, m_PhysicalDevice, m_CommandPool,
+                                  m_GraphicsQueue, pixels, 1, 1, 4);
+  }
+}
+
+void RenderCore::UpdateLightCamera() {
+  // 计算视锥体包围球
+  glm::vec3 sphereCenter;
+  float sphereRadius;
+  CalculateFrustumBoundingSphere(m_Camera, m_PCSSSettings.shadowDistance,
+                                 sphereCenter, sphereRadius);
+
+  // 光源方向(归一化)
+  glm::vec3 lightDir = glm::normalize(m_PCSSSettings.lightDirection);
+
+  // 构建光源View矩阵
+  glm::vec3 lightPos =
+      sphereCenter + lightDir * (sphereRadius + m_PCSSSettings.shadowDistance);
+  glm::vec3 lightTarget = sphereCenter;
+  glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+  // 如果光源方向接近垂直,使用不同的up向量
+  if (glm::abs(glm::dot(lightDir, up)) > 0.99f) {
+    up = glm::vec3(1.0f, 0.0f, 0.0f);
+  }
+
+  glm::mat4 lightView = glm::lookAt(lightPos, lightTarget, up);
+
+  // 构建正交投影矩阵
+  float orthoSize = sphereRadius;
+  glm::mat4 lightProj =
+      glm::ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, 0.0f,
+                 sphereRadius * 2.0f + m_PCSSSettings.shadowDistance);
+
+  // Vulkan裁剪空间Y轴翻转
+  lightProj[1][1] *= -1.0f;
+
+  // Vulkan Z范围修正 [-1, 1] -> [0, 1]
+  glm::mat4 correction = glm::mat4(1.0f);
+  correction[2][2] = 0.5f;
+  correction[3][2] = 0.5f;
+  lightProj = correction * lightProj;
+
+  // 像素对齐(Texel Snapping)以消除阴影抖动
+  glm::mat4 shadowMatrix = lightProj * lightView;
+  glm::vec4 shadowOrigin = shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+  shadowOrigin *= static_cast<float>(m_PCSSSettings.shadowMapRes) / 2.0f;
+
+  glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+  glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+  roundOffset *= 2.0f / static_cast<float>(m_PCSSSettings.shadowMapRes);
+  roundOffset.z = 0.0f;
+  roundOffset.w = 0.0f;
+
+  lightProj[3] += roundOffset;
+
+  // 更新光源VP矩阵
+  m_LightVP = lightProj * lightView;
+
+  // 更新 Shadow UBO
+  if (!m_ShadowUniformBuffersMapped.empty()) {
+    ShadowUBO shadowUBO{};
+    shadowUBO.lightVP = m_LightVP;
+    memcpy(m_ShadowUniformBuffersMapped[m_CurrentFrame], &shadowUBO,
+           sizeof(ShadowUBO));
+  }
+}
+
+void RenderCore::CalculateFrustumBoundingSphere(const Camera &camera,
+                                                float maxDistance,
+                                                glm::vec3 &outCenter,
+                                                float &outRadius) {
+  // 获取相机参数
+  float fov = camera.GetFov();
+  float aspectRatio = static_cast<float>(m_SwapchainExtent.width) /
+                      static_cast<float>(m_SwapchainExtent.height);
+  float nearPlane = camera.GetNearPlane();
+  float farPlane = glm::min(camera.GetFarPlane(), maxDistance);
+
+  // 计算近平面和远平面的半高和半宽
+  float tanHalfFov = glm::tan(glm::radians(fov * 0.5f));
+  float nearHeight = 2.0f * tanHalfFov * nearPlane;
+  float nearWidth = nearHeight * aspectRatio;
+  float farHeight = 2.0f * tanHalfFov * farPlane;
+  float farWidth = farHeight * aspectRatio;
+
+  // 获取相机方向向量
+  glm::vec3 position = camera.GetPosition();
+  glm::vec3 front = camera.GetFront();
+  glm::vec3 up = camera.GetUp();
+  glm::vec3 right = camera.GetRight();
+
+  // 计算近平面和远平面中心点
+  glm::vec3 nearCenter = position + front * nearPlane;
+  glm::vec3 farCenter = position + front * farPlane;
+
+  // 计算视锥体的8个顶点
+  std::array<glm::vec3, 8> frustumCorners;
+
+  // 近平面4个顶点
+  frustumCorners[0] = nearCenter + up * (nearHeight * 0.5f) -
+                      right * (nearWidth * 0.5f); // 左上
+  frustumCorners[1] = nearCenter + up * (nearHeight * 0.5f) +
+                      right * (nearWidth * 0.5f); // 右上
+  frustumCorners[2] = nearCenter - up * (nearHeight * 0.5f) -
+                      right * (nearWidth * 0.5f); // 左下
+  frustumCorners[3] = nearCenter - up * (nearHeight * 0.5f) +
+                      right * (nearWidth * 0.5f); // 右下
+
+  // 远平面4个顶点
+  frustumCorners[4] =
+      farCenter + up * (farHeight * 0.5f) - right * (farWidth * 0.5f); // 左上
+  frustumCorners[5] =
+      farCenter + up * (farHeight * 0.5f) + right * (farWidth * 0.5f); // 右上
+  frustumCorners[6] =
+      farCenter - up * (farHeight * 0.5f) - right * (farWidth * 0.5f); // 左下
+  frustumCorners[7] =
+      farCenter - up * (farHeight * 0.5f) + right * (farWidth * 0.5f); // 右下
+
+  // 计算包围球中心(所有顶点的平均值)
+  glm::vec3 center = glm::vec3(0.0f);
+  for (const auto &corner : frustumCorners) {
+    center += corner;
+  }
+  center /= 8.0f;
+
+  // 计算包围球半径(最远顶点到中心的距离)
+  float radius = 0.0f;
+  for (const auto &corner : frustumCorners) {
+    float distance = glm::length(corner - center);
+    radius = glm::max(radius, distance);
+  }
+
+  outCenter = center;
+  outRadius = radius;
+}
+
+void RenderCore::SetShadowMapResolution(uint32_t res) {
+  // 重建Shadow Map需要等待设备空闲
+  vkDeviceWaitIdle(m_Device);
+
+  // 销毁旧资源
+  if (m_ShadowMap.view != VK_NULL_HANDLE) {
+    vkDestroyImageView(m_Device, m_ShadowMap.view, nullptr);
+    vkDestroyImage(m_Device, m_ShadowMap.image, nullptr);
+    vkFreeMemory(m_Device, m_ShadowMap.memory, nullptr);
+  }
+  for (auto fb : m_ShadowFramebuffers) {
+    vkDestroyFramebuffer(m_Device, fb, nullptr);
+  }
+  m_ShadowFramebuffers.clear();
+
+  // 更新分辨率
+  m_PCSSSettings.shadowMapRes = res;
+
+  // 重建资源
+  CreateShadowMap();
+
+  // 重建Framebuffer
+  VkFramebufferCreateInfo framebufferInfo{};
+  framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  framebufferInfo.renderPass = m_ShadowRenderPass;
+  framebufferInfo.attachmentCount = 1;
+  framebufferInfo.pAttachments = &m_ShadowMap.view;
+  framebufferInfo.width = res;
+  framebufferInfo.height = res;
+  framebufferInfo.layers = 1;
+
+  m_ShadowFramebuffers.resize(1);
+  if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr,
+                          &m_ShadowFramebuffers[0]) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to recreate shadow framebuffer!");
+  }
+
+  // 更新描述符集中的Shadow Map绑定
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    VkDescriptorImageInfo shadowMapInfo{};
+    shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    shadowMapInfo.imageView = m_ShadowMap.view;
+    shadowMapInfo.sampler = m_ShadowSampler;
+
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_CompositionGBufferDescriptorSets[i];
+    descriptorWrite.dstBinding = 5; // Shadow Map binding
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &shadowMapInfo;
+
+    vkUpdateDescriptorSets(m_Device, 1, &descriptorWrite, 0, nullptr);
+  }
+
+  LOG_I("Shadow Map resolution changed to: {}x{}", res, res);
+}
+
+void RenderCore::CreateShadowUniformBuffers() {
+  VkDeviceSize bufferSize = sizeof(ShadowUBO);
+
+  m_ShadowUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  m_ShadowUniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  m_ShadowUniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 m_ShadowUniformBuffers[i], m_ShadowUniformBuffersMemory[i]);
+
+    vkMapMemory(m_Device, m_ShadowUniformBuffersMemory[i], 0, bufferSize, 0,
+                &m_ShadowUniformBuffersMapped[i]);
+  }
+}
+
+void RenderCore::CreateShadowDescriptorSets() {
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
+                                             m_GeometryDescriptorSetLayout);
+
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = m_DescriptorPool;
+  allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  allocInfo.pSetLayouts = layouts.data();
+
+  m_ShadowDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  if (vkAllocateDescriptorSets(m_Device, &allocInfo,
+                               m_ShadowDescriptorSets.data()) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to allocate shadow descriptor sets!");
+  }
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    VkDescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = m_ShadowUniformBuffers[i];
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(ShadowUBO);
+
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_ShadowDescriptorSets[i];
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+
+    vkUpdateDescriptorSets(m_Device, 1, &descriptorWrite, 0, nullptr);
   }
 }
 

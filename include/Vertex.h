@@ -85,6 +85,13 @@ struct UniformBufferObject {
 };
 
 /**
+ * @brief Shadow Pass Uniform Buffer - Light VP矩阵
+ */
+struct ShadowUBO {
+  alignas(16) glm::mat4 lightVP;
+};
+
+/**
  * @brief 光照数据 Uniform Buffer (方向光)
  */
 struct LightDataUBO {
@@ -119,6 +126,22 @@ struct PointLightsUBO {
   PointLight lights[MAX_POINT_LIGHTS];
   uint32_t count;
   float _pad[3];
+};
+
+/**
+ * @brief PCSS阴影参数 Uniform Buffer
+ */
+struct PCSSParamsUBO {
+  alignas(4) float u_LightSize;               // 光源大小
+  alignas(4) float u_ShadowDistance;          // 阴影距离
+  alignas(4) uint32_t u_BlockerSamples;       // 遮挡物采样数
+  alignas(4) uint32_t u_PCFSamples;           // PCF采样数
+  alignas(4) uint32_t u_ShadowMapRes;         // 阴影贴图分辨率
+  alignas(4) uint32_t enableDirectionalLight; // 启用平行光
+  alignas(4) uint32_t enableShadow;           // 启用阴影
+  alignas(4) float u_Bias;                    // Shadow Bias
+  alignas(4) float u_MinFilterSize;           // 最小滤波半径(像素)
+  // alignas(4) float _pad; // Removed padding
 };
 
 } // namespace neurender

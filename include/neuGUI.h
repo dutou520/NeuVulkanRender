@@ -58,7 +58,6 @@ private:
   static void CreateSphere();
   static void CreatePlane();
   static void CreatePointLight();
-  static void CreateDirectionalLight();
   static void CreateCamera();
   static void DeleteSelectedNode();
 

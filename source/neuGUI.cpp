@@ -324,16 +324,8 @@ void EditorGUI::MenuFile() {
 
     ImGui::Separator();
 
-    if (ImGui::MenuItem("关闭项目")) {
-      // 关闭当前项目
-      RenderCore::SetCurrentProject(nullptr);
-      s_Scenes.clear();
-      s_CurrentScene = nullptr;
-      s_ActiveSceneIndex = -1;
-      s_SelectedNode = nullptr;
-      s_CurrentPath = "";
-      s_SelectedFile = "";
-      LOG_I("Project closed");
+    if (ImGui::MenuItem("退出渲染器")) {
+      Window::RequestClose();
     }
 
     ImGui::EndMenu();
@@ -375,9 +367,6 @@ void EditorGUI::MenuCreate() {
     if (ImGui::BeginMenu("光源", s_CurrentScene != nullptr)) {
       if (ImGui::MenuItem("点光源")) {
         CreatePointLight();
-      }
-      if (ImGui::MenuItem("方向光")) {
-        CreateDirectionalLight();
       }
       ImGui::EndMenu();
     }
@@ -852,9 +841,110 @@ void EditorGUI::RenderInspector() {
   switch (s_CurrentInspectorTab) {
   case 0: // World
   {
-    ImGui::Text("World Environment Settings");
+    ImGui::Text("世界环境设置");
     ImGui::Separator();
-    ImGui::Text("Ambient Light (TODO)");
+
+    // ========== 平行光设置 ==========
+    ImGui::Text("平行光设置");
+    ImGui::Separator();
+
+    auto &pcssSettings = RenderCore::GetPCSSSettings();
+
+    // 平行光开关
+    bool enableDirLight = pcssSettings.enableDirectionalLight;
+    if (ImGui::Checkbox("启用平行光", &enableDirLight)) {
+      pcssSettings.enableDirectionalLight = enableDirLight;
+      LOG_I("enableDirLight: {}", enableDirLight);
+    }
+
+    // 阴影开关
+    bool enableShadow = pcssSettings.enableShadow;
+    if (ImGui::Checkbox("启用阴影", &enableShadow)) {
+      pcssSettings.enableShadow = enableShadow;
+      LOG_I("enableShadow: {}", enableShadow);
+    }
+
+    ImGui::Spacing();
+
+    // 光源方向
+    glm::vec3 lightDir = pcssSettings.lightDirection;
+    if (ImGui::DragFloat3("光源方向", &lightDir.x, 0.01f, -1.0f, 1.0f)) {
+      if (glm::length(lightDir) > 0.001f) {
+        pcssSettings.lightDirection = glm::normalize(lightDir);
+      }
+    }
+
+    // 光源大小
+    float lightSize = pcssSettings.lightSize;
+    if (ImGui::SliderFloat("光源大小", &lightSize, 0.1f, 100.0f)) {
+      pcssSettings.lightSize = lightSize;
+    }
+
+    // 阴影距离
+    float shadowDist = pcssSettings.shadowDistance;
+    if (ImGui::SliderFloat("阴影距离", &shadowDist, 10.0f, 200.0f)) {
+      pcssSettings.shadowDistance = shadowDist;
+    }
+
+    // 阴影偏移 (Bias)
+    float shadowBias = pcssSettings.bias;
+    if (ImGui::SliderFloat("阴影偏移", &shadowBias, -0.003001f, 0.003001f,
+                           "%.6f")) {
+      pcssSettings.bias = shadowBias;
+    }
+
+    // 基础模糊
+    float minFilter = pcssSettings.minFilterSize;
+    if (ImGui::SliderFloat("基础模糊(px)", &minFilter, 0.0f, 10.0f)) {
+      pcssSettings.minFilterSize = minFilter;
+    }
+
+    ImGui::Spacing();
+    ImGui::Text("阴影质量设置");
+    ImGui::Separator();
+
+    // 遮挡物采样数
+    int blockerSamples = static_cast<int>(pcssSettings.blockerSamples);
+    if (ImGui::SliderInt("遮挡物采样数", &blockerSamples, 8, 32)) {
+      pcssSettings.blockerSamples = static_cast<uint32_t>(blockerSamples);
+      LOG_I("blockerSamples: {}", blockerSamples);
+    }
+
+    // PCF采样数
+    int pcfSamples = static_cast<int>(pcssSettings.pcfSamples);
+    if (ImGui::SliderInt("PCF采样数", &pcfSamples, 16, 64)) {
+      pcssSettings.pcfSamples = static_cast<uint32_t>(pcfSamples);
+      LOG_I("pcfSamples: {}", pcfSamples);
+    }
+
+    // 阴影贴图分辨率
+    const char *resOptions[] = {"1024", "2048", "4096"};
+    int currentResIdx = 1; // 默认2048
+    if (pcssSettings.shadowMapRes == 1024)
+      currentResIdx = 0;
+    else if (pcssSettings.shadowMapRes == 2048)
+      currentResIdx = 1;
+    else if (pcssSettings.shadowMapRes == 4096)
+      currentResIdx = 2;
+
+    if (ImGui::Combo("阴影贴图分辨率", &currentResIdx, resOptions, 3)) {
+      uint32_t newRes = 2048;
+      if (currentResIdx == 0)
+        newRes = 1024;
+      else if (currentResIdx == 1)
+        newRes = 2048;
+      else if (currentResIdx == 2)
+        newRes = 4096;
+
+      if (newRes != pcssSettings.shadowMapRes) {
+        pcssSettings.shadowMapRes = newRes;
+        RenderCore::SetShadowMapResolution(newRes);
+      }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("其他环境设置");
     ImGui::Text("Skybox (TODO)");
     ImGui::Text("Fog (TODO)");
   } break;
@@ -1865,12 +1955,6 @@ void EditorGUI::CreatePointLight() {
   pointLight->SetRadius(10.0f);
   s_CurrentScene->AddNode(std::move(pointLight));
   LOG_I("Created Point Light");
-}
-
-void EditorGUI::CreateDirectionalLight() {
-  auto node = std::make_unique<Node>("Directional Light");
-  s_CurrentScene->AddNode(std::move(node));
-  LOG_I("Created Directional Light");
 }
 
 void EditorGUI::CreateCamera() {
