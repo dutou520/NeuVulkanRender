@@ -12,6 +12,7 @@ file(REMOVE_RECURSE
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.vert.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.frag.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.vert.spv"
+  "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/taa.comp.spv"
 )
 
 # Per-language clean rules from dependency scanning.

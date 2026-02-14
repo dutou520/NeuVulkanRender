@@ -483,6 +483,32 @@ void EditorGUI::MenuPerformance() {
     }
 
     ImGui::Separator();
+
+    // TAA Settings
+    bool taa = RenderCore::IsTAAEnabled();
+    if (ImGui::Checkbox("Enable TAA", &taa)) {
+      RenderCore::SetTAAEnabled(taa);
+    }
+
+    if (taa) {
+      float feedback = RenderCore::GetTAAFeedbackFactor();
+      if (ImGui::SliderFloat("TAA Feedback", &feedback, 0.0f, 0.99f)) {
+        RenderCore::SetTAAFeedbackFactor(feedback);
+      }
+    }
+
+    // Super Resolution
+    float scale = RenderCore::GetSuperResolutionScale();
+    if (ImGui::SliderFloat("Super Resolution Scale", &scale, 1.0f, 2.0f,
+                           "%.2f")) {
+      RenderCore::SetSuperResolutionScale(scale);
+    }
+
+    if (ImGui::Button("Apply Resolution Changes")) {
+      RenderCore::ApplyResolutionChanges();
+    }
+
+    ImGui::Separator();
     ImGui::Text("当前 FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::Text("帧时间: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
 

@@ -201,6 +201,7 @@ if(GLSLC_EXE)
     file(GLOB_RECURSE GLSL_SOURCE_FILES 
         "${CMAKE_SOURCE_DIR}/resource/shaders/glsl/*.vert"
         "${CMAKE_SOURCE_DIR}/resource/shaders/glsl/*.frag"
+        "${CMAKE_SOURCE_DIR}/resource/shaders/glsl/*.comp"
     )
 
     set(SPV_OUTPUT_FILES "")

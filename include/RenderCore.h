@@ -51,10 +51,10 @@ private:
   static void CreateSurface();
   static void PickPhysicalDevice();
   static void CreateLogicalDevice();
-  static void CreateSwapchain();
+  static void CreateSwapchain(VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
   static void CreateImageViews();
   static void CreateRenderPass();
-  static void CreateFramebuffers();
+  static void CreateSwapchainFramebuffers();
   static void CreateCommandPool();
   static void CreateCommandBuffers();
   static void CreateSyncObjects();
@@ -65,6 +65,7 @@ private:
 
   static void CleanupSwapchain();
   static void RecreateSwapchain();
+  static void RecreateRenderResolutionResources(); // 重建分辨率相关资源
 
   static void RecordCommandBuffer(VkCommandBuffer commandBuffer,
                                   uint32_t imageIndex);
@@ -133,8 +134,9 @@ private:
                            VkDeviceMemory &bufferMemory);
   static uint32_t FindMemoryType(uint32_t typeFilter,
                                  VkMemoryPropertyFlags properties);
-  static void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer,
-                         VkDeviceSize size);
+  static VkCommandBuffer CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer,
+                                    VkDeviceSize size,
+                                    VkFence fence = VK_NULL_HANDLE);
 
   // Vulkan Members
 
@@ -223,6 +225,22 @@ private:
   // 交换链图像范围：指定交换链图像的尺寸（宽/高），通常与窗口尺寸一致
   // 若窗口 resize，需重新创建交换链并更新该尺寸
   static VkExtent2D m_SwapchainExtent;
+
+  // 渲染分辨率 (用于GBuffer和TAA输入)
+  static VkExtent2D m_RenderExtent;
+  static float m_SuperResolutionScale; // 1.0 = Native, 2.0 = Half Res Render
+  static bool m_TAAEnabled;
+  static float m_TAAFeedbackFactor;
+
+  // TAA 资源
+  static GBufferAttachment m_TAAHistoryTexture; // High Res (Presentation Size)
+  static VkImage m_TAAHistoryImage;
+  static VkDeviceMemory m_TAAHistoryMemory;
+  static VkImageView m_TAAHistoryView;
+
+  // Jitter
+  static uint32_t m_FrameCount;
+  static glm::mat4 m_PrevViewProj; // 上一帧的 VP 矩阵
 
   // 交换链图像视图：VkImage
   // 的"视图"封装，定义了图像的访问方式（如采样方式、通道掩码） Vulkan
@@ -345,6 +363,23 @@ private:
 
   // 噪声纹理(64x64蓝噪声)
   static TextureResource m_NoiseTexture;
+
+  // TAA Pipeline
+  static VkPipeline m_TAAPipeline;
+  static VkPipelineLayout m_TAAPipelineLayout;
+  static VkDescriptorSetLayout m_TAADescriptorSetLayout;
+  static std::vector<VkDescriptorSet>
+      m_TAADescriptorSets; // Per frame (ping-pong history?) or simpler
+
+  // TAA 需要两个 High Res 纹理。
+  static GBufferAttachment
+      m_TAAHistoryTextures[2]; // 0: History, 1: Result (Ping-Pong)
+
+  static void CreateTAAResources();
+  static void CreateTAAPipeline();
+  static void CreateTAADescriptorSets();
+  static void RecordTAAPass(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+  static void UpdateFrameDescriptors();
 
   // PCSS参数Uniform Buffer
   static std::vector<VkBuffer> m_PCSSParamsBuffers;
@@ -488,6 +523,17 @@ public:
   static PCSSSettings &GetPCSSSettings() { return m_PCSSSettings; }
   static void SetShadowMapResolution(uint32_t res);
 
+  // ========== TAA & Super Resolution 接口 ==========
+  static void SetSuperResolutionScale(float scale);
+  static float GetSuperResolutionScale() { return m_SuperResolutionScale; }
+  static void SetTAAEnabled(bool enabled) { m_TAAEnabled = enabled; }
+  static bool IsTAAEnabled() { return m_TAAEnabled; }
+  static void ApplyResolutionChanges(); // 触发重建
+  static void SetTAAFeedbackFactor(float factor) {
+    m_TAAFeedbackFactor = factor;
+  }
+  static float GetTAAFeedbackFactor() { return m_TAAFeedbackFactor; }
+
   // ========== 模型加载方法 ==========
   /**
    * @brief 从OBJ文件加载模型
@@ -517,9 +563,15 @@ public:
 
 private:
   // 自定义几何体数据
+  // 自定义几何体数据
   static std::vector<Vertex> m_CustomVertices;
   static std::vector<uint32_t> m_CustomIndices;
   static bool m_UseCustomGeometry;
+
+  // Async Command Buffer Tracking
+  static std::vector<std::pair<VkFence, VkCommandBuffer>>
+      m_ActiveAsyncCommandBuffers;
+  static void CleanupAsyncCommandBuffers();
 
   // 工程管理
   static std::shared_ptr<Project> m_CurrentProject;

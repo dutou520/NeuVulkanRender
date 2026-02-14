@@ -18,6 +18,11 @@ glm::mat4 Camera::GetProjectionMatrix(float aspectRatio) const {
                                     m_NearPlane, m_FarPlane);
   // Vulkan Y轴翻转
   proj[1][1] *= -1;
+
+  // TAA Jitter
+  proj[2][0] += m_JitterOffset.x;
+  proj[2][1] += m_JitterOffset.y;
+
   return proj;
 }
 

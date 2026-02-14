@@ -179,6 +179,22 @@ std::vector<void *> RenderCore::m_CameraUniformBuffersMapped;
 // 后处理设置
 RenderCore::PostProcessSettings RenderCore::m_PostProcessSettings;
 
+// TAA & Super Resolution
+VkExtent2D RenderCore::m_RenderExtent = {0, 0};   // Init to 0
+float RenderCore::m_SuperResolutionScale = 1.25f; // 默认
+
+bool RenderCore::m_TAAEnabled = true;
+float RenderCore::m_TAAFeedbackFactor = 0.95f;
+
+GBufferAttachment RenderCore::m_TAAHistoryTextures[2];
+VkPipeline RenderCore::m_TAAPipeline = VK_NULL_HANDLE;
+VkPipelineLayout RenderCore::m_TAAPipelineLayout = VK_NULL_HANDLE;
+VkDescriptorSetLayout RenderCore::m_TAADescriptorSetLayout = VK_NULL_HANDLE;
+std::vector<VkDescriptorSet> RenderCore::m_TAADescriptorSets;
+
+uint32_t RenderCore::m_FrameCount = 0;
+glm::mat4 RenderCore::m_PrevViewProj = glm::mat4(1.0f);
+
 // ========== 场景对象静态成员定义 ==========
 std::vector<RenderCore::RenderObject> RenderCore::m_RenderObjects;
 glm::mat4 RenderCore::m_LightVP = glm::mat4(1.0f);
@@ -275,11 +291,15 @@ void RenderCore::Init() {
   CreateDefaultMaterial(); // Create default material
 
   // ========== 核心资源初始化 (纹理/缓冲) ==========
+  // 初始渲染分辨率等于交换链分辨率 (除非手动设置了Scale)
+  m_RenderExtent.width = m_SwapchainExtent.width / m_SuperResolutionScale;
+  m_RenderExtent.height = m_SwapchainExtent.height / m_SuperResolutionScale;
+
   CreateGBuffer();           // 创建 GBuffer 资源
   CreateSampler();           // 创建全局采样器
   CreateSceneRenderTarget(); // 创建HDR场景渲染目标
-  CreateSSAOResources();     // 创建SSAO资源
-  CreateBloomResources();    // 创建Bloom资源
+  CreateSSAOResources();     // 创建SSAO资源 (Low Res)
+  CreateBloomResources();    // 创建Bloom资源 (High Res? 需确认)
 
   // ========== 延迟渲染逻辑初始化 ==========
   CreateGBufferRenderPass(); // 创建 GBuffer 渲染通道
@@ -312,11 +332,16 @@ void RenderCore::Init() {
   CreatePostProcessRenderPass(); // 创建后处理渲染通道 (作为最终Pass)
 
   // 创建最终Swapchain Framebuffers (依赖 PostProcessRenderPass)
-  CreateFramebuffers();
+  CreateSwapchainFramebuffers();
 
   CreatePostProcessPipeline();       // 创建后处理管线
   CreateBloomPipelines();            // 创建Bloom管线
   CreatePostProcessDescriptorSets(); // 创建后处理描述符集
+
+  // ========== TAA 初始化 ==========
+  CreateTAAResources();
+  CreateTAAPipeline();
+  CreateTAADescriptorSets();
 
   CreateCommandBuffers(); // Create command buffers (依赖 RenderPass)
   CreateSyncObjects();    // Create semaphores and fences
@@ -707,7 +732,7 @@ void RenderCore::CreateLogicalDevice() {
   vkGetDeviceQueue(m_Device, presentFamily, 0, &m_PresentQueue);
 }
 
-void RenderCore::CreateSwapchain() {
+void RenderCore::CreateSwapchain(VkSwapchainKHR oldSwapchain) {
   VkSurfaceCapabilitiesKHR capabilities;
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Surface,
                                             &capabilities);
@@ -790,7 +815,7 @@ void RenderCore::CreateSwapchain() {
 
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = oldSwapchain;
 
   if (vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_Swapchain) !=
       VK_SUCCESS) {
@@ -874,7 +899,7 @@ void RenderCore::CreateRenderPass() {
   }
 }
 
-void RenderCore::CreateFramebuffers() {
+void RenderCore::CreateSwapchainFramebuffers() {
   m_SwapchainFramebuffers.resize(m_SwapchainImageViews.size());
   for (size_t i = 0; i < m_SwapchainImageViews.size(); i++) {
     VkImageView attachments[] = {m_SwapchainImageViews[i]};
@@ -1224,7 +1249,7 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     gbufferPassInfo.renderPass = m_GBufferRenderPass;
     gbufferPassInfo.framebuffer = m_GBuffer.GetFramebuffer(m_CurrentFrame);
     gbufferPassInfo.renderArea.offset = {0, 0};
-    gbufferPassInfo.renderArea.extent = m_SwapchainExtent;
+    gbufferPassInfo.renderArea.extent = m_RenderExtent;
 
     // 5 clear values: 4 color + 1 depth
     std::array<VkClearValue, 5> clearValues{};
@@ -1248,15 +1273,15 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(m_SwapchainExtent.width);
-    viewport.height = static_cast<float>(m_SwapchainExtent.height);
+    viewport.width = static_cast<float>(m_RenderExtent.width);
+    viewport.height = static_cast<float>(m_RenderExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = m_SwapchainExtent;
+    scissor.extent = m_RenderExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     // Bind descriptor set (UBO)
@@ -1330,7 +1355,7 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     compositionPassInfo.framebuffer =
         m_CompositionFramebuffers[m_CurrentFrame]; // SCENE color
     compositionPassInfo.renderArea.offset = {0, 0};
-    compositionPassInfo.renderArea.extent = m_SwapchainExtent;
+    compositionPassInfo.renderArea.extent = m_RenderExtent;
 
     VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
     compositionPassInfo.clearValueCount = 1;
@@ -1353,7 +1378,7 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
                             0, nullptr);
 
     glm::vec2 viewportSize =
-        glm::vec2(m_SwapchainExtent.width, m_SwapchainExtent.height);
+        glm::vec2(m_RenderExtent.width, m_RenderExtent.height);
     vkCmdPushConstants(commandBuffer, m_CompositionPipelineLayout,
                        VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::vec2),
                        &viewportSize);
@@ -1370,7 +1395,7 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     forwardPassInfo.renderPass = m_ForwardRenderPass;
     forwardPassInfo.framebuffer = g_ForwardFramebuffers[m_CurrentFrame];
     forwardPassInfo.renderArea.offset = {0, 0};
-    forwardPassInfo.renderArea.extent = m_SwapchainExtent;
+    forwardPassInfo.renderArea.extent = m_RenderExtent;
     forwardPassInfo.clearValueCount = 0; // Load Op
 
     vkCmdBeginRenderPass(commandBuffer, &forwardPassInfo,
@@ -1382,15 +1407,15 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(m_SwapchainExtent.width);
-    viewport.height = static_cast<float>(m_SwapchainExtent.height);
+    viewport.width = static_cast<float>(m_RenderExtent.width);
+    viewport.height = static_cast<float>(m_RenderExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = m_SwapchainExtent;
+    scissor.extent = m_RenderExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     vkCmdBindDescriptorSets(
@@ -1458,6 +1483,11 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
       vkCmdDrawIndexed(commandBuffer, obj.indexCount, 1, 0, 0, 0);
     }
     vkCmdEndRenderPass(commandBuffer);
+  }
+
+  // ========== Pass 3.2: TAA Pass ==========
+  if (m_TAAEnabled) {
+    RecordTAAPass(commandBuffer, imageIndex);
   }
 
   // ========== Pass 3.5: Bloom Pass ==========
@@ -1620,6 +1650,17 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
   }
 }
 
+float Halton(int index, int base) {
+  float f = 1;
+  float r = 0;
+  while (index > 0) {
+    f = f / (float)base;
+    r = r + f * (index % base);
+    index = index / base;
+  }
+  return r;
+}
+
 void RenderCore::DrawFrame() {
   // 1. 时间与帧率限制
   float currentTime = SDL_GetTicks() / 1000.0f;
@@ -1675,6 +1716,20 @@ void RenderCore::DrawFrame() {
   vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame],
                        /*VkCommandBufferResetFlagBits*/ 0);
 
+  // Update Jitter for TAA
+  if (m_TAAEnabled) {
+    // Halton(2,3) sequence
+    float jx = (Halton((m_FrameCount % 16) + 1, 2) - 0.5f);
+    float jy = (Halton((m_FrameCount % 16) + 1, 3) - 0.5f);
+    m_Camera.SetJitter(jx / (float)m_RenderExtent.width * 1.98f,
+                       jy / (float)m_RenderExtent.height * 1.98f);
+  } else {
+    m_Camera.SetJitter(0.0f, 0.0f);
+  }
+
+  // Update Descriptors for TAA / Bloom / PostProcess switch
+  UpdateFrameDescriptors();
+
   // 处理输入（相机控制）
   ProcessInput();
 
@@ -1724,6 +1779,17 @@ void RenderCore::DrawFrame() {
   presentInfo.pImageIndices = &imageIndex;
 
   result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+
+  // End of Frame Logic
+  // Save Unjittered VP for next frame's TAA
+  m_Camera.SetJitter(0.0f, 0.0f); // Reset jitter to get clean VP
+  float aspectRatio =
+      (float)m_RenderExtent.width / (float)m_RenderExtent.height;
+  m_PrevViewProj =
+      m_Camera.GetProjectionMatrix(aspectRatio) * m_Camera.GetViewMatrix();
+
+  m_FrameCount++;
+  m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       m_FramebufferResized) {
@@ -1782,23 +1848,56 @@ void RenderCore::RecreateSwapchain() {
     SDL_Delay(1);
   }
 
-  vkDeviceWaitIdle(m_Device);
+  // vkDeviceWaitIdle(m_Device); // ❌ Remove full wait
 
-  CleanupSwapchain();
+  // 1. Store old swapchain
+  VkSwapchainKHR oldSwapchain = m_Swapchain;
 
-  // Destroy resources that depend on swapchain size
-  m_GBuffer.ClearResources(m_Device); // Use ClearResources to keep RenderPass
+  // 2. Destroy only resources that MUST be destroyed before creating new ones?
+  // Actually, we can keep old images alive until new ones are ready, IF we have
+  // memory. But Reuse often requires destroying old Framebuffers if they depend
+  // on old ImageViews.
 
-  for (auto &sc : m_SceneColor) {
-    if (sc.view != VK_NULL_HANDLE) {
-      vkDestroyImageView(m_Device, sc.view, nullptr);
-      vkDestroyImage(m_Device, sc.image, nullptr);
-      vkFreeMemory(m_Device, sc.memory, nullptr);
-      sc.view = VK_NULL_HANDLE;
-    }
+  // Cleanup OLD swapchain-dependent resources (Framebuffers, ImageViews)
+  // We need to be careful: if we destroy them here, and they are in use, we
+  // crash. So we must wait for queue idle at least.
+
+  vkQueueWaitIdle(m_PresentQueue);
+  vkQueueWaitIdle(m_GraphicsQueue);
+
+  // Cleanup Swapchain-specific resources (Framebuffers & Views)
+  for (auto framebuffer : m_SwapchainFramebuffers) {
+    vkDestroyFramebuffer(m_Device, framebuffer, nullptr);
   }
-  m_SceneColor.clear();
+  m_SwapchainFramebuffers.clear();
 
+  // Cleanup Bloom Framebuffers (Swapchain dependent)
+  if (m_BloomBrightFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBrightFramebuffer, nullptr);
+    m_BloomBrightFramebuffer = VK_NULL_HANDLE;
+  }
+  if (m_BloomBlurFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_BloomBlurFramebuffer, nullptr);
+    m_BloomBlurFramebuffer = VK_NULL_HANDLE;
+  }
+
+  for (auto imageView : m_SwapchainImageViews) {
+    vkDestroyImageView(m_Device, imageView, nullptr);
+  }
+  m_SwapchainImageViews.clear();
+
+  // 3. Create new swapchain using old one
+  CreateSwapchain(oldSwapchain);
+
+  // 4. Recreate dependent resources
+  CreateImageViews();
+
+  // Recreate Render Resolution dependent resources
+  // This calls CreateGBuffer, CreateCompositionFramebuffers,
+  // CreateForwardFramebuffers etc.
+  RecreateRenderResolutionResources();
+
+  // Recreate Bloom Resources
   if (m_BloomBrightTexture.view != VK_NULL_HANDLE) {
     vkDestroyImageView(m_Device, m_BloomBrightTexture.view, nullptr);
     vkDestroyImage(m_Device, m_BloomBrightTexture.image, nullptr);
@@ -1811,32 +1910,27 @@ void RenderCore::RecreateSwapchain() {
     vkFreeMemory(m_Device, m_BloomBlurTexture.memory, nullptr);
     m_BloomBlurTexture.view = VK_NULL_HANDLE;
   }
-
-  // Re-create everything
-  CreateSwapchain();
-  CreateImageViews();
-  CreateRenderFinishedSemaphores();
-  CreateGBuffer();
-  CreateSceneRenderTarget();
   CreateBloomResources();
 
-  // Recreate all framebuffers
-  CreateGBufferFramebuffers();
-  CreateCompositionFramebuffers();
-  CreateFramebuffers();
+  // Create Framebuffers
+  CreateSwapchainFramebuffers();
   CreateBloomFramebuffers();
-  CreateForwardFramebuffers();
+  // Wait, CreateFramebuffers() calls:
+  // CreateGBufferFramebuffers (if they exist?) No, CreateFramebuffers calls:
+  /*
+    CreateGBufferFramebuffers(); // Actually GBuffer FBOs are inside GBuffer
+    class? No. Check CreateFramebuffers implementation.
+  */
 
-  // CreateDescriptorSets and CreatePostProcessDescriptorSets allocate and
-  // update. This might lead to gradual descriptor pool fill-up, but since it's
-  // a large pool and Resizing is relatively rare, it's a functional fix for
-  // now. Proper fix would be resetting the pool or separating allocation from
-  // update.
+  // Recreate descriptors (Status Quo: Leak existing sets, alloc new ones)
   CreateDescriptorSets();
   CreatePostProcessDescriptorSets();
 
   LOG_I("Swapchain recreated: {0}x{1}", m_SwapchainExtent.width,
         m_SwapchainExtent.height);
+
+  // 5. Destroy old swapchain
+  vkDestroySwapchainKHR(m_Device, oldSwapchain, nullptr);
 }
 
 // ========== 辅助函数实现 ==========
@@ -1918,8 +2012,8 @@ void RenderCore::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
   vkBindBufferMemory(m_Device, buffer, bufferMemory, 0);
 }
 
-void RenderCore::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer,
-                            VkDeviceSize size) {
+VkCommandBuffer RenderCore::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer,
+                                       VkDeviceSize size, VkFence fence) {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -1946,17 +2040,29 @@ void RenderCore::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer,
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &commandBuffer;
 
-  vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-  vkQueueWaitIdle(m_GraphicsQueue);
-
-  vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &commandBuffer);
+  if (fence != VK_NULL_HANDLE) {
+    vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, fence);
+    return commandBuffer;
+  } else {
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    VkFence localFence;
+    if (vkCreateFence(m_Device, &fenceInfo, nullptr, &localFence) ==
+        VK_SUCCESS) {
+      vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, localFence);
+      vkWaitForFences(m_Device, 1, &localFence, VK_TRUE, UINT64_MAX);
+      vkDestroyFence(m_Device, localFence, nullptr);
+    }
+    vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &commandBuffer);
+    return VK_NULL_HANDLE;
+  }
 }
 
 // ========== GBuffer 系统实现 ==========
 
 void RenderCore::CreateGBuffer() {
-  m_GBuffer.Create(m_Device, m_PhysicalDevice, m_SwapchainExtent.width,
-                   m_SwapchainExtent.height, MAX_FRAMES_IN_FLIGHT);
+  m_GBuffer.Create(m_Device, m_PhysicalDevice, m_RenderExtent.width,
+                   m_RenderExtent.height, MAX_FRAMES_IN_FLIGHT);
   LOG_I("GBuffer created successfully with {} frames", MAX_FRAMES_IN_FLIGHT);
 }
 
@@ -2075,8 +2181,8 @@ void RenderCore::CreateGBufferFramebuffers() {
     framebufferInfo.attachmentCount =
         static_cast<uint32_t>(gbufferAttachments.size());
     framebufferInfo.pAttachments = gbufferAttachments.data();
-    framebufferInfo.width = m_SwapchainExtent.width;
-    framebufferInfo.height = m_SwapchainExtent.height;
+    framebufferInfo.width = m_RenderExtent.width;
+    framebufferInfo.height = m_RenderExtent.height;
     framebufferInfo.layers = 1;
 
     VkFramebuffer fb;
@@ -2163,8 +2269,8 @@ void RenderCore::CreateCompositionFramebuffers() {
     framebufferInfo.renderPass = m_CompositionRenderPass;
     framebufferInfo.attachmentCount = 1;
     framebufferInfo.pAttachments = attachments;
-    framebufferInfo.width = m_SwapchainExtent.width;
-    framebufferInfo.height = m_SwapchainExtent.height;
+    framebufferInfo.width = m_RenderExtent.width;
+    framebufferInfo.height = m_RenderExtent.height;
     framebufferInfo.layers = 1;
 
     if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr,
@@ -3267,8 +3373,8 @@ void RenderCore::CreateForwardFramebuffers() {
     framebufferInfo.attachmentCount =
         static_cast<uint32_t>(fbAttachments.size());
     framebufferInfo.pAttachments = fbAttachments.data();
-    framebufferInfo.width = m_SwapchainExtent.width;
-    framebufferInfo.height = m_SwapchainExtent.height;
+    framebufferInfo.width = m_RenderExtent.width;
+    framebufferInfo.height = m_RenderExtent.height;
     framebufferInfo.layers = 1;
 
     if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr,
@@ -3466,8 +3572,8 @@ void RenderCore::CreateSceneRenderTarget() {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = m_SwapchainExtent.width;
-    imageInfo.extent.height = m_SwapchainExtent.height;
+    imageInfo.extent.width = m_RenderExtent.width;
+    imageInfo.extent.height = m_RenderExtent.height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
@@ -5730,6 +5836,612 @@ void RenderCore::CreateShadowDescriptorSets() {
 
     vkUpdateDescriptorSets(m_Device, 1, &descriptorWrite, 0, nullptr);
   }
+}
+
+// ========== TAA & Super Resolution Management ==========
+
+void RenderCore::SetSuperResolutionScale(float scale) {
+  m_SuperResolutionScale = std::clamp(scale, 1.0f, 2.0f);
+  LOG_I("Super Resolution Scale set to {:.2f} (Effective on next Apply)",
+        m_SuperResolutionScale);
+}
+
+void RenderCore::ApplyResolutionChanges() {
+  vkDeviceWaitIdle(m_Device);
+  RecreateRenderResolutionResources();
+}
+
+void RenderCore::RecreateRenderResolutionResources() {
+  // 1. Calculate new Render Resolution
+  int width =
+      static_cast<int>(m_SwapchainExtent.width / m_SuperResolutionScale);
+  int height =
+      static_cast<int>(m_SwapchainExtent.height / m_SuperResolutionScale);
+  width = std::max(1, width);
+  height = std::max(1, height);
+
+  m_RenderExtent = {static_cast<uint32_t>(width),
+                    static_cast<uint32_t>(height)};
+
+  LOG_I("Recreating Render Resources. Render Resolution: {}x{} (Display: "
+        "{}x{}, Scale: {:.2f})",
+        m_RenderExtent.width, m_RenderExtent.height, m_SwapchainExtent.width,
+        m_SwapchainExtent.height, m_SuperResolutionScale);
+
+  // 2. Clean up Low Res Resources
+  // GBuffer
+  m_GBuffer.ClearResources(m_Device);
+
+  // Scene Color
+  for (auto &sc : m_SceneColor) {
+    if (sc.view)
+      vkDestroyImageView(m_Device, sc.view, nullptr);
+    if (sc.image)
+      vkDestroyImage(m_Device, sc.image, nullptr);
+    if (sc.memory)
+      vkFreeMemory(m_Device, sc.memory, nullptr);
+  }
+  m_SceneColor.clear();
+
+  // Clean up Framebuffers that depend on Low Res Resources
+  for (auto fb : m_CompositionFramebuffers) {
+    if (fb)
+      vkDestroyFramebuffer(m_Device, fb, nullptr);
+  }
+  m_CompositionFramebuffers.clear();
+
+  for (auto fb : g_ForwardFramebuffers) {
+    if (fb)
+      vkDestroyFramebuffer(m_Device, fb, nullptr);
+  }
+  g_ForwardFramebuffers.clear();
+
+  // SSAO (Low Res if we want SSAO to be cheaper, usually yes)
+  if (m_SSAONoise.view) {
+    // Actually m_SSAONoise is small texture, no need to recreate.
+    // But SSAO Attachments (Color/Blur) need recreation.
+    // Assuming CreateSSAOResources handles this if we call Destroy first.
+    // But we don't have a DestroySSAOResources function yet.
+    // For now, let's assume SSAO is tied to SwapchainExtent as before?
+    // No, we should make SSAO RenderExtent size.
+    // TODO: Implement proper SSAO cleanup/recreation.
+  }
+
+  // 3. Recreate Resources
+  CreateGBuffer();
+  CreateSceneRenderTarget();
+
+  // 4. Recreate Framebuffers
+  CreateGBufferFramebuffers();
+  CreateCompositionFramebuffers();
+  CreateForwardFramebuffers();
+
+  // 5. Update Descriptor Sets
+  // Composition Pass needs new GBuffer views
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    std::vector<VkImageView> views;
+    views.push_back(m_GBuffer.GetColorAttachmentViews(i)[0]); // Albedo
+    views.push_back(m_GBuffer.GetColorAttachmentViews(i)[1]); // Normal
+    views.push_back(m_GBuffer.GetColorAttachmentViews(i)[2]); // PBR
+    views.push_back(
+        m_GBuffer.GetColorAttachmentViews(i)[3]); // Emissive? Check index
+
+    std::array<VkDescriptorImageInfo, 6> imageInfos{};
+    std::vector<VkImageView> colorViews = m_GBuffer.GetColorAttachmentViews(i);
+    // colorViews has 4 elements.
+
+    for (int j = 0; j < 4; j++) {
+      imageInfos[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      imageInfos[j].imageView = colorViews[j];
+      imageInfos[j].sampler = m_GBufferSampler; // Global sampler
+    }
+
+    // Depth
+    imageInfos[4].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    imageInfos[4].imageView = m_GBuffer.GetDepthView(i);
+    imageInfos[4].sampler = m_GBufferSampler;
+
+    // ShadowMap (Unchanged)
+    imageInfos[5].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfos[5].imageView = m_ShadowMap.view;
+    imageInfos[5].sampler = m_ShadowSampler;
+
+    std::array<VkWriteDescriptorSet, 6> descriptorWrites{};
+    for (int j = 0; j < 6; j++) {
+      descriptorWrites[j].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites[j].dstSet = m_CompositionGBufferDescriptorSets[i];
+      descriptorWrites[j].dstBinding = j;
+      descriptorWrites[j].dstArrayElement = 0;
+      descriptorWrites[j].descriptorType =
+          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      descriptorWrites[j].descriptorCount = 1;
+      descriptorWrites[j].pImageInfo = &imageInfos[j];
+    }
+
+    vkUpdateDescriptorSets(m_Device,
+                           static_cast<uint32_t>(descriptorWrites.size()),
+                           descriptorWrites.data(), 0, nullptr);
+  }
+
+  // Forward Pass Framebuffers are recreated.
+}
+
+// ========== TAA Implementation ==========
+
+// Helper functions for single time commands
+static VkCommandBuffer BeginSingleTimeCommands() {
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandPool = RenderCore::GetCommandPool();
+  allocInfo.commandBufferCount = 1;
+
+  VkCommandBuffer commandBuffer;
+  vkAllocateCommandBuffers(RenderCore::GetDevice(), &allocInfo, &commandBuffer);
+
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+  vkBeginCommandBuffer(commandBuffer, &beginInfo);
+  return commandBuffer;
+}
+
+static void EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
+  vkEndCommandBuffer(commandBuffer);
+
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+
+  vkQueueSubmit(RenderCore::GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+  vkQueueWaitIdle(RenderCore::GetGraphicsQueue());
+
+  vkFreeCommandBuffers(RenderCore::GetDevice(), RenderCore::GetCommandPool(), 1,
+                       &commandBuffer);
+}
+
+void RenderCore::CreateTAAResources() {
+  for (int i = 0; i < 2; i++) {
+    if (m_TAAHistoryTextures[i].view)
+      vkDestroyImageView(m_Device, m_TAAHistoryTextures[i].view, nullptr);
+    if (m_TAAHistoryTextures[i].image)
+      vkDestroyImage(m_Device, m_TAAHistoryTextures[i].image, nullptr);
+    if (m_TAAHistoryTextures[i].memory)
+      vkFreeMemory(m_Device, m_TAAHistoryTextures[i].memory, nullptr);
+    m_TAAHistoryTextures[i] = GBufferAttachment{};
+  }
+
+  for (int i = 0; i < 2; i++) {
+    VkImageCreateInfo imageInfo{};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = m_SwapchainExtent.width;
+    imageInfo.extent.height = m_SwapchainExtent.height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT |
+                      VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateImage(m_Device, &imageInfo, nullptr,
+                      &m_TAAHistoryTextures[i].image) != VK_SUCCESS) {
+      throw std::runtime_error("Failed to create TAA History Image!");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(m_Device, m_TAAHistoryTextures[i].image,
+                                 &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(
+        memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    if (vkAllocateMemory(m_Device, &allocInfo, nullptr,
+                         &m_TAAHistoryTextures[i].memory) != VK_SUCCESS) {
+      throw std::runtime_error("Failed to allocate TAA History Memory!");
+    }
+
+    vkBindImageMemory(m_Device, m_TAAHistoryTextures[i].image,
+                      m_TAAHistoryTextures[i].memory, 0);
+
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = m_TAAHistoryTextures[i].image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    if (vkCreateImageView(m_Device, &viewInfo, nullptr,
+                          &m_TAAHistoryTextures[i].view) != VK_SUCCESS) {
+      throw std::runtime_error("Failed to create TAA History View!");
+    }
+
+    // Transition to General Layout immediately using single time command
+    VkCommandBuffer cmd = BeginSingleTimeCommands();
+
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // Compute Shader Read/Write
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = m_TAAHistoryTextures[i].image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask =
+        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0,
+                         nullptr, 1, &barrier);
+
+    EndSingleTimeCommands(cmd);
+  }
+
+  LOG_I("TAA Resources Created: {}x{}", m_SwapchainExtent.width,
+        m_SwapchainExtent.height);
+}
+
+void RenderCore::CreateTAAPipeline() {
+  // Descriptor Set Layout
+  VkDescriptorSetLayoutBinding bindings[4];
+
+  // Binding 0: Current Color (Sampler)
+  bindings[0].binding = 0;
+  bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  bindings[0].descriptorCount = 1;
+  bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[0].pImmutableSamplers = nullptr;
+
+  // Binding 1: History Color (Sampler)
+  bindings[1].binding = 1;
+  bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  bindings[1].descriptorCount = 1;
+  bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[1].pImmutableSamplers = nullptr;
+
+  // Binding 2: Depth (Sampler)
+  bindings[2].binding = 2;
+  bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  bindings[2].descriptorCount = 1;
+  bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[2].pImmutableSamplers = nullptr;
+
+  // Binding 3: Result (Storage Image)
+  bindings[3].binding = 3;
+  bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+  bindings[3].descriptorCount = 1;
+  bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  bindings[3].pImmutableSamplers = nullptr;
+
+  VkDescriptorSetLayoutCreateInfo layoutInfo{};
+  layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  layoutInfo.bindingCount = 4;
+  layoutInfo.pBindings = bindings;
+
+  if (vkCreateDescriptorSetLayout(m_Device, &layoutInfo, nullptr,
+                                  &m_TAADescriptorSetLayout) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create TAA Descriptor Set Layout!");
+  }
+
+  // Push Constants
+  VkPushConstantRange pushConstantRange{};
+  pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+  pushConstantRange.offset = 0;
+  pushConstantRange.size = sizeof(glm::mat4) * 2 + sizeof(glm::vec4) * 2;
+
+  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+  pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipelineLayoutInfo.setLayoutCount = 1;
+  pipelineLayoutInfo.pSetLayouts = &m_TAADescriptorSetLayout;
+  pipelineLayoutInfo.pushConstantRangeCount = 1;
+  pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+  if (vkCreatePipelineLayout(m_Device, &pipelineLayoutInfo, nullptr,
+                             &m_TAAPipelineLayout) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create TAA Pipeline Layout!");
+  }
+
+  // Shader Module logic will be handled inside CreateShaderModule check or
+  // manually if compiled Assuming taa.comp.spv exists or will exist
+  std::vector<char> compShaderCode;
+  try {
+    compShaderCode = ReadShaderFile("resource/shaders/compiled/taa.comp.spv");
+  } catch (...) {
+    LOG_I("TAA Shader not found, skipping TAA pipeline creation.");
+    return;
+  }
+
+  VkShaderModule compShaderModule = CreateShaderModule(compShaderCode);
+
+  VkPipelineShaderStageCreateInfo compShaderStageInfo{};
+  compShaderStageInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  compShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+  compShaderStageInfo.module = compShaderModule;
+  compShaderStageInfo.pName = "main";
+
+  VkComputePipelineCreateInfo pipelineInfo{};
+  pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  pipelineInfo.stage = compShaderStageInfo;
+  pipelineInfo.layout = m_TAAPipelineLayout;
+
+  if (vkCreateComputePipelines(m_Device, VK_NULL_HANDLE, 1, &pipelineInfo,
+                               nullptr, &m_TAAPipeline) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create TAA Pipeline!");
+  }
+
+  vkDestroyShaderModule(m_Device, compShaderModule, nullptr);
+  LOG_I("TAA Pipeline Created Successfully");
+}
+
+void RenderCore::CreateTAADescriptorSets() {
+  std::vector<VkDescriptorSetLayout> layouts(2, m_TAADescriptorSetLayout);
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = m_DescriptorPool;
+  allocInfo.descriptorSetCount = 2;
+  allocInfo.pSetLayouts = layouts.data();
+
+  m_TAADescriptorSets.resize(2);
+  if (vkAllocateDescriptorSets(m_Device, &allocInfo,
+                               m_TAADescriptorSets.data()) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to allocate TAA Descriptor Sets!");
+  }
+
+  for (int i = 0; i < 2; i++) {
+    // Ping-Pong Logic initialized here but updated per frame potentially
+    int writeIndex = i; // Frame 0: Write to 0? No wait.
+    int readIndex = (i + 1) % 2;
+
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+
+    VkDescriptorImageInfo historyInfo{};
+    historyInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    historyInfo.imageView = m_TAAHistoryTextures[readIndex].view;
+    historyInfo.sampler = m_GBufferSampler;
+
+    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[0].dstSet = m_TAADescriptorSets[i];
+    descriptorWrites[0].dstBinding = 1; // History Binding
+    descriptorWrites[0].descriptorType =
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pImageInfo = &historyInfo;
+
+    VkDescriptorImageInfo resultInfo{};
+    resultInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    resultInfo.imageView = m_TAAHistoryTextures[writeIndex].view;
+
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = m_TAADescriptorSets[i];
+    descriptorWrites[1].dstBinding = 3; // Result Binding
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pImageInfo = &resultInfo;
+
+    vkUpdateDescriptorSets(m_Device, 2, descriptorWrites.data(), 0, nullptr);
+  }
+}
+
+void RenderCore::RecordTAAPass(VkCommandBuffer commandBuffer,
+                               uint32_t imageIndex) {
+  if (!m_TAAEnabled)
+    return;
+
+  VkImageMemoryBarrier barrier{};
+  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  barrier.image = m_SceneColor[m_CurrentFrame].image;
+  barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  barrier.subresourceRange.baseMipLevel = 0;
+  barrier.subresourceRange.levelCount = 1;
+  barrier.subresourceRange.baseArrayLayer = 0;
+  barrier.subresourceRange.layerCount = 1;
+  barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+  vkCmdPipelineBarrier(commandBuffer,
+                       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0,
+                       nullptr, 1, &barrier);
+
+  // Bind Pipeline
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                    m_TAAPipeline);
+
+  // Select Ping-Pong Set
+  // Set 0: Read Hist[1], Write Hist[0]. Result -> Hist[0]
+  // Set 1: Read Hist[0], Write Hist[1]. Result -> Hist[1]
+  // Wait. In CreateTAADescriptorSets:
+  // i=0: Write Binding 3 -> m_TAAHistoryTextures[0]. Read Binding 1 ->
+  // m_TAAHistoryTextures[1]. So Set 0 writes to Hist[0].
+
+  // Result Index logic:
+  // Frame 0 -> Result Index 0 (Hist[0]). Use Set 0.
+  // Frame 1 -> Result Index 1 (Hist[1]). Use Set 1.
+  int setIndex = m_FrameCount % 2;
+  VkDescriptorSet currentSet = m_TAADescriptorSets[setIndex];
+
+  // Bind Descriptor Sets
+  // Slot 0: TAA Set.
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          m_TAAPipelineLayout, 0, 1, &currentSet, 0, nullptr);
+
+  // Bind Current Color & Depth Descriptors?
+  // In CreateTAADescriptorSets we did NOT bind Binding 0 and 2!
+  // Because they depend on m_CurrentFrame.
+  // See? We missed that in CreateTAADescriptorSets.
+  // We need to update Binding 0 (Color) and 2 (Depth) PER FRAME.
+  // Or have separate sets.
+  // Since we are recording commands, we can't update descriptors easily inside
+  // RecordCommandBuffer without causing race conditions if using same set?
+  // Actually, we use 'currentSet'. We can update it before binding.
+  // UpdateFrameDescriptors function will handle this.
+
+  // Push Constants
+  struct PushConstants {
+    glm::mat4 inverseViewProj;
+    glm::mat4 prevViewProj;
+    glm::vec4 resolutionInfo;
+    float feedbackFactor;
+    float padding[3];
+  } pc;
+
+  glm::mat4 view = m_Camera.GetViewMatrix();
+  float aspectRatio =
+      (float)m_RenderExtent.width / (float)m_RenderExtent.height;
+  glm::mat4 proj = m_Camera.GetProjectionMatrix(aspectRatio);
+  pc.inverseViewProj = glm::inverse(proj * view);
+  pc.prevViewProj = m_PrevViewProj; // Must be Unjittered!
+  pc.resolutionInfo = glm::vec4(
+      (float)m_RenderExtent.width, (float)m_RenderExtent.height,
+      (float)m_SwapchainExtent.width, (float)m_SwapchainExtent.height);
+  pc.feedbackFactor = m_TAAFeedbackFactor;
+
+  vkCmdPushConstants(commandBuffer, m_TAAPipelineLayout,
+                     VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PushConstants),
+                     &pc);
+
+  // Dispatch
+  // Output is High Res (Swapchain Extent)
+  uint32_t groupCountX = (m_SwapchainExtent.width + 15) / 16;
+  uint32_t groupCountY = (m_SwapchainExtent.height + 15) / 16;
+
+  vkCmdDispatch(commandBuffer, groupCountX, groupCountY, 1);
+
+  // Barrier for Result (General -> Read Only for Bloom/PostProcess)
+  barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+  barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+  barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  barrier.image = m_TAAHistoryTextures[setIndex].image; // Result Image
+
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0,
+                       nullptr, 1, &barrier);
+
+  VkImageMemoryBarrier writeBarrier{};
+  writeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  writeBarrier.oldLayout =
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // Assuming it was read last
+                                                // time
+  writeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+  writeBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  writeBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  writeBarrier.image = m_TAAHistoryTextures[setIndex].image;
+  writeBarrier.subresourceRange = barrier.subresourceRange;
+  writeBarrier.srcAccessMask =
+      VK_ACCESS_SHADER_READ_BIT; // It was read by Bloom/PostProcess
+  writeBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+
+  writeBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0,
+                       nullptr, 1, &writeBarrier);
+}
+
+void RenderCore::UpdateFrameDescriptors() {
+  // 1. Update TAA Descriptors (Binding 0 and 2)
+  if (m_TAAEnabled) {
+    int setIndex = m_FrameCount % 2;
+    VkDescriptorSet currentSet = m_TAADescriptorSets[setIndex];
+
+    std::array<VkWriteDescriptorSet, 2> writeSets{};
+
+    VkDescriptorImageInfo colorInfo{};
+    colorInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    colorInfo.imageView =
+        m_SceneColor[m_CurrentFrame].view; // Low Res Scene Color
+    colorInfo.sampler = m_GBufferSampler;
+
+    writeSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeSets[0].dstSet = currentSet;
+    writeSets[0].dstBinding = 0;
+    writeSets[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writeSets[0].descriptorCount = 1;
+    writeSets[0].pImageInfo = &colorInfo;
+
+    VkDescriptorImageInfo depthInfo{};
+    depthInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    depthInfo.imageView =
+        m_GBuffer.GetDepthView(m_CurrentFrame); // Low Res Depth
+    depthInfo.sampler = m_GBufferSampler;
+
+    writeSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeSets[1].dstSet = currentSet;
+    writeSets[1].dstBinding = 2;
+    writeSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writeSets[1].descriptorCount = 1;
+    writeSets[1].pImageInfo = &depthInfo;
+
+    vkUpdateDescriptorSets(m_Device, 2, writeSets.data(), 0, nullptr);
+  }
+
+  // 2. Update Bloom/PostProcess Descriptors (To read TAA Result or SceneColor)
+  VkImageView inputView;
+  if (m_TAAEnabled) {
+    int resultIndex = m_FrameCount % 2; // The one we JUST wrote to in TAA pass?
+    // Wait, logic in RecordTAAPass: resultIndex = frameCount % 2.
+    inputView = m_TAAHistoryTextures[resultIndex].view;
+  } else {
+    inputView = m_SceneColor[m_CurrentFrame].view;
+  }
+
+  // Update Bloom Threshold Set
+  // Binding 0
+  VkWriteDescriptorSet bloomWrite{};
+  VkDescriptorImageInfo bloomInputInfo{};
+  bloomInputInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  bloomInputInfo.imageView = inputView;
+  bloomInputInfo.sampler = m_GBufferSampler;
+
+  bloomWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  bloomWrite.dstSet = m_BloomThresholdDescriptorSets[m_CurrentFrame];
+  bloomWrite.dstBinding = 0;
+  bloomWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  bloomWrite.descriptorCount = 1;
+  bloomWrite.pImageInfo = &bloomInputInfo;
+
+  vkUpdateDescriptorSets(m_Device, 1, &bloomWrite, 0, nullptr);
+
+  // Update PostProcess Set
+  // Binding 0
+  VkWriteDescriptorSet ppWrite{};
+  VkDescriptorImageInfo ppInputInfo{};
+  ppInputInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  ppInputInfo.imageView = inputView;
+  ppInputInfo.sampler = m_GBufferSampler;
+
+  ppWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  ppWrite.dstSet = m_PostProcessDescriptorSets[m_CurrentFrame];
+  ppWrite.dstBinding = 0;
+  ppWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  ppWrite.descriptorCount = 1;
+  ppWrite.pImageInfo = &ppInputInfo;
+
+  vkUpdateDescriptorSets(m_Device, 1, &ppWrite, 0, nullptr);
 }
 
 } // namespace neurender

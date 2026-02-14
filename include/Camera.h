@@ -87,6 +87,10 @@ public:
     UpdateCameraVectors();
   }
 
+  // TAA Jitter support
+  void SetJitter(float x, float y) { m_JitterOffset = glm::vec2(x, y); }
+  glm::vec2 GetJitter() const { return m_JitterOffset; }
+
 private:
   void UpdateCameraVectors();
 
@@ -107,6 +111,9 @@ private:
   float m_Fov = 45.0f;
   float m_NearPlane = 0.1f;
   float m_FarPlane = 100.0f;
+
+  // TAA Jitter Offset (Screen Space [-1, 1], usually < 1 pixel)
+  glm::vec2 m_JitterOffset = glm::vec2(0.0f);
 
   // 初始值（用于重置）
   glm::vec3 m_InitialPosition;

@@ -3,7 +3,6 @@
 #include "Nodes/MeshNode.h"
 #include "Nodes/PointLightNode.h"
 
-
 namespace neurender {
 
 Node::Node() : Object("Node") {}

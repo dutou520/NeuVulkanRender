@@ -50,7 +50,7 @@ struct Material {
 
   // 透明度 (仅 Transparent 类型使用)
 
-  // ========== 新增 PBR 属性 ==========
+  // ========== PBR 属性 ==========
   // Consolidating all PBR related members here
   float emissiveIntensity = 0.0f;
   float alpha = 1.0f;
@@ -119,30 +119,6 @@ struct Material {
     mat.shadingId = 0.0f;
     mat.alphaMode = "BLEND";
     return mat;
-  }
-
-  /**
-   * @brief 创建预设的自发光材质
-   */
-  static Material CreateEmissive(const glm::vec3 &color,
-                                 float intensity = 1.0f) {
-    Material mat;
-    mat.name = "Emissive";
-    mat.type = MaterialType::Opaque;
-    mat.albedo = color;
-    mat.baseColorFactor = glm::vec4(color, 1.0f);
-    mat.emissiveColor = color;
-    mat.emissiveIntensity = intensity;
-    mat.shadingId = 201.0f; // 纯自发光着色模型
-    return mat;
-  }
-
-  /**
-   * @brief 设置自发光
-   */
-  void SetEmissive(const glm::vec3 &color, float intensity) {
-    emissiveColor = color;
-    emissiveIntensity = intensity;
   }
 
   /**

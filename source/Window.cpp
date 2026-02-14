@@ -39,7 +39,7 @@ void Window::Init(int width, int height, const char *title) {
     LOG_E("Failed to Create Window: {0}", SDL_GetError());
     return;
   }
-
+  SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
   // Update window state
 
   m_Width = width;
