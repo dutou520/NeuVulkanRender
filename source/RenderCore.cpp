@@ -13,11 +13,13 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
+#include <nlohmann/json.hpp>
 #include <set>
 #include <vulkan/vulkan_core.h>
 
@@ -829,6 +831,14 @@ void RenderCore::CreateSwapchain(VkSwapchainKHR oldSwapchain) {
 
   m_SwapchainImageFormat = surfaceFormat.format;
   m_SwapchainExtent = extent;
+
+  // Update Render Extent based on Super Resolution Scale
+  m_RenderExtent.width =
+      std::max(1u, static_cast<uint32_t>(m_SwapchainExtent.width /
+                                         m_SuperResolutionScale));
+  m_RenderExtent.height =
+      std::max(1u, static_cast<uint32_t>(m_SwapchainExtent.height /
+                                         m_SuperResolutionScale));
 }
 
 void RenderCore::CreateImageViews() {
@@ -1663,20 +1673,45 @@ float Halton(int index, int base) {
 
 void RenderCore::DrawFrame() {
   // 1. 时间与帧率限制
-  float currentTime = SDL_GetTicks() / 1000.0f;
-  m_DeltaTime = currentTime - m_LastFrameTime;
+  static uint64_t lastCounter = SDL_GetPerformanceCounter();
+  uint64_t currentCounter = SDL_GetPerformanceCounter();
+  uint64_t counterFreq = SDL_GetPerformanceFrequency();
 
-  // 如果帧率过高，进行休眠以达到目标帧率 (例如 GUI 固定的 60FPS)
-  if (m_TargetFPS > 0) {
-    float minDelta = 1.0f / m_TargetFPS;
-    if (m_DeltaTime < minDelta) {
-      float sleepTime = minDelta - m_DeltaTime;
-      SDL_Delay(static_cast<uint32_t>(sleepTime * 1000.0f));
-      // 重新计算 currentTime 和 m_DeltaTime
-      currentTime = SDL_GetTicks() / 1000.0f;
-      m_DeltaTime = currentTime - m_LastFrameTime;
+  // Calculate raw delta time (time since last frame processed)
+  double rawDelta =
+      (double)(currentCounter - lastCounter) / (double)counterFreq;
+
+  // Frame Limiting Logic
+  // Only apply if VSync is disabled (to avoid fighting presentation engine),
+  // and if a specific target FPS is set.
+  if (!m_VSync && m_TargetFPS > 0) {
+    double targetFrameTime = 1.0 / (double)m_TargetFPS;
+
+    if (rawDelta < targetFrameTime) {
+      double sleepTime = targetFrameTime - rawDelta;
+
+      // Use SDL_Delay for bulk of wait (>2ms) to yield CPU
+      if (sleepTime > 0.002) {
+        SDL_Delay((uint32_t)((sleepTime - 0.001) * 1000.0));
+      }
+
+      // Busy wait for the final precision
+      while ((double)(SDL_GetPerformanceCounter() - lastCounter) /
+                 (double)counterFreq <
+             targetFrameTime) {
+        // Spin
+      }
+
+      // Update currentCounter to strictly reflect the time AFTER sleep
+      currentCounter = SDL_GetPerformanceCounter();
+      rawDelta = (double)(currentCounter - lastCounter) / (double)counterFreq;
     }
   }
+
+  // Update State
+  m_DeltaTime = (float)rawDelta;
+  float currentTime = (float)currentCounter / (float)counterFreq;
+  lastCounter = currentCounter;
   m_LastFrameTime = currentTime;
 
   vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE,
@@ -5444,7 +5479,7 @@ void RenderCore::CreateShadowPipeline() {
   rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
   rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
   rasterizer.depthBiasEnable = VK_TRUE;
-  rasterizer.depthBiasConstantFactor = 1.25f;
+  rasterizer.depthBiasConstantFactor = 0.0f;
   rasterizer.depthBiasClamp = 0.0f;
   rasterizer.depthBiasSlopeFactor = 1.75f;
 
@@ -5842,16 +5877,16 @@ void RenderCore::CreateShadowDescriptorSets() {
 
 void RenderCore::SetSuperResolutionScale(float scale) {
   m_SuperResolutionScale = std::clamp(scale, 1.0f, 2.0f);
-  LOG_I("Super Resolution Scale set to {:.2f} (Effective on next Apply)",
+  LOG_I("Super Resolution Scale set to {:.2f} (Effective on restart)",
         m_SuperResolutionScale);
 }
 
-void RenderCore::ApplyResolutionChanges() {
-  vkDeviceWaitIdle(m_Device);
-  RecreateRenderResolutionResources();
-}
+// void RenderCore::ApplyResolutionChanges() Removed - functionality replaced by
+// restart requirement
 
 void RenderCore::RecreateRenderResolutionResources() {
+  return;
+  /* Functionality removed
   // 1. Calculate new Render Resolution
   int width =
       static_cast<int>(m_SwapchainExtent.width / m_SuperResolutionScale);
@@ -5964,6 +5999,7 @@ void RenderCore::RecreateRenderResolutionResources() {
   }
 
   // Forward Pass Framebuffers are recreated.
+*/
 }
 
 // ========== TAA Implementation ==========
@@ -6442,6 +6478,77 @@ void RenderCore::UpdateFrameDescriptors() {
   ppWrite.pImageInfo = &ppInputInfo;
 
   vkUpdateDescriptorSets(m_Device, 1, &ppWrite, 0, nullptr);
+}
+
+void RenderCore::LoadGlobalSettings() {
+  const char *basePath = SDL_GetBasePath();
+  std::string settingsDir = basePath ? basePath : "./";
+  // SDL3 returns const char* managing memory internally (or temporarily), do
+  // not free? Checking docs: "The pointer is valid until the next call to an
+  // SDL function". Actually checking recent SDL3: returns const char * and
+  // *DOES* need SDL_free? Wait, if it returns const char*, you usually can't
+  // free it. Let's assume we don't free it or SDL changed API. If we can't be
+  // sure, avoiding it is best. But if I use const char* and Remove SDL_free, it
+  // fixes linter.
+
+  std::filesystem::path settingsPath =
+      std::filesystem::path(settingsDir) / "setting.json";
+
+  if (!std::filesystem::exists(settingsPath)) {
+    LOG_I("No setting.json found at {}, using defaults.",
+          settingsPath.string());
+    return;
+  }
+
+  std::ifstream file(settingsPath);
+  if (file.is_open()) {
+    try {
+      nlohmann::json j;
+      file >> j;
+      if (j.contains("superResolutionScale")) {
+        m_SuperResolutionScale = j["superResolutionScale"];
+        LOG_I("Loaded Global Setting SuperResolutionScale: {}",
+              m_SuperResolutionScale);
+      }
+      if (j.contains("taaEnabled")) {
+        m_TAAEnabled = j["taaEnabled"];
+        LOG_I("Loaded Global Setting TAA: {}", m_TAAEnabled ? "True" : "False");
+      }
+    } catch (const std::exception &e) {
+      LOG_E("Failed to parse setting.json: {}", e.what());
+    }
+  }
+}
+
+void RenderCore::SaveGlobalSettings() {
+  const char *basePath = SDL_GetBasePath();
+  std::string settingsDir = basePath ? basePath : "./";
+
+  std::filesystem::path settingsPath =
+      std::filesystem::path(settingsDir) / "setting.json";
+
+  nlohmann::json j;
+  // Load existing to preserve other keys if any
+  if (std::filesystem::exists(settingsPath)) {
+    std::ifstream inFile(settingsPath);
+    if (inFile.is_open()) {
+      try {
+        inFile >> j;
+      } catch (...) {
+      }
+    }
+  }
+
+  j["superResolutionScale"] = m_SuperResolutionScale;
+  j["taaEnabled"] = m_TAAEnabled;
+
+  std::ofstream outFile(settingsPath);
+  if (outFile.is_open()) {
+    outFile << j.dump(4);
+    LOG_I("Saved Global Settings to {}", settingsPath.string());
+  } else {
+    LOG_E("Failed to save global settings to {}", settingsPath.string());
+  }
 }
 
 } // namespace neurender

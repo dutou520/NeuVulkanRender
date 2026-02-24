@@ -49,12 +49,19 @@ public:
     m_GuiSettings = settings;
   }
 
+  // 渲染设置持久化
+  const nlohmann::json &GetRenderSettings() const { return m_RenderSettings; }
+  void SetRenderSettings(const nlohmann::json &settings) {
+    m_RenderSettings = settings;
+  }
+
 private:
   std::string m_ProjectPath;             // 工程根目录
   std::string m_AssetsPath;              // Assets 目录路径
   std::string m_ActiveScenePath;         // 当前激活的场景路径
   std::vector<std::string> m_ScenePaths; // 所有场景文件路径
   nlohmann::json m_GuiSettings;          // GUI 相关常驻设置
+  nlohmann::json m_RenderSettings;       // 渲染相关设置
 };
 
 } // namespace neurender

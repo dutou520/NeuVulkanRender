@@ -28,6 +28,10 @@ public:
   static void Shutdown();
   static void DrawFrame();
 
+  // Global Settings
+  static void LoadGlobalSettings();
+  static void SaveGlobalSettings();
+
   // Getters for external access
   static VkDevice GetDevice() { return m_Device; }
   static VkInstance GetInstance() { return m_Instance; }
@@ -528,7 +532,6 @@ public:
   static float GetSuperResolutionScale() { return m_SuperResolutionScale; }
   static void SetTAAEnabled(bool enabled) { m_TAAEnabled = enabled; }
   static bool IsTAAEnabled() { return m_TAAEnabled; }
-  static void ApplyResolutionChanges(); // 触发重建
   static void SetTAAFeedbackFactor(float factor) {
     m_TAAFeedbackFactor = factor;
   }

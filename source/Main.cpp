@@ -1,3 +1,4 @@
+#include "Project/Project.h"
 #include "RenderCore.h"
 #include "Window.h"
 #include "neuLog.h"
@@ -28,8 +29,22 @@ int main(int argc, char *argv[]) {
 
   neurender::Window::Init(2560, 1440, "NeuVulkanRender");
 
+  neurender::RenderCore::LoadGlobalSettings();
+
+  std::shared_ptr<neurender::Project> startupProject = nullptr;
+  if (argc > 1) {
+    std::string projectPath = argv[1];
+    LOG_I("Loading project from command line: {}", projectPath);
+    startupProject = neurender::Project::Load(projectPath);
+  }
+
   try {
     neurender::RenderCore::Init();
+
+    // Set project after Init
+    if (startupProject) {
+      neurender::RenderCore::SetCurrentProject(startupProject);
+    }
   } catch (const std::exception &e) {
     LOG_E("RenderCore Init Failed: {0}", e.what());
     return -1;

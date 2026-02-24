@@ -504,8 +504,23 @@ void EditorGUI::MenuPerformance() {
       RenderCore::SetSuperResolutionScale(scale);
     }
 
-    if (ImGui::Button("Apply Resolution Changes")) {
-      RenderCore::ApplyResolutionChanges();
+    if (ImGui::Button("保存设置并重启以应用修改")) {
+      // 1. Save Global Settings
+      RenderCore::SaveGlobalSettings();
+
+      // 2. Save Project (if user wants to savescene changes too)
+      SaveProject();
+
+      // 3. Restart
+      auto project = RenderCore::GetCurrentProject();
+      if (project) {
+        LOG_I("Restarting application to apply resolution changes...");
+        // Pass project path as argument to reload it on startup
+        Window::Restart(project->GetProjectPath().c_str());
+        Window::Close();
+      } else {
+        Window::Restart(nullptr);
+      }
     }
 
     ImGui::Separator();
@@ -774,7 +789,7 @@ void EditorGUI::RenderInspector() {
   if (s_SelectedNode) {
     // 顶部：对象名称和UUID
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-    ImGui::BeginChild("InspectorHeader", ImVec2(0, 80), true);
+    ImGui::BeginChild("InspectorHeader", ImVec2(0, 120), true);
 
     // 对象名称（可编辑）
     char nameBuffer[256];

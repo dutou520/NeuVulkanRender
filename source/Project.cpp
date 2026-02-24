@@ -138,12 +138,13 @@ void Project::ClearScenes() { m_ScenePaths.clear(); }
  */
 nlohmann::json Project::ToJson() const {
   nlohmann::json j;
-  j["uuid"] = m_UUID.ToString();        // 项目唯一标识符
-  j["name"] = m_Name;                   // 项目名称
-  j["assetsPath"] = "Assets";           // 资源根目录名（相对项目路径）
-  j["activeScene"] = m_ActiveScenePath; // 当前激活的场景路径
-  j["scenes"] = m_ScenePaths;           // 项目包含的所有场景列表
-  j["guiSettings"] = m_GuiSettings;     // GUI 界面相关设置
+  j["uuid"] = m_UUID.ToString();          // 项目唯一标识符
+  j["name"] = m_Name;                     // 项目名称
+  j["assetsPath"] = "Assets";             // 资源根目录名（相对项目路径）
+  j["activeScene"] = m_ActiveScenePath;   // 当前激活的场景路径
+  j["scenes"] = m_ScenePaths;             // 项目包含的所有场景列表
+  j["guiSettings"] = m_GuiSettings;       // GUI 界面相关设置
+  j["renderSettings"] = m_RenderSettings; // 渲染设置
   return j;
 }
 
@@ -176,6 +177,11 @@ std::shared_ptr<Project> Project::FromJson(const nlohmann::json &j,
   // 读取 GUI 设置
   if (j.contains("guiSettings")) {
     project->m_GuiSettings = j["guiSettings"];
+  }
+
+  // 读取渲染设置
+  if (j.contains("renderSettings")) {
+    project->m_RenderSettings = j["renderSettings"];
   }
 
   return project;

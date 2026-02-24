@@ -28,6 +28,7 @@ public:
   static bool IsMinimized();
   static bool IsGUIVisible() { return m_ShowGUI; }
   static void SetGUIVisible(bool visible) { m_ShowGUI = visible; }
+  static void Restart(const char *args = nullptr);
 
 private:
   static SDL_Window *m_Window;

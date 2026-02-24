@@ -1,3 +1,18 @@
+#if defined(_WIN32)
+#ifdef WIN32_LEAN_AND_MEAN
+#undef WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+// Use manual declaration to avoid shellapi.h include ordering hell
+extern "C" {
+HINSTANCE __stdcall ShellExecuteA(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile,
+                                  LPCSTR lpParameters, LPCSTR lpDirectory,
+                                  INT nShowCmd);
+}
+#ifndef SW_SHOW
+#define SW_SHOW 5
+#endif
+#endif
 #include "Window.h"
 #include "neuLog.h"
 #include <SDL3/SDL_video.h>
@@ -99,6 +114,20 @@ void Window::PollEvents() {
 bool Window::IsMinimized() {
   uint32_t flags = SDL_GetWindowFlags(m_Window);
   return (flags & SDL_WINDOW_MINIMIZED) != 0;
+}
+
+void Window::Restart(const char *args) {
+#if defined(_WIN32)
+  char exePath[MAX_PATH];
+  GetModuleFileNameA(NULL, exePath, MAX_PATH);
+
+  ShellExecuteA(NULL, "open", exePath, args ? args : "", NULL, SW_SHOW);
+  m_ShouldClose = true; // Tell the loop to stop
+  // exit(0);              // Removed to allow proper resource cleanup via main
+  // loop
+#else
+  LOG_E("Restart not implemented for this platform");
+#endif
 }
 
 } // namespace neurender
