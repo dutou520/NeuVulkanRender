@@ -1,5 +1,6 @@
 #include "RenderCore.h"
 #include "Asset/AssetManager.h"
+#include "Asset/DDSLoader.h"
 #include "Nodes/PointLightNode.h"
 #include "Project/Project.h"
 #include "Renderer/SceneRenderer.h"
@@ -27,6 +28,15 @@ namespace neurender {
 
 // ========== 原有静态成员定义 ==========
 std::unordered_map<UUID, MeshResource> RenderCore::m_MeshCache;
+SkyboxSettings RenderCore::m_SkyboxSettings;
+CubeMapResource *RenderCore::m_SkyboxCubeMap = nullptr;
+RenderCore::PCSSSettings RenderCore::m_PCSSSettings;
+VkImage RenderCore::m_BrdfLutImage = VK_NULL_HANDLE;
+VkDeviceMemory RenderCore::m_BrdfLutMemory = VK_NULL_HANDLE;
+VkImageView RenderCore::m_BrdfLutImageView = VK_NULL_HANDLE;
+VkSampler RenderCore::m_BrdfLutSampler = VK_NULL_HANDLE;
+VkDescriptorSetLayout RenderCore::m_IBLDescriptorSetLayout = VK_NULL_HANDLE;
+std::vector<VkDescriptorSet> RenderCore::m_IBLDescriptorSets;
 VkInstance RenderCore::m_Instance = VK_NULL_HANDLE;
 VkPhysicalDevice RenderCore::m_PhysicalDevice = VK_NULL_HANDLE;
 VkDevice RenderCore::m_Device = VK_NULL_HANDLE;
@@ -140,8 +150,10 @@ TextureResource RenderCore::m_NoiseTexture;
 std::vector<VkBuffer> RenderCore::m_PCSSParamsBuffers;
 std::vector<VkDeviceMemory> RenderCore::m_PCSSParamsMemory;
 std::vector<void *> RenderCore::m_PCSSParamsMapped;
+std::vector<VkBuffer> RenderCore::m_SkyboxParamsBuffers;
+std::vector<VkDeviceMemory> RenderCore::m_SkyboxParamsMemory;
+std::vector<void *> RenderCore::m_SkyboxParamsMapped;
 std::vector<glm::vec2> RenderCore::m_PoissonDisk;
-RenderCore::PCSSSettings RenderCore::m_PCSSSettings;
 
 // ========== 后处理系统静态成员定义 ==========
 std::vector<GBufferAttachment> RenderCore::m_SceneColor;
@@ -186,7 +198,7 @@ VkExtent2D RenderCore::m_RenderExtent = {0, 0};   // Init to 0
 float RenderCore::m_SuperResolutionScale = 1.25f; // 默认
 
 bool RenderCore::m_TAAEnabled = true;
-float RenderCore::m_TAAFeedbackFactor = 0.95f;
+float RenderCore::m_TAAFeedbackFactor = 0.88f;
 
 GBufferAttachment RenderCore::m_TAAHistoryTextures[2];
 VkPipeline RenderCore::m_TAAPipeline = VK_NULL_HANDLE;
@@ -292,6 +304,24 @@ void RenderCore::Init() {
   CreateDefaultTextures(); // Create default textures (white, black, normal)
   CreateDefaultMaterial(); // Create default material
 
+  // ========== Skybox 初始化 ==========
+  if (m_SkyboxSettings.facePaths.empty()) {
+    m_SkyboxSettings.facePaths = {
+        "resource/DefaultHDRI/right.hdr", "resource/DefaultHDRI/left.hdr",
+        "resource/DefaultHDRI/top.hdr",   "resource/DefaultHDRI/bottom.hdr",
+        "resource/DefaultHDRI/front.hdr", "resource/DefaultHDRI/back.hdr"};
+    m_SkyboxSettings.rotationY = 0.0f;
+    m_SkyboxSettings.brightness = 1.0f;
+  }
+  m_SkyboxCubeMap = new CubeMapResource();
+  bool skyboxOk = m_SkyboxCubeMap->LoadFromFiles(m_Device, m_PhysicalDevice,
+                                                 m_CommandPool, m_GraphicsQueue,
+                                                 m_SkyboxSettings.facePaths);
+  if (skyboxOk) {
+    m_SkyboxCubeMap->GeneratePrefilteredMap(m_Device, m_PhysicalDevice,
+                                            m_CommandPool, m_GraphicsQueue);
+  }
+
   // ========== 核心资源初始化 (纹理/缓冲) ==========
   // 初始渲染分辨率等于交换链分辨率 (除非手动设置了Scale)
   m_RenderExtent.width = m_SwapchainExtent.width / m_SuperResolutionScale;
@@ -321,10 +351,15 @@ void RenderCore::Init() {
   CreatePCSSParamsBuffers();    // 创建PCSS参数缓冲
   CreateShadowUniformBuffers(); // 创建阴影Uniform缓冲
   CreateShadowDescriptorSets(); // 创建阴影描述符集
+  CreateSkyboxParamsBuffers();  // 创建天空盒/IBL参数缓冲
   GeneratePoissonDisk();        // 生成Poisson Disk采样点
   LoadNoiseTexture();           // 加载噪声纹理
 
   CreateDescriptorSets(); // 创建描述符集
+
+  // ========== IBL 资源初始化 ==========
+  LoadBRDFLUT();             // 加载 BRDF LUT 纹理
+  CreateIBLDescriptorSets(); // 创建 IBL 描述符集
 
   // ========== 前向渲染初始化 ==========
   CreateForwardRenderPass(); // 创建前向渲染通道
@@ -361,6 +396,34 @@ void RenderCore::Shutdown() {
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
+
+  if (m_SkyboxCubeMap) {
+    m_SkyboxCubeMap->Destroy(m_Device);
+    delete m_SkyboxCubeMap;
+    m_SkyboxCubeMap = nullptr;
+  }
+
+  // BRDF LUT
+  if (m_BrdfLutSampler != VK_NULL_HANDLE) {
+    vkDestroySampler(m_Device, m_BrdfLutSampler, nullptr);
+    m_BrdfLutSampler = VK_NULL_HANDLE;
+  }
+  if (m_BrdfLutImageView != VK_NULL_HANDLE) {
+    vkDestroyImageView(m_Device, m_BrdfLutImageView, nullptr);
+    m_BrdfLutImageView = VK_NULL_HANDLE;
+  }
+  if (m_BrdfLutImage != VK_NULL_HANDLE) {
+    vkDestroyImage(m_Device, m_BrdfLutImage, nullptr);
+    m_BrdfLutImage = VK_NULL_HANDLE;
+  }
+  if (m_BrdfLutMemory != VK_NULL_HANDLE) {
+    vkFreeMemory(m_Device, m_BrdfLutMemory, nullptr);
+    m_BrdfLutMemory = VK_NULL_HANDLE;
+  }
+  if (m_IBLDescriptorSetLayout != VK_NULL_HANDLE) {
+    vkDestroyDescriptorSetLayout(m_Device, m_IBLDescriptorSetLayout, nullptr);
+    m_IBLDescriptorSetLayout = VK_NULL_HANDLE;
+  }
 
   // 1. 销毁 GBuffer 系统资源
   m_GBuffer.Destroy(m_Device);
@@ -1386,6 +1449,13 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
                             m_CompositionPipelineLayout, 1, 1,
                             &m_CompositionLightDescriptorSets[m_CurrentFrame],
                             0, nullptr);
+
+    // IBL descriptor set (set=2)
+    if (!m_IBLDescriptorSets.empty()) {
+      vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                              m_CompositionPipelineLayout, 2, 1,
+                              &m_IBLDescriptorSets[m_CurrentFrame], 0, nullptr);
+    }
 
     glm::vec2 viewportSize =
         glm::vec2(m_RenderExtent.width, m_RenderExtent.height);
@@ -2446,8 +2516,8 @@ void RenderCore::CreateDescriptorSetLayouts() {
   }
 
   // Composition pass: Light data UBO (binding 0: directional, binding 1: point
-  // lights, binding 2: PCSS params)
-  std::array<VkDescriptorSetLayoutBinding, 3> lightBindings{};
+  // lights, binding 2: PCSS params, binding 3: Skybox params)
+  std::array<VkDescriptorSetLayoutBinding, 4> lightBindings{};
 
   // Binding 0: Directional light
   lightBindings[0].binding = 0;
@@ -2470,6 +2540,13 @@ void RenderCore::CreateDescriptorSetLayouts() {
   lightBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   lightBindings[2].pImmutableSamplers = nullptr;
 
+  // Binding 3: Skybox parameters
+  lightBindings[3].binding = 3;
+  lightBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightBindings[3].descriptorCount = 1;
+  lightBindings[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  lightBindings[3].pImmutableSamplers = nullptr;
+
   VkDescriptorSetLayoutCreateInfo lightLayoutInfo{};
   lightLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
   lightLayoutInfo.bindingCount = static_cast<uint32_t>(lightBindings.size());
@@ -2481,6 +2558,23 @@ void RenderCore::CreateDescriptorSetLayouts() {
     throw std::runtime_error(
         "Failed to create composition light descriptor set layout!");
   }
+
+  // IBL descriptor set layout (set=2: prefilteredMap + BRDF LUT)
+  std::array<VkDescriptorSetLayoutBinding, 2> iblBindings{};
+  iblBindings[0].binding = 0;
+  iblBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  iblBindings[0].descriptorCount = 1;
+  iblBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  iblBindings[1].binding = 1;
+  iblBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  iblBindings[1].descriptorCount = 1;
+  iblBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  VkDescriptorSetLayoutCreateInfo iblLayoutInfo{};
+  iblLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  iblLayoutInfo.bindingCount = (uint32_t)iblBindings.size();
+  iblLayoutInfo.pBindings = iblBindings.data();
+  vkCreateDescriptorSetLayout(m_Device, &iblLayoutInfo, nullptr,
+                              &m_IBLDescriptorSetLayout);
 
   LOG_I("Descriptor set layouts created successfully");
 }
@@ -2745,9 +2839,9 @@ void RenderCore::CreateCompositionPipeline() {
   pushConstantRange.offset = 0;
   pushConstantRange.size = sizeof(float) * 2; // viewportSize
 
-  std::array<VkDescriptorSetLayout, 2> setLayouts = {
+  std::array<VkDescriptorSetLayout, 3> setLayouts = {
       m_CompositionGBufferDescriptorSetLayout,
-      m_CompositionLightDescriptorSetLayout};
+      m_CompositionLightDescriptorSetLayout, m_IBLDescriptorSetLayout};
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -3024,7 +3118,13 @@ void RenderCore::CreateDescriptorSets() {
     pcssBufferInfo.offset = 0;
     pcssBufferInfo.range = sizeof(PCSSParamsUBO);
 
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+    // Skybox parameters buffer info (binding 3)
+    VkDescriptorBufferInfo skyboxBufferInfo{};
+    skyboxBufferInfo.buffer = m_SkyboxParamsBuffers[i];
+    skyboxBufferInfo.offset = 0;
+    skyboxBufferInfo.range = sizeof(SkyboxParamsUBO);
+
+    std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
 
     // Binding 0: Directional light
     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -3052,6 +3152,15 @@ void RenderCore::CreateDescriptorSets() {
     descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[2].descriptorCount = 1;
     descriptorWrites[2].pBufferInfo = &pcssBufferInfo;
+
+    // Binding 3: Skybox parameters
+    descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[3].dstSet = m_CompositionLightDescriptorSets[i];
+    descriptorWrites[3].dstBinding = 3;
+    descriptorWrites[3].dstArrayElement = 0;
+    descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[3].descriptorCount = 1;
+    descriptorWrites[3].pBufferInfo = &skyboxBufferInfo;
 
     vkUpdateDescriptorSets(m_Device,
                            static_cast<uint32_t>(descriptorWrites.size()),
@@ -3187,6 +3296,24 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
   pcssParams.u_MinFilterSize = m_PCSSSettings.minFilterSize;
 
   memcpy(m_PCSSParamsMapped[currentImage], &pcssParams, sizeof(pcssParams));
+
+  // Update Skybox Params
+  SkyboxParamsUBO skyboxParams{};
+  if (m_SkyboxCubeMap && m_SkyboxCubeMap->isLoaded) {
+    for (int i = 0; i < 9; ++i) {
+      skyboxParams.sh[i] = m_SkyboxCubeMap->sh[i];
+    }
+  } else {
+    for (int i = 0; i < 9; ++i) {
+      skyboxParams.sh[i] = glm::vec4(0.0f);
+    }
+  }
+  skyboxParams.brightness = m_SkyboxSettings.brightness;
+  skyboxParams.rotationY = m_SkyboxSettings.rotationY;
+  skyboxParams.padding[0] = 0.0f;
+  skyboxParams.padding[1] = 0.0f;
+  memcpy(m_SkyboxParamsMapped[currentImage], &skyboxParams,
+         sizeof(skyboxParams));
 
   // Update point lights data by traversing scene
   PointLightsUBO pointLightsData{};
@@ -4693,6 +4820,35 @@ ImTextureID RenderCore::GetImGuiTextureID(const UUID &textureID) {
   return (ImTextureID)tex->descriptorSet;
 }
 
+ImTextureID RenderCore::GetImGuiTextureIDByPath(const std::string &path) {
+  if (path.empty())
+    return (ImTextureID)0;
+  // 1. 通过 AssetManager 查找 UUID
+  UUID texID =
+      AssetManager::GetInstance().GetAssetGUID(std::filesystem::path(path));
+  if (texID.IsValid()) {
+    return GetImGuiTextureID(texID);
+  }
+  // 2. 若不在 AssetManager 中，尝试直接加载到 TextureCache（按路径做 key）
+  // 用路径的 hash 作为临时 UUID
+  static std::unordered_map<std::string, UUID> s_PathToTempUUID;
+  auto it = s_PathToTempUUID.find(path);
+  if (it != s_PathToTempUUID.end()) {
+    return GetImGuiTextureID(it->second);
+  }
+  // 首次加载
+  UUID tempID = UUID::Generate();
+  TextureResource &tex = m_TextureCache[tempID];
+  if (tex.LoadFromFile(m_Device, m_PhysicalDevice, m_CommandPool,
+                       m_GraphicsQueue, path)) {
+    s_PathToTempUUID[path] = tempID;
+    return GetImGuiTextureID(tempID);
+  }
+  // 加载失败则移除占位
+  m_TextureCache.erase(tempID);
+  return (ImTextureID)0;
+}
+
 void RenderCore::CreateMaterialDescriptorSet(MaterialResource *material) {
   VkDescriptorSetAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -5591,6 +5747,24 @@ void RenderCore::CreatePCSSParamsBuffers() {
   }
 
   LOG_I("PCSS Params Buffers created");
+}
+
+void RenderCore::CreateSkyboxParamsBuffers() {
+  VkDeviceSize bufferSize = sizeof(SkyboxParamsUBO);
+
+  m_SkyboxParamsBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  m_SkyboxParamsMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  m_SkyboxParamsMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 m_SkyboxParamsBuffers[i], m_SkyboxParamsMemory[i]);
+
+    vkMapMemory(m_Device, m_SkyboxParamsMemory[i], 0, bufferSize, 0,
+                &m_SkyboxParamsMapped[i]);
+  }
 }
 
 void RenderCore::GeneratePoissonDisk() {
@@ -6548,6 +6722,234 @@ void RenderCore::SaveGlobalSettings() {
     LOG_I("Saved Global Settings to {}", settingsPath.string());
   } else {
     LOG_E("Failed to save global settings to {}", settingsPath.string());
+  }
+}
+
+void RenderCore::ReloadSkybox() {
+  vkDeviceWaitIdle(m_Device);
+  if (m_SkyboxCubeMap) {
+    m_SkyboxCubeMap->Destroy(m_Device);
+    delete m_SkyboxCubeMap;
+    m_SkyboxCubeMap = nullptr;
+  }
+  m_SkyboxCubeMap = new CubeMapResource();
+  bool success = m_SkyboxCubeMap->LoadFromFiles(m_Device, m_PhysicalDevice,
+                                                m_CommandPool, m_GraphicsQueue,
+                                                m_SkyboxSettings.facePaths);
+  if (success) {
+    m_SkyboxCubeMap->GeneratePrefilteredMap(m_Device, m_PhysicalDevice,
+                                            m_CommandPool, m_GraphicsQueue);
+    UpdateIBLDescriptorSets();
+  } else {
+    LOG_E("Failed to reload Skybox");
+  }
+}
+
+void RenderCore::LoadBRDFLUT() {
+  // 加载 BRDF LUT DDS
+  DDSLoader::DDSImage ddsImage;
+  const std::string lutPath = "resource/textures/BRDFLUT.dds";
+  if (!DDSLoader::Load(lutPath, ddsImage)) {
+    LOG_E("Failed to load BRDF LUT: {}", lutPath);
+    // 如果加载失败，创建 1x1 默认（避免空指针）
+    ddsImage.width = 1;
+    ddsImage.height = 1;
+    ddsImage.format = VK_FORMAT_R8G8_UNORM;
+    ddsImage.data = {128, 128}; // 0.5, 0.5
+  }
+
+  VkDeviceSize lutSize = ddsImage.data.size();
+
+  // 创建图像
+  VkImageCreateInfo imgInfo{};
+  imgInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+  imgInfo.imageType = VK_IMAGE_TYPE_2D;
+  imgInfo.format = ddsImage.format;
+  imgInfo.extent = {ddsImage.width, ddsImage.height, 1};
+  imgInfo.mipLevels = 1;
+  imgInfo.arrayLayers = 1;
+  imgInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+  imgInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+  imgInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+  imgInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  imgInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+  if (vkCreateImage(m_Device, &imgInfo, nullptr, &m_BrdfLutImage) !=
+      VK_SUCCESS) {
+    LOG_E("Failed to create BRDF LUT image");
+    return;
+  }
+
+  VkMemoryRequirements memReq;
+  vkGetImageMemoryRequirements(m_Device, m_BrdfLutImage, &memReq);
+  VkMemoryAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memReq.size;
+  allocInfo.memoryTypeIndex = FindMemoryType(
+      memReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  vkAllocateMemory(m_Device, &allocInfo, nullptr, &m_BrdfLutMemory);
+  vkBindImageMemory(m_Device, m_BrdfLutImage, m_BrdfLutMemory, 0);
+
+  // staging
+  VkBuffer stagingBuf;
+  VkDeviceMemory stagingMem;
+  CreateBuffer(lutSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+               stagingBuf, stagingMem);
+  void *ptr;
+  vkMapMemory(m_Device, stagingMem, 0, lutSize, 0, &ptr);
+  memcpy(ptr, ddsImage.data.data(), (size_t)lutSize);
+  vkUnmapMemory(m_Device, stagingMem);
+
+  // 转换布局 & 复制
+  {
+    VkCommandBufferAllocateInfo ai{};
+    ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    ai.commandPool = m_CommandPool;
+    ai.commandBufferCount = 1;
+    VkCommandBuffer cb;
+    vkAllocateCommandBuffers(m_Device, &ai, &cb);
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(cb, &bi);
+
+    // UNDEFINED -> TRANSFER_DST
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = m_BrdfLutImage;
+    barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                         VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0,
+                         nullptr, 1, &barrier);
+
+    VkBufferImageCopy region{};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = {ddsImage.width, ddsImage.height, 1};
+    vkCmdCopyBufferToImage(cb, stagingBuf, m_BrdfLutImage,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+    // TRANSFER_DST -> SHADER_READ_ONLY
+    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr,
+                         0, nullptr, 1, &barrier);
+
+    vkEndCommandBuffer(cb);
+    VkSubmitInfo si{};
+    si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.commandBufferCount = 1;
+    si.pCommandBuffers = &cb;
+    vkQueueSubmit(m_GraphicsQueue, 1, &si, VK_NULL_HANDLE);
+    vkQueueWaitIdle(m_GraphicsQueue);
+    vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &cb);
+  }
+
+  vkDestroyBuffer(m_Device, stagingBuf, nullptr);
+  vkFreeMemory(m_Device, stagingMem, nullptr);
+
+  // ImageView
+  VkImageViewCreateInfo viewInfo{};
+  viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  viewInfo.image = m_BrdfLutImage;
+  viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+  viewInfo.format = ddsImage.format;
+  viewInfo.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+  vkCreateImageView(m_Device, &viewInfo, nullptr, &m_BrdfLutImageView);
+
+  // Sampler
+  VkSamplerCreateInfo sampInfo{};
+  sampInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+  sampInfo.magFilter = VK_FILTER_LINEAR;
+  sampInfo.minFilter = VK_FILTER_LINEAR;
+  sampInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  sampInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  sampInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  sampInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+  sampInfo.minLod = 0.0f;
+  sampInfo.maxLod = 0.0f;
+  vkCreateSampler(m_Device, &sampInfo, nullptr, &m_BrdfLutSampler);
+
+  LOG_I("Loaded BRDF LUT ({}x{})", ddsImage.width, ddsImage.height);
+}
+
+void RenderCore::CreateIBLDescriptorSets() {
+  // Layout \u5df2\u5728 CreateDescriptorSetLayouts
+  // \u4e2d\u521b\u5efa\uff0c\u8fd9\u91cc\u53ea\u5206\u914d sets
+  // \u5206\u914d descriptor sets (MAX_FRAMES_IN_FLIGHT)
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
+                                             m_IBLDescriptorSetLayout);
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = m_DescriptorPool;
+  allocInfo.descriptorSetCount = (uint32_t)layouts.size();
+  allocInfo.pSetLayouts = layouts.data();
+  m_IBLDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  if (vkAllocateDescriptorSets(m_Device, &allocInfo,
+                               m_IBLDescriptorSets.data()) != VK_SUCCESS) {
+    LOG_E("Failed to allocate IBL descriptor sets");
+    return;
+  }
+
+  UpdateIBLDescriptorSets();
+}
+
+void RenderCore::UpdateIBLDescriptorSets() {
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    // Prefiltered map (binding 0)
+    VkDescriptorImageInfo prefilteredInfo{};
+    prefilteredInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    if (m_SkyboxCubeMap &&
+        m_SkyboxCubeMap->prefilteredImageView != VK_NULL_HANDLE) {
+      prefilteredInfo.imageView = m_SkyboxCubeMap->prefilteredImageView;
+      prefilteredInfo.sampler = m_SkyboxCubeMap->prefilteredSampler;
+    } else {
+      prefilteredInfo.imageView = m_DefaultBlackTexture.imageView;
+      prefilteredInfo.sampler = m_DefaultBlackTexture.sampler;
+    }
+
+    // BRDF LUT (binding 1)
+    VkDescriptorImageInfo brdfInfo{};
+    brdfInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    brdfInfo.imageView = (m_BrdfLutImageView != VK_NULL_HANDLE)
+                             ? m_BrdfLutImageView
+                             : m_DefaultBlackTexture.imageView;
+    brdfInfo.sampler = (m_BrdfLutSampler != VK_NULL_HANDLE)
+                           ? m_BrdfLutSampler
+                           : m_DefaultBlackTexture.sampler;
+
+    std::array<VkWriteDescriptorSet, 2> writes{};
+    writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[0].dstSet = m_IBLDescriptorSets[i];
+    writes[0].dstBinding = 0;
+    writes[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writes[0].descriptorCount = 1;
+    writes[0].pImageInfo = &prefilteredInfo;
+
+    writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writes[1].dstSet = m_IBLDescriptorSets[i];
+    writes[1].dstBinding = 1;
+    writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writes[1].descriptorCount = 1;
+    writes[1].pImageInfo = &brdfInfo;
+
+    vkUpdateDescriptorSets(m_Device, (uint32_t)writes.size(), writes.data(), 0,
+                           nullptr);
   }
 }
 

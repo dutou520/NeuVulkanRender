@@ -76,6 +76,7 @@ target_include_directories(nlohmann_json INTERFACE "${CMAKE_SOURCE_DIR}/ThirPart
 add_library(tinygltf INTERFACE)
 target_include_directories(tinygltf INTERFACE "${CMAKE_SOURCE_DIR}/ThirParty/tinygltf")
 
+
 # ========== 文件系统相关库 ==========
 
 # NeuCoreLib (Object, UUID 基础类)
@@ -98,6 +99,8 @@ add_library(NeuAssetLib STATIC
     source/ModelImporter.cpp
     source/TextureResource.cpp
     source/MaterialResource.cpp
+    source/CubeMapResource.cpp
+    source/DDSLoader.cpp
 )
 generate_export_header(NeuAssetLib EXPORT_MACRO_NAME NEUASSET_API BASE_NAME NeuAsset)
 target_compile_definitions(NeuAssetLib PUBLIC NEUASSET_STATIC_DEFINE)

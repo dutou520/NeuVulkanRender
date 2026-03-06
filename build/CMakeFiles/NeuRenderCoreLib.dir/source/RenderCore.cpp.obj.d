@@ -487,13 +487,20 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
  C:/msys64/mingw64/include/stdarg.h \
  C:/msys64/mingw64/include/_mingw_stdarg.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/CubeMapResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MaterialResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/Math.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/Skybox.h \
+ C:/msys64/mingw64/include/c++/14.1.0/fstream \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc \
  D:/CppPrograms/NeuVulkanRender/include/Project/Project.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/Object.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/DDSLoader.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/PointLightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/LightNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h \
@@ -626,10 +633,6 @@ CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h \
  D:/CppPrograms/NeuVulkanRender/ThirParty/tinyobjloader/tiny_obj_loader.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_vulkan.h \
- C:/msys64/mingw64/include/c++/14.1.0/fstream \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc \
  D:/vcpkg/installed/x64-mingw-dynamic/include/imgui_impl_sdl3.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/imgui_impl_vulkan.h \
  C:/msys64/mingw64/include/c++/14.1.0/set \

@@ -9,6 +9,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "D:/CppPrograms/NeuVulkanRender/source/AssetManager.cpp" "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj.d"
+  "D:/CppPrograms/NeuVulkanRender/source/CubeMapResource.cpp" "CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.obj.d"
+  "D:/CppPrograms/NeuVulkanRender/source/DDSLoader.cpp" "CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/MaterialResource.cpp" "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/MetaFile.cpp" "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj.d"
   "D:/CppPrograms/NeuVulkanRender/source/ModelImporter.cpp" "CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj" "gcc" "CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj.d"

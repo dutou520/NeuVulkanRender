@@ -11,8 +11,10 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+#include "Asset/CubeMapResource.h"
 #include "Asset/MaterialResource.h"
 #include "Asset/MeshResource.h"
+#include "Asset/Skybox.h"
 #include "Asset/TextureResource.h"
 #include "Core/UUID.h"
 #include "Project/Project.h"
@@ -49,6 +51,7 @@ public:
   static MaterialResource *GetMaterialResource(const UUID &materialID);
   static TextureResource *GetTextureResource(const UUID &textureID);
   static ImTextureID GetImGuiTextureID(const UUID &textureID);
+  static ImTextureID GetImGuiTextureIDByPath(const std::string &path);
 
 private:
   static void CreateInstance();
@@ -103,6 +106,7 @@ private:
   static void CreatePCSSParamsBuffers();
   static void CreateShadowUniformBuffers(); // 新增
   static void CreateShadowDescriptorSets(); // 新增
+  static void CreateSkyboxParamsBuffers();  // 新增
   static void GeneratePoissonDisk();
   static void LoadNoiseTexture();
   static void UpdateLightCamera();
@@ -390,6 +394,11 @@ private:
   static std::vector<VkDeviceMemory> m_PCSSParamsMemory;
   static std::vector<void *> m_PCSSParamsMapped;
 
+  // Skybox 参数 Uniform Buffer
+  static std::vector<VkBuffer> m_SkyboxParamsBuffers;
+  static std::vector<VkDeviceMemory> m_SkyboxParamsMemory;
+  static std::vector<void *> m_SkyboxParamsMapped;
+
   // Poisson Disk采样点
   static std::vector<glm::vec2> m_PoissonDisk;
 
@@ -527,6 +536,10 @@ public:
   static PCSSSettings &GetPCSSSettings() { return m_PCSSSettings; }
   static void SetShadowMapResolution(uint32_t res);
 
+  // ========== Skybox 设置接口 ==========
+  static SkyboxSettings &GetSkyboxSettings() { return m_SkyboxSettings; }
+  static void ReloadSkybox();
+
   // ========== TAA & Super Resolution 接口 ==========
   static void SetSuperResolutionScale(float scale);
   static float GetSuperResolutionScale() { return m_SuperResolutionScale; }
@@ -585,5 +598,21 @@ private:
 
   // PCSS阴影设置
   static PCSSSettings m_PCSSSettings;
+  // Skybox 设置
+  static SkyboxSettings m_SkyboxSettings;
+  static CubeMapResource *m_SkyboxCubeMap;
+
+  // BRDF LUT (IBL Specular integration map)
+  static VkImage m_BrdfLutImage;
+  static VkDeviceMemory m_BrdfLutMemory;
+  static VkImageView m_BrdfLutImageView;
+  static VkSampler m_BrdfLutSampler;
+  static void LoadBRDFLUT();
+
+  // IBL 描述符集布局 (set=2: prefilteredMap + BRDF LUT)
+  static VkDescriptorSetLayout m_IBLDescriptorSetLayout;
+  static std::vector<VkDescriptorSet> m_IBLDescriptorSets;
+  static void CreateIBLDescriptorSets();
+  static void UpdateIBLDescriptorSets();
 };
 } // namespace neurender

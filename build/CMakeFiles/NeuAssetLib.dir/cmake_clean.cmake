@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
   "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj"
   "CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj.d"
+  "CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.obj"
+  "CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.obj.d"
+  "CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.obj"
+  "CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.obj.d"
   "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj"
   "CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj.d"
   "CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj"

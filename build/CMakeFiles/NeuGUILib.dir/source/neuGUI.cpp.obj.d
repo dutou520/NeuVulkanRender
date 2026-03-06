@@ -533,10 +533,16 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/CppPrograms/NeuVulkanRender/include/Material.h \
  D:/CppPrograms/NeuVulkanRender/include/Vertex.h \
  D:/CppPrograms/NeuVulkanRender/build/neurendercore_export.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/CubeMapResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MaterialResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/TextureResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/MeshResource.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/Math.h \
+ D:/CppPrograms/NeuVulkanRender/include/Asset/Skybox.h \
+ C:/msys64/mingw64/include/c++/14.1.0/fstream \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc \
  D:/CppPrograms/NeuVulkanRender/include/Window.h \
  D:/CppPrograms/NeuVulkanRender/build/neuwindow_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL.h \
@@ -625,10 +631,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg_buffer.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/log_msg.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/version.h \
- C:/msys64/mingw64/include/c++/14.1.0/fstream \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h \
- C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc \
  D:/vcpkg/installed/x64-mingw-dynamic/include/imgui_internal.h \
  C:/msys64/mingw64/include/c++/14.1.0/math.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/immintrin.h \

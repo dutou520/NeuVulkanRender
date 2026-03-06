@@ -111,6 +111,84 @@ static void RenderTextureSlot(const char *label, const UUID &materialID,
   ImGui::Spacing();
 }
 
+// CubeMap 面拖放预览槽位
+static void RenderCubeFaceSlot(const char *label, std::string &facePath,
+                               int faceIndex) {
+  ImGui::PushID(faceIndex);
+  ImGui::BeginGroup();
+
+  // 标签
+  ImGui::TextDisabled("%s", label);
+
+  // 获取预览图
+  ImTextureID thumb = facePath.empty()
+                          ? (ImTextureID)0
+                          : RenderCore::GetImGuiTextureIDByPath(facePath);
+
+  ImVec2 btnSize(64.0f, 64.0f);
+  ImVec4 bgCol = ImVec4(0.15f, 0.15f, 0.15f, 1.0f);
+  ImVec4 tintCol = ImVec4(1, 1, 1, 1);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+  ImGui::ImageButton("##face", thumb, btnSize, ImVec2(0, 0), ImVec2(1, 1),
+                     bgCol, tintCol);
+  ImGui::PopStyleVar();
+
+  // 拖放目标
+  if (ImGui::BeginDragDropTarget()) {
+    if (const ImGuiPayload *payload =
+            ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+      const char *droppedPath = (const char *)payload->Data;
+      std::string ext =
+          std::filesystem::path(droppedPath).extension().u8string();
+      std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+      // 支持常见图片格式
+      if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp" ||
+          ext == ".hdr" || ext == ".exr" || ext == ".tga") {
+        facePath = droppedPath;
+      }
+    }
+    ImGui::EndDragDropTarget();
+  }
+
+  // 显示文件名（截断）
+  ImGui::SameLine();
+  ImGui::BeginGroup();
+  if (facePath.empty()) {
+    ImGui::TextDisabled("None");
+  } else {
+    std::string fname = std::filesystem::path(facePath).filename().u8string();
+    if (fname.size() > 20)
+      fname = fname.substr(0, 17) + "...";
+    ImGui::TextWrapped("%s", fname.c_str());
+    if (ImGui::SmallButton("X")) {
+      facePath.clear();
+    }
+  }
+  ImGui::SameLine();
+  // 输入设置小按鈕
+  if (ImGui::SmallButton("...")) {
+    ImGui::OpenPopup("##FacePathInput");
+  }
+  if (ImGui::BeginPopup("##FacePathInput")) {
+    static char bufs[6][512] = {};
+    if (ImGui::IsWindowAppearing()) {
+      strncpy(bufs[faceIndex], facePath.c_str(), sizeof(bufs[faceIndex]));
+    }
+    if (ImGui::InputText("Path", bufs[faceIndex], sizeof(bufs[faceIndex]),
+                         ImGuiInputTextFlags_EnterReturnsTrue)) {
+      facePath = bufs[faceIndex];
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+  ImGui::EndGroup();
+
+  ImGui::EndGroup();
+  ImGui::Spacing();
+  ImGui::PopID();
+}
+
 void EditorGUI::Initialize() {
   ImGui::GetIO().FontGlobalScale = 1.5f; // 全局 UI 字体放大 1.2-1.5 倍
   LOG_I("EditorGUI Initialized");
@@ -985,8 +1063,72 @@ void EditorGUI::RenderInspector() {
 
     ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Text("其他环境设置");
-    ImGui::Text("Skybox (TODO)");
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("天空盒设置 (Skybox/IBL)");
+    ImGui::Separator();
+
+    auto &skybox = RenderCore::GetSkyboxSettings();
+    if (skybox.name.empty()) {
+      skybox.name = "Unnamed Skybox";
+    }
+
+    // 基本属性设置
+    char skyboxName[256];
+    strncpy(skyboxName, skybox.name.c_str(), sizeof(skyboxName));
+    if (ImGui::InputText("名称", skyboxName, sizeof(skyboxName))) {
+      skybox.name = skyboxName;
+    }
+
+    ImGui::SliderFloat("随Y轴旋转角度", &skybox.rotationY, 0.0f, 360.0f);
+    ImGui::SliderFloat("天空盒亮度", &skybox.brightness, 0.0f, 10.0f);
+
+    // 六个面拖放预览槽位
+    const char *faceNames[6] = {"Right (PosX)",  "Left (NegX)",  "Top (PosY)",
+                                "Bottom (NegY)", "Front (PosZ)", "Back (NegZ)"};
+    if (skybox.facePaths.size() != 6) {
+      skybox.facePaths.resize(6, "");
+    }
+
+    for (int i = 0; i < 6; i++) {
+      RenderCubeFaceSlot(faceNames[i], skybox.facePaths[i], i);
+    }
+
+    ImGui::Spacing();
+
+    // 操作按钮
+    if (ImGui::Button("保存为 .skybox", ImVec2(-1, 0))) {
+      // TODO: 使用文件选择器或直接保存到默认路径
+      // 假设临时保存为 resource/textures/default.skybox
+      skybox.SaveToFile("resource/textures/default.skybox");
+      LOG_I("Skybox saved to resource/textures/default.skybox");
+    }
+
+    if (ImGui::Button("加载 .skybox", ImVec2(-1, 0))) {
+      // TODO: 使用文件选择器加载
+      if (skybox.LoadFromFile("resource/textures/default.skybox")) {
+        LOG_I("Loaded skybox: {}", skybox.name);
+      } else {
+        LOG_E("Failed to load skybox");
+      }
+    }
+
+    if (ImGui::Button("清空天空盒", ImVec2(-1, 0))) {
+      skybox = SkyboxSettings();
+      LOG_I("Cleared skybox settings");
+    }
+
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+    if (ImGui::Button("刷新天空盒并进行预计算 (IBL)", ImVec2(-1, 30))) {
+      // 触发CubeMap加载和SH系数生成
+      RenderCore::ReloadSkybox();
+      LOG_I("Refreshing Skybox via RenderCore::ReloadSkybox()");
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+    ImGui::Separator();
     ImGui::Text("Fog (TODO)");
   } break;
 

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision HDR Cubemap Tool</title>
+    <style>
+        :root {
+            --glass-bg: rgba(20, 20, 20, 0.7);
+            --glass-blur: blur(40px) saturate(160%);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.25);
+            --accent: #007AFF;
+            --highlight: inset 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: #000; color: white; overflow: hidden;
+            font-family: -apple-system, "SF Pro Display", sans-serif;
+        }
+
+        #canvas-view { position: absolute; width: 100%; height: 100%; z-index: 1; }
+
+        /* Vision Pro 风格面板 */
+        .vision-panel {
+            position: absolute; z-index: 10;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border); border-radius: 24px;
+            box-shadow: var(--highlight), 0 25px 50px rgba(0,0,0,0.6);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #header { top: 30px; left: 50%; transform: translateX(-50%); padding: 12px 35px; }
+        
+        #controls {
+            right: 30px; top: 50%; transform: translateY(-50%);
+            padding: 25px; width: 220px; display: flex; flex-direction: column; gap: 15px;
+        }
+
+        #bottom-panel {
+            bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 1080px; padding: 25px;
+            display: none; flex-direction: column; align-items: center;
+            opacity: 0; transform: translate(-50%, 30px);
+        }
+        #bottom-panel.active { display: flex; opacity: 1; transform: translate(-50%, 0); }
+
+        .close-btn {
+            position: absolute; top: 12px; right: 12px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        .faces-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; margin-bottom: 20px; }
+        .face-item { aspect-ratio: 1/1; background: #000; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); }
+        .face-item canvas { width: 100%; height: 100%; object-fit: cover; }
+
+        .btn {
+            background: var(--accent); color: white; border: none;
+            padding: 12px; border-radius: 12px; cursor: pointer;
+            font-weight: 500; font-size: 14px; transition: 0.2s;
+        }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        .btn-secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
+
+        select { background: rgba(255,255,255,0.1); color: white; border: none; padding: 10px; border-radius: 10px; }
+        .label { font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-view"></div>
+
+    <div id="header" class="vision-panel">
+        <h3 style="margin:0; font-weight:300;">Vulkan HDR Assistant</h3>
+    </div>
+
+    <div id="controls" class="vision-panel">
+        <span class="label">Step 1</span>
+        <button class="btn" onclick="document.getElementById('file-input').click()">加载环境贴图</button>
+        <input type="file" id="file-input" accept=".hdr" style="display:none">
+        
+        <span class="label">Step 2</span>
+        <select id="res-select">
+            <option value="512">分辨率: 512</option>
+            <option value="1024" selected>分辨率: 1024</option>
+            <option value="2048">分辨率: 2048</option>
+        </select>
+        <button id="convert-btn" class="btn btn-secondary" style="display:none">切分全景面</button>
+    </div>
+
+    <div id="bottom-panel" class="vision-panel">
+        <button class="close-btn" onclick="document.getElementById('bottom-panel').classList.remove('active')">✕</button>
+        <div class="faces-grid" id="faces-grid"></div>
+        <button class="btn" id="download-zip-btn" style="width: 220px;">一键打包下载 (.zip)</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+        let scene, camera, renderer, controls, hdrBlobs = {};
+        let originalFileName = "env";
+
+        init();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 0, 0.01);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            document.getElementById('canvas-view').appendChild(renderer.domElement);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableZoom = false;
+            controls.rotateSpeed = -0.4;
+
+            animate();
+
+            document.getElementById('file-input').addEventListener('change', handleUpload);
+            document.getElementById('convert-btn').onclick = processHDR;
+            document.getElementById('download-zip-btn').onclick = downloadAsZip;
+            window.addEventListener('resize', onResize);
+        }
+
+        async function handleUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            originalFileName = file.name.replace('.hdr', '');
+            
+            const url = URL.createObjectURL(file);
+            const texture = await new RGBELoader().loadAsync(url);
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.background = texture;
+            document.getElementById('convert-btn').style.display = 'block';
+            URL.revokeObjectURL(url);
+        }
+
+        async function processHDR() {
+            const size = parseInt(document.getElementById('res-select').value);
+            const grid = document.getElementById('faces-grid');
+            grid.innerHTML = '';
+            hdrBlobs = {};
+
+            const faces = ['top', 'bottom', 'left', 'right', 'front', 'back'];
+            // 相机旋转逻辑（针对观察者内部视角）
+            const rotations = [
+                [Math.PI/2, 0, 0], [-Math.PI/2, 0, 0], // Top, Bottom
+                [0, Math.PI/2, 0], [0, -Math.PI/2, 0], // Left, Right
+                [0, 0, 0],         [0, Math.PI, 0]     // Front, Back
+            ];
+
+            const savedTM = renderer.toneMapping;
+            renderer.toneMapping = THREE.NoToneMapping; // 导出必须使用线性数据
+
+            for(let i=0; i<6; i++) {
+                const cam = new THREE.PerspectiveCamera(90, 1, 0.1, 10);
+                cam.rotation.set(rotations[i][0], rotations[i][1], rotations[i][2], 'YXZ');
+                
+                const rt = new THREE.WebGLRenderTarget(size, size, { type: THREE.FloatType });
+                renderer.setRenderTarget(rt);
+                renderer.render(scene, cam);
+
+                const buffer = new Float32Array(size * size * 4);
+                renderer.readRenderTargetPixels(rt, 0, 0, size, size, buffer);
+
+                // --- 核心修复：手动翻转 Y 轴 ---
+                const flippedBuffer = new Float32Array(size * size * 4);
+                for (let y = 0; y < size; y++) {
+                    const srcY = y;
+                    const dstY = size - 1 - y;
+                    for (let x = 0; x < size; x++) {
+                        const sIdx = (srcY * size + x) * 4;
+                        const dIdx = (dstY * size + x) * 4;
+                        flippedBuffer[dIdx] = buffer[sIdx];
+                        flippedBuffer[dIdx+1] = buffer[sIdx+1];
+                        flippedBuffer[dIdx+2] = buffer[sIdx+2];
+                        flippedBuffer[dIdx+3] = buffer[sIdx+3];
+                    }
+                }
+
+                // 编码并存入 Blob 对象
+                const blob = encodeRGBE(flippedBuffer, size, size);
+                const name = `${originalFileName}_${faces[i]}.hdr`;
+                hdrBlobs[name] = blob;
+
+                // 渲染预览图
+                const canvas = document.createElement('canvas');
+                canvas.width = size; canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                const imgData = ctx.createImageData(size, size);
+                for(let j=0; j<flippedBuffer.length; j+=4) {
+                    imgData.data[j] = Math.pow(Math.max(0, flippedBuffer[j]), 1/2.2) * 255;
+                    imgData.data[j+1] = Math.pow(Math.max(0, flippedBuffer[j+1]), 1/2.2) * 255;
+                    imgData.data[j+2] = Math.pow(Math.max(0, flippedBuffer[j+2]), 1/2.2) * 255;
+                    imgData.data[j+3] = 255;
+                }
+                ctx.putImageData(imgData, 0, 0);
+                
+                const container = document.createElement('div');
+                container.className = 'face-item';
+                container.appendChild(canvas);
+                grid.appendChild(container);
+
+                renderer.setRenderTarget(null);
+                rt.dispose();
+            }
+
+            renderer.toneMapping = savedTM;
+            document.getElementById('bottom-panel').classList.add('active');
+        }
+
+        function encodeRGBE(data, w, h) {
+            const header = `#?RADIANCE\nFORMAT=32-bit_rle_rgbe\n\n-Y ${h} +X ${w}\n`;
+            const headerBin = new TextEncoder().encode(header);
+            const bodyBin = new Uint8Array(w * h * 4);
+
+            for (let i = 0; i < w * h; i++) {
+                const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
+                const maxC = Math.max(r, g, b);
+                if (maxC < 1e-32) {
+                    bodyBin.set([0, 0, 0, 0], i * 4);
+                } else {
+                    let exp = Math.ceil(Math.log2(maxC));
+                    const mul = Math.pow(2, exp - 8);
+                    bodyBin[i * 4] = Math.min(255, Math.floor(r / mul));
+                    bodyBin[i * 4 + 1] = Math.min(255, Math.floor(g / mul));
+                    bodyBin[i * 4 + 2] = Math.min(255, Math.floor(b / mul));
+                    bodyBin[i * 4 + 3] = exp + 128;
+                }
+            }
+            return new Blob([headerBin, bodyBin]);
+        }
+
+        async function downloadAsZip() {
+            const zip = new JSZip();
+            const folder = zip.folder(originalFileName);
+            for (const name in hdrBlobs) {
+                folder.file(name, hdrBlobs[name]);
+            }
+            const content = await zip.generateAsync({type:"blob"});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(content);
+            a.download = `${originalFileName}_cubemap.zip`;
+            a.click();
+        }
+
+        function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+        function onResize() { 
+            camera.aspect = window.innerWidth / window.innerHeight; 
+            camera.updateProjectionMatrix(); 
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+        }
+    </script>
+</body>
+</html>

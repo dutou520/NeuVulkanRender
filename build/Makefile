@@ -317,6 +317,54 @@ source/CameraNode.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuSceneLib.dir\build.make CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.s
 .PHONY : source/CameraNode.cpp.s
 
+source/CubeMapResource.obj: source/CubeMapResource.cpp.obj
+.PHONY : source/CubeMapResource.obj
+
+# target to build an object file
+source/CubeMapResource.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.obj
+.PHONY : source/CubeMapResource.cpp.obj
+
+source/CubeMapResource.i: source/CubeMapResource.cpp.i
+.PHONY : source/CubeMapResource.i
+
+# target to preprocess a source file
+source/CubeMapResource.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.i
+.PHONY : source/CubeMapResource.cpp.i
+
+source/CubeMapResource.s: source/CubeMapResource.cpp.s
+.PHONY : source/CubeMapResource.s
+
+# target to generate assembly for a file
+source/CubeMapResource.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.s
+.PHONY : source/CubeMapResource.cpp.s
+
+source/DDSLoader.obj: source/DDSLoader.cpp.obj
+.PHONY : source/DDSLoader.obj
+
+# target to build an object file
+source/DDSLoader.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.obj
+.PHONY : source/DDSLoader.cpp.obj
+
+source/DDSLoader.i: source/DDSLoader.cpp.i
+.PHONY : source/DDSLoader.i
+
+# target to preprocess a source file
+source/DDSLoader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.i
+.PHONY : source/DDSLoader.cpp.i
+
+source/DDSLoader.s: source/DDSLoader.cpp.s
+.PHONY : source/DDSLoader.s
+
+# target to generate assembly for a file
+source/DDSLoader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\NeuAssetLib.dir\build.make CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.s
+.PHONY : source/DDSLoader.cpp.s
+
 source/GBuffer.obj: source/GBuffer.cpp.obj
 .PHONY : source/GBuffer.obj
 
@@ -824,6 +872,12 @@ help:
 	@echo ... source/CameraNode.obj
 	@echo ... source/CameraNode.i
 	@echo ... source/CameraNode.s
+	@echo ... source/CubeMapResource.obj
+	@echo ... source/CubeMapResource.i
+	@echo ... source/CubeMapResource.s
+	@echo ... source/DDSLoader.obj
+	@echo ... source/DDSLoader.i
+	@echo ... source/DDSLoader.s
 	@echo ... source/GBuffer.obj
 	@echo ... source/GBuffer.i
 	@echo ... source/GBuffer.s

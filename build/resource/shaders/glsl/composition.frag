@@ -49,6 +49,17 @@ layout(set = 1, binding = 2) uniform PCSSParams {
     float u_MinFilterSize;
 } pcss;
 
+// 天空盒与 IBL 参数
+layout(set = 1, binding = 3) uniform SkyboxParams {
+    vec4 sh[9];        // 9 Spherical Harmonics coefficients, each xyz is rgb
+    float brightness;
+    float rotationY;
+} skyboxParams;
+
+// IBL 高光 (split sum)
+layout(set = 2, binding = 0) uniform samplerCube prefilteredMap;
+layout(set = 2, binding = 1) uniform sampler2D brdfLUT;
+
 // 视口信息
 layout(push_constant) uniform PushConstants {
     vec2 viewportSize;
@@ -90,9 +101,29 @@ vec3 getEmissiveColor(float hue, float brightness) {
     return hslToRgb(vec3(h, 1.0, brightness));
 }
 
+// 评估球谐光照 (3阶, 9个系数)
+vec3 evaluateSH(vec3 N) {
+    vec3 result = 
+        skyboxParams.sh[0].xyz +
+        skyboxParams.sh[1].xyz * N.y +
+        skyboxParams.sh[2].xyz * N.z +
+        skyboxParams.sh[3].xyz * N.x +
+        skyboxParams.sh[4].xyz * N.y * N.x +
+        skyboxParams.sh[5].xyz * N.y * N.z +
+        skyboxParams.sh[6].xyz * (3.0 * N.z * N.z - 1.0) +
+        skyboxParams.sh[7].xyz * N.z * N.x +
+        skyboxParams.sh[8].xyz * (N.x * N.x - N.y * N.y);
+    return max(result, vec3(0.0));
+}
+
 // Schlick Fresnel 近似
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+// 考虑粗糙度的 Fresnel (用于 IBL 环境光)
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 // GGX 分布函数
@@ -333,9 +364,29 @@ vec3 shadePBR(vec3 albedo, vec3 normal, vec3 specular, float smoothness,
         Lo += calculatePointLight(int(i), worldPos, N, V, albedo, F0, roughness);
     }
     
-    // 环境光 (简化)
-    vec3 ambient = vec3(0.03) * albedo * occlusion;
-    
+    // 漫反射环境光 (IBL 球谐光照)
+    vec3 irradiance = evaluateSH(N) * skyboxParams.brightness;
+    float NdotV = max(dot(N, V), 0.0);
+    vec3 kS_env = fresnelSchlickRoughness(NdotV, F0, roughness);
+    // kD: 金属度越高 (F0越大于0.04), 漫反射越弱，钳制到 [0,1]
+    float metallic_approx = clamp(length(F0 - vec3(0.04)) / 0.96, 0.0, 1.0);
+    vec3 kD_env = (1.0 - kS_env) * (1.0 - metallic_approx);
+    vec3 ambient_diffuse = kD_env * irradiance * albedo * occlusion;
+
+    // 镜面反射 IBL 高光 (Split-Sum)
+    vec3 R = reflect(-V, N);
+    float lod = roughness * float(6 - 1); // PREFILTER_MIP_LEVELS - 1
+    // 显式 LOD 采样（textureLod 不是 LOD bias）
+    vec3 prefilteredColor = textureLod(prefilteredMap, R, lod).rgb;
+    // RGBA16F 线性空间，直接使用，无需 gamma 解码
+    prefilteredColor *= skyboxParams.brightness;
+
+    vec2 brdf = texture(brdfLUT, vec2(NdotV, roughness)).rg;
+    vec3 specular_ibl = prefilteredColor * (kS_env * brdf.x + brdf.y);
+
+    // 漫反射用 AO，高光不额外乘以 AO（避免高金属度时过暗）
+    vec3 ambient = ambient_diffuse + specular_ibl * occlusion;
+
     return ambient + Lo + emissive;
 }
 
@@ -371,9 +422,33 @@ void main() {
     vec4 g4 = texture(gbuffer4, fragTexCoord);
     float depth = texture(depthBuffer, fragTexCoord).r;
     
-    // 如果深度为 1.0 (远平面), 显示背景色
+    // 如果深度为 1.0 (远平面), 渲染天空盒
     if (depth >= 0.9999) {
-        outColor = vec4(0.1, 0.1, 0.15, 1.0); // 深灰蓝背景
+        // 用 invViewProj 重建视线方向（NDC -> 世界空间射线）
+        vec2 ndc = fragTexCoord * 2.0 - 1.0;
+        vec4 clipNear = vec4(ndc, 0.0, 1.0);
+        vec4 clipFar  = vec4(ndc, 1.0, 1.0);
+        vec4 worldNear = light.invViewProj * clipNear;
+        vec4 worldFar  = light.invViewProj * clipFar;
+        worldNear /= worldNear.w;
+        worldFar  /= worldFar.w;
+        vec3 rayDir = normalize(worldFar.xyz - worldNear.xyz);
+
+        // 应用天空盒 rotationY（绕 Y 轴旋转）
+        float sinR = sin(skyboxParams.rotationY);
+        float cosR = cos(skyboxParams.rotationY);
+        vec3 rotDir = vec3(
+            rayDir.x * cosR + rayDir.z * sinR,
+            rayDir.y,
+            -rayDir.x * sinR + rayDir.z * cosR
+        );
+
+        // 采样 cubemap (lod=0 即原始全精度天空)
+        // 使用原生分辨率渲染天空：直接在 composition pass 中采样
+        vec3 skyColor = textureLod(prefilteredMap, rotDir, 0.0).rgb;
+        skyColor *= skyboxParams.brightness;
+
+        outColor = vec4(skyColor, 1.0);
         return;
     }
     

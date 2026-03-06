@@ -144,4 +144,14 @@ struct PCSSParamsUBO {
   // alignas(4) float _pad; // Removed padding
 };
 
+/**
+ * @brief Skybox参数 Uniform Buffer
+ */
+struct SkyboxParamsUBO {
+  alignas(16) glm::vec4 sh[9]; // 9 SH coefficients (xyz for rgb)
+  alignas(4) float brightness;
+  alignas(4) float rotationY;
+  alignas(8) float padding[2];
+};
+
 } // namespace neurender
