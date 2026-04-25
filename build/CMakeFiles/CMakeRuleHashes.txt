@@ -1,7 +1,9 @@
 # Hashes of file build rules.
 9382e9f0d3a81149db73ab870bd8f564 CMakeFiles/CompileShaders
 3bf90c7579da9fb83a625fa571509ab0 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_blur.frag.spv
+b49434c2878fa40eec3b9a7ce7e03356 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_downsample.frag.spv
 24beb72dfd57b5962eaa1c2021617d5c D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_threshold.frag.spv
+8e9bcc29a44c0b1a21f86d08dffa77c7 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_upsample.frag.spv
 ee3fcf1dc7e8ae9d3b67abf3f86a0b6f D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.frag.spv
 3c1d85f5184850683a6c7d08bd2744ec D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.vert.spv
 8160b69a2c3b5c8e4338000333681035 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/forward.frag.spv

@@ -45,19 +45,10 @@ void main() {
     vec2 uv = (vec2(texelPos) + 0.5) / displayRes;
     
     // 1. Sample Current Color
-    // Current is Low Res. UV samples it.
-    // If SuperRes is active (Result > Current), this is an upscaling sample.
-    // Using default linear filtering from sampler.
     vec3 color = texture(currentColor, uv).rgb;
     
     // 2. Reconstruct Velocity
     float depth = texture(depthTexture, uv).r;
-    
-    // Ignore skybox (max depth) for velocity?
-    // If depth == 1.0 (or 0.0 depending on setup), it's far plane. 
-    // We can still reproject skybox if View matrix rotated. 
-    // But translation shouldn't affect it. 
-    // Let's just reproject everything.
     
     // Unproject to World Space (using Current Jittered Inverse)
     vec4 clipPos;
@@ -115,12 +106,7 @@ void main() {
     historyYCoCg = clamp(historyYCoCg, minColor, maxColor);
     
     // 5. Blend
-    // Use velocity weighting? (If large motion, trust current more)
-    // For now, fixed factor.
     float factor = pc.feedbackFactor; 
-    
-    // Dynamic feedback based on motion or luma?
-    // Simple implementation first.
     
     vec3 resultYCoCg = mix(colorYCoCg, historyYCoCg, factor);
     vec3 result = YCoCgToRGB(resultYCoCg);

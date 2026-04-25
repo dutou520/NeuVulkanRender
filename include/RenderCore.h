@@ -421,20 +421,28 @@ private:
   static VkDescriptorSetLayout m_PostProcessDescriptorSetLayout;
   static std::vector<VkDescriptorSet> m_PostProcessDescriptorSets;
 
-  // Bloom资源
-  static GBufferAttachment m_BloomBrightTexture;
-  static GBufferAttachment m_BloomBlurTexture;
-  static VkFramebuffer m_BloomBrightFramebuffer;
-  static VkFramebuffer m_BloomBlurFramebuffer;
+  // Multi-Level Bloom 资源 (per-frame, 外层索引 = 飞行帧编号)
+  static std::vector<std::vector<GBufferAttachment>> m_BloomMipChain;         // [frame][mip]
+  static std::vector<std::vector<VkFramebuffer>> m_BloomDownsampleFramebuffers; // [frame][mip]
+  static std::vector<std::vector<VkFramebuffer>> m_BloomUpsampleFramebuffers;   // [frame][mip-1]
+
   static VkPipeline m_BloomThresholdPipeline;
-  static VkPipeline m_BloomBlurPipeline;
+  static VkPipeline m_BloomDownsamplePipeline;
+  static VkPipeline m_BloomUpsamplePipeline;
   static VkPipelineLayout m_BloomPipelineLayout;
-  static VkRenderPass m_BloomRenderPass;
+
+  static VkRenderPass
+      m_BloomDownsampleRenderPass; // 不包含 Clear，只带 LoadOp::DONT_CARE
+  static VkRenderPass m_BloomUpsampleRenderPass;  // 用于 Upsample
+  static VkRenderPass m_BloomThresholdRenderPass; // 第一步提取
 
   static VkDescriptorSetLayout m_SingleTextureDescriptorSetLayout;
-  static std::vector<VkDescriptorSet> m_BloomThresholdDescriptorSets;
-  static std::vector<VkDescriptorSet>
-      m_BloomBlurDescriptorSets; // [0]: Read Bright, [1]: Read Blur
+  static std::vector<std::vector<VkDescriptorSet>>
+      m_BloomThresholdDescriptorSets; // [swapchainIndex][0]
+  static std::vector<std::vector<VkDescriptorSet>>
+      m_BloomDownsampleDescriptorSets; // [swapchainIndex][mipLevel]
+  static std::vector<std::vector<VkDescriptorSet>>
+      m_BloomUpsampleDescriptorSets; // [swapchainIndex][mipLevel]
 
   // SSAO资源
   static GBufferAttachment m_SSAONoise;
@@ -452,10 +460,11 @@ private:
     uint32_t enableBloom = 1;
     uint32_t enableToneMapping = 1;
     uint32_t enableGamma = 1;
-    float bloomIntensity = 0.5f;
-    float bloomThreshold = 0.8f;
+    float bloomIntensity = 0.3f;
+    float bloomThreshold = 1.0f;
+    float bloomRadius = 1.0f; // 泛光采样半径(通常为 1.0 - 2.0)
     float ssaoRadius = 0.5f;
-    float ssaoStrength = 1.5f;
+    float ssaoStrength = 0.6f;
     uint32_t debugMode =
         0; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth, 5=Smoothness,
            // 6=Specular, 7=Occlusion, 8=MaterialFlags, 9=ShadingID, 10=Emission
@@ -522,11 +531,11 @@ public:
 
   // ========== PCSS阴影设置接口 ==========
   struct PCSSSettings {
-    glm::vec3 lightDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.3f));
-    float lightSize = 15.0f;
+    glm::vec3 lightDirection = glm::normalize(glm::vec3(0.77f, 0.3f, 0.54f));
+    float lightSize = 30.0f;
     float shadowDistance = 30.0f;
     float bias = 0.000001f;     // Shadow Bias参数
-    float minFilterSize = 0.2f; // 基础模糊半径(像素单位)
+    float minFilterSize = 0.1f; // 基础模糊半径(像素单位)
     uint32_t blockerSamples = 16;
     uint32_t pcfSamples = 32;
     uint32_t shadowMapRes = 2048;

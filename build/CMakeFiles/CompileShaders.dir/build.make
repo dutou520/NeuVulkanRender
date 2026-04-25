@@ -66,7 +66,9 @@ include CMakeFiles/CompileShaders.dir/compiler_depend.make
 include CMakeFiles/CompileShaders.dir/progress.make
 
 CMakeFiles/CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_blur.frag.spv
+CMakeFiles/CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_downsample.frag.spv
 CMakeFiles/CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_threshold.frag.spv
+CMakeFiles/CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_upsample.frag.spv
 CMakeFiles/CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.frag.spv
 CMakeFiles/CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.vert.spv
 CMakeFiles/CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/forward.frag.spv
@@ -84,69 +86,81 @@ D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_blur.frag.spv: D:
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/bloom_blur.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_blur.frag.spv
 
+D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_downsample.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/bloom_downsample.frag
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Compiling shader bloom_downsample.frag"
+	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
+	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/bloom_downsample.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_downsample.frag.spv
+
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_threshold.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/bloom_threshold.frag
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Compiling shader bloom_threshold.frag"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Compiling shader bloom_threshold.frag"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/bloom_threshold.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_threshold.frag.spv
 
+D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_upsample.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/bloom_upsample.frag
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Compiling shader bloom_upsample.frag"
+	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
+	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/bloom_upsample.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_upsample.frag.spv
+
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/composition.frag
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Compiling shader composition.frag"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Compiling shader composition.frag"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/composition.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.frag.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.vert.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/composition.vert
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Compiling shader composition.vert"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Compiling shader composition.vert"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/composition.vert -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.vert.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/forward.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/forward.frag
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Compiling shader forward.frag"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Compiling shader forward.frag"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/forward.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/forward.frag.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/forward.vert.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/forward.vert
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Compiling shader forward.vert"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Compiling shader forward.vert"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/forward.vert -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/forward.vert.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/gbuffer.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/gbuffer.frag
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Compiling shader gbuffer.frag"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Compiling shader gbuffer.frag"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/gbuffer.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/gbuffer.frag.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/gbuffer.vert.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/gbuffer.vert
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Compiling shader gbuffer.vert"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Compiling shader gbuffer.vert"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/gbuffer.vert -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/gbuffer.vert.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/postprocess.frag
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Compiling shader postprocess.frag"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Compiling shader postprocess.frag"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/postprocess.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.frag.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.vert.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/postprocess.vert
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Compiling shader postprocess.vert"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Compiling shader postprocess.vert"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/postprocess.vert -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/postprocess.vert.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.frag.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/shadow.frag
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Compiling shader shadow.frag"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Compiling shader shadow.frag"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/shadow.frag -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.frag.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.vert.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/shadow.vert
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Compiling shader shadow.vert"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Compiling shader shadow.vert"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/shadow.vert -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/shadow.vert.spv
 
 D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/taa.comp.spv: D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/taa.comp
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Compiling shader taa.comp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=D:\CppPrograms\NeuVulkanRender\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Compiling shader taa.comp"
 	"C:\Program Files\CMake\bin\cmake.exe" -E make_directory D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled
 	C:\VulkanSDK\1.4.335.0\Bin\glslc.exe D:/CppPrograms/NeuVulkanRender/resource/shaders/glsl/taa.comp -o D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/taa.comp.spv
 
 CompileShaders: CMakeFiles/CompileShaders
 CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_blur.frag.spv
+CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_downsample.frag.spv
 CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_threshold.frag.spv
+CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_upsample.frag.spv
 CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.frag.spv
 CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.vert.spv
 CompileShaders: D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/forward.frag.spv

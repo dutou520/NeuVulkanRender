@@ -1523,9 +1523,11 @@ void EditorGUI::RenderPostProcessInspector() {
       settings.enableBloom = enableBloom ? 1 : 0;
     }
     ImGui::DragFloat("Intensity##Bloom", &settings.bloomIntensity, 0.01f, 0.0f,
-                     5.0f);
+                     10.0f, "%.2f");
     ImGui::DragFloat("Threshold##Bloom", &settings.bloomThreshold, 0.01f, 0.0f,
-                     5.0f);
+                     10.0f, "%.2f");
+    ImGui::DragFloat("Radius##Bloom", &settings.bloomRadius, 0.05f, 0.1f, 5.0f,
+                     "%.2f");
   }
 
   // Tonemapping & Gamma

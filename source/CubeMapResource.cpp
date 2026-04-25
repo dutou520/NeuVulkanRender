@@ -25,6 +25,15 @@ bool CubeMapResource::LoadFromFiles(VkDevice device,
   std::vector<unsigned char *> pixels(6);
   int texWidth = 0, texHeight = 0, texChannels = 0;
 
+  uint64_t sourceTime = 0;
+  std::filesystem::path p0 = std::filesystem::u8path(paths[0]);
+  if (!paths.empty() && std::filesystem::exists(p0)) {
+    auto ftime = std::filesystem::last_write_time(p0);
+    sourceTime = ftime.time_since_epoch().count();
+  }
+  std::string cachePath = paths[0] + ".ibl_cache";
+  LoadIBLCache(cachePath, sourceTime);
+
   for (int i = 0; i < 6; i++) {
     std::ifstream ifs(std::filesystem::u8path(paths[i]),
                       std::ios::binary | std::ios::ate);
@@ -64,82 +73,86 @@ bool CubeMapResource::LoadFromFiles(VkDevice device,
     }
   }
 
-  // 计算球谐系数
-  for (int i = 0; i < 9; ++i)
-    sh[i] = glm::vec4(0.0f);
-  float totalWeight = 0.0f;
+  if (!m_hasIBLCache) {
+    // 计算球谐系数
+    for (int i = 0; i < 9; ++i)
+      sh[i] = glm::vec4(0.0f);
+    float totalWeight = 0.0f;
 
-  for (int face = 0; face < 6; ++face) {
-    for (int y = 0; y < texHeight; ++y) {
-      for (int x = 0; x < texWidth; ++x) {
-        float u = ((float)x + 0.5f) / (float)texWidth * 2.0f - 1.0f;
-        float v = ((float)y + 0.5f) / (float)texHeight * 2.0f - 1.0f;
-        v = -v; // Invert V
+    for (int face = 0; face < 6; ++face) {
+      for (int y = 0; y < texHeight; ++y) {
+        for (int x = 0; x < texWidth; ++x) {
+          float u = ((float)x + 0.5f) / (float)texWidth * 2.0f - 1.0f;
+          float v = ((float)y + 0.5f) / (float)texHeight * 2.0f - 1.0f;
+          v = -v; // Invert V
 
-        glm::vec3 dir;
-        switch (face) {
-        case 0:
-          dir = glm::vec3(1.0f, v, -u);
-          break; // PosX
-        case 1:
-          dir = glm::vec3(-1.0f, v, u);
-          break; // NegX
-        case 2:
-          dir = glm::vec3(u, 1.0f, -v);
-          break; // PosY
-        case 3:
-          dir = glm::vec3(u, -1.0f, v);
-          break; // NegY
-        case 4:
-          dir = glm::vec3(u, v, 1.0f);
-          break; // PosZ
-        case 5:
-          dir = glm::vec3(-u, v, -1.0f);
-          break; // NegZ
+          glm::vec3 dir;
+          switch (face) {
+          case 0:
+            dir = glm::vec3(1.0f, v, -u);
+            break; // PosX
+          case 1:
+            dir = glm::vec3(-1.0f, v, u);
+            break; // NegX
+          case 2:
+            dir = glm::vec3(u, 1.0f, -v);
+            break; // PosY
+          case 3:
+            dir = glm::vec3(u, -1.0f, v);
+            break; // NegY
+          case 4:
+            dir = glm::vec3(u, v, 1.0f);
+            break; // PosZ
+          case 5:
+            dir = glm::vec3(-u, v, -1.0f);
+            break; // NegZ
+          }
+          dir = glm::normalize(dir);
+
+          float dist = u * u + v * v + 1.0f;
+          float dw = 1.0f / (dist * std::sqrt(dist));
+
+          int pixelOffset = (y * texWidth + x) * 4;
+          float r = pixels[face][pixelOffset] / 255.0f;
+          float g = pixels[face][pixelOffset + 1] / 255.0f;
+          float b = pixels[face][pixelOffset + 2] / 255.0f;
+
+          r = std::pow(r, 2.2f);
+          g = std::pow(g, 2.2f);
+          b = std::pow(b, 2.2f);
+          glm::vec3 color(r, g, b);
+
+          float Y[9];
+          Y[0] = 0.282095f;
+          Y[1] = 0.488603f * dir.y;
+          Y[2] = 0.488603f * dir.z;
+          Y[3] = 0.488603f * dir.x;
+          Y[4] = 1.092548f * dir.x * dir.y;
+          Y[5] = 1.092548f * dir.y * dir.z;
+          Y[6] = 0.315392f * (3.0f * dir.z * dir.z - 1.0f);
+          Y[7] = 1.092548f * dir.x * dir.z;
+          Y[8] = 0.546274f * (dir.x * dir.x - dir.y * dir.y);
+
+          for (int i = 0; i < 9; ++i) {
+            sh[i] += glm::vec4(color * Y[i] * dw, 0.0f);
+          }
+          totalWeight += dw;
         }
-        dir = glm::normalize(dir);
-
-        float dist = u * u + v * v + 1.0f;
-        float dw = 1.0f / (dist * std::sqrt(dist));
-
-        int pixelOffset = (y * texWidth + x) * 4;
-        float r = pixels[face][pixelOffset] / 255.0f;
-        float g = pixels[face][pixelOffset + 1] / 255.0f;
-        float b = pixels[face][pixelOffset + 2] / 255.0f;
-
-        r = std::pow(r, 2.2f);
-        g = std::pow(g, 2.2f);
-        b = std::pow(b, 2.2f);
-        glm::vec3 color(r, g, b);
-
-        float Y[9];
-        Y[0] = 0.282095f;
-        Y[1] = 0.488603f * dir.y;
-        Y[2] = 0.488603f * dir.z;
-        Y[3] = 0.488603f * dir.x;
-        Y[4] = 1.092548f * dir.x * dir.y;
-        Y[5] = 1.092548f * dir.y * dir.z;
-        Y[6] = 0.315392f * (3.0f * dir.z * dir.z - 1.0f);
-        Y[7] = 1.092548f * dir.x * dir.z;
-        Y[8] = 0.546274f * (dir.x * dir.x - dir.y * dir.y);
-
-        for (int i = 0; i < 9; ++i) {
-          sh[i] += glm::vec4(color * Y[i] * dw, 0.0f);
-        }
-        totalWeight += dw;
       }
     }
-  }
 
-  // Normalize
-  float const PI = 3.14159265359f;
-  float invWeight = (4.0f * PI) / totalWeight;
-  for (int i = 0; i < 9; ++i) {
-    sh[i] *= invWeight;
-  }
+    // Normalize
+    float const PI = 3.14159265359f;
+    float invWeight = (4.0f * PI) / totalWeight;
+    for (int i = 0; i < 9; ++i) {
+      sh[i] *= invWeight;
+    }
 
-  LOG_I("Calculated Spherical Harmonics for {}x{} CubeMap", texWidth,
-        texHeight);
+    LOG_I("Calculated Spherical Harmonics for {}x{} CubeMap", texWidth,
+          texHeight);
+  } else {
+    LOG_I("Loaded Spherical Harmonics from cache");
+  }
 
   filePaths = paths;
 
@@ -244,6 +257,60 @@ bool CubeMapResource::CreateFromData(
     return false;
 
   isLoaded = true;
+  return true;
+}
+bool CubeMapResource::LoadIBLCache(const std::string &path,
+                                   uint64_t sourceTime) {
+  std::ifstream ifs(std::filesystem::u8path(path), std::ios::binary);
+  if (!ifs)
+    return false;
+
+  uint32_t magic = 0;
+  ifs.read(reinterpret_cast<char *>(&magic), sizeof(magic));
+  if (magic != 0x434C4249)
+    return false; // "IBLC"
+
+  uint64_t cacheTime = 0;
+  ifs.read(reinterpret_cast<char *>(&cacheTime), sizeof(cacheTime));
+  if (cacheTime != sourceTime)
+    return false; // Outdated
+
+  ifs.read(reinterpret_cast<char *>(sh), sizeof(sh));
+
+  uint32_t dataSize = 0;
+  ifs.read(reinterpret_cast<char *>(&dataSize), sizeof(dataSize));
+
+  if (dataSize > 0) {
+    m_prefilterCacheData.resize(dataSize);
+    ifs.read(reinterpret_cast<char *>(m_prefilterCacheData.data()), dataSize);
+    if (!ifs) {
+      m_prefilterCacheData.clear();
+      return false;
+    }
+  }
+
+  m_hasIBLCache = true;
+  return true;
+}
+
+bool CubeMapResource::SaveIBLCache(const std::string &path, uint64_t sourceTime,
+                                   const uint8_t *prefilterData,
+                                   size_t prefilterSize) {
+  std::ofstream ofs(std::filesystem::u8path(path), std::ios::binary);
+  if (!ofs)
+    return false;
+
+  uint32_t magic = 0x434C4249; // "IBLC"
+  ofs.write(reinterpret_cast<const char *>(&magic), sizeof(magic));
+  ofs.write(reinterpret_cast<const char *>(&sourceTime), sizeof(sourceTime));
+  ofs.write(reinterpret_cast<const char *>(sh), sizeof(sh));
+
+  uint32_t dataSize = static_cast<uint32_t>(prefilterSize);
+  ofs.write(reinterpret_cast<const char *>(&dataSize), sizeof(dataSize));
+  if (dataSize > 0 && prefilterData) {
+    ofs.write(reinterpret_cast<const char *>(prefilterData), dataSize);
+  }
+
   return true;
 }
 
@@ -554,138 +621,153 @@ bool CubeMapResource::GeneratePrefilteredMap(VkDevice device,
   vkMapMemory(device, stagingMem, 0, totalBytes, 0, (void **)&stagingPtr);
   uint16_t *stagingF16 = reinterpret_cast<uint16_t *>(stagingPtr);
 
-  // IEEE 754 float -> float16 helper（NaN/Inf 安全版）
-  auto toF16 = [](float v) -> uint16_t {
-    // 先处理 NaN/Inf：若不是有限值则输出 0
-    if (!std::isfinite(v))
-      return 0;
-    // clamp 到 float16 最大正值 (~65504)，并 clamp 负值为
-    // 0（线性颜色值不应为负）
-    v = std::max(0.0f, std::min(v, 65504.0f));
-    uint32_t bits;
-    memcpy(&bits, &v, 4);
-    uint16_t sign = (bits >> 16) & 0x8000;
-    int32_t exp = ((bits >> 23) & 0xFF) - 127 + 15;
-    uint32_t mant = bits & 0x7FFFFF;
-    if (exp <= 0)
-      return sign; // flush to zero
-    if (exp >= 31)
-      return sign | 0x7C00; // clamp to max (avoid inf)
-    return (uint16_t)(sign | (exp << 10) | (mant >> 13));
-  };
+  if (m_hasIBLCache && m_prefilterCacheData.size() == totalBytes) {
+    memcpy(stagingPtr, m_prefilterCacheData.data(), totalBytes);
+    m_prefilterCacheData.clear();
+    LOG_I("Loaded PrefilteredMap from cache");
+  } else {
+    // IEEE 754 float -> float16 helper（NaN/Inf 安全版）
+    auto toF16 = [](float v) -> uint16_t {
+      // 先处理 NaN/Inf：若不是有限值则输出 0
+      if (!std::isfinite(v))
+        return 0;
+      // clamp 到 float16 最大正值 (~65504)，并 clamp 负值为
+      // 0（线性颜色值不应为负）
+      v = std::max(0.0f, std::min(v, 65504.0f));
+      uint32_t bits;
+      memcpy(&bits, &v, 4);
+      uint16_t sign = (bits >> 16) & 0x8000;
+      int32_t exp = ((bits >> 23) & 0xFF) - 127 + 15;
+      uint32_t mant = bits & 0x7FFFFF;
+      if (exp <= 0)
+        return sign; // flush to zero
+      if (exp >= 31)
+        return sign | 0x7C00; // clamp to max (avoid inf)
+      return (uint16_t)(sign | (exp << 10) | (mant >> 13));
+    };
 
-  size_t offsetPixels = 0; // in uint16_t-element units (4 channels per pixel)
+    size_t offsetPixels = 0; // in uint16_t-element units (4 channels per pixel)
 
-  for (uint32_t m = 0; m < NUM_MIPS; m++) {
-    float roughness = (float)m / (float)(NUM_MIPS - 1);
-    uint32_t mipW = std::max(1u, baseSize >> m);
-    uint32_t mipH = std::max(1u, baseSize >> m);
+    for (uint32_t m = 0; m < NUM_MIPS; m++) {
+      float roughness = (float)m / (float)(NUM_MIPS - 1);
+      uint32_t mipW = std::max(1u, baseSize >> m);
+      uint32_t mipH = std::max(1u, baseSize >> m);
 
-    for (int face = 0; face < 6; face++) {
-      for (uint32_t y = 0; y < mipH; y++) {
-        for (uint32_t x = 0; x < mipW; x++) {
-          float fu = ((float)x + 0.5f) / mipW * 2.0f - 1.0f;
-          float fv = ((float)y + 0.5f) / mipH * 2.0f - 1.0f;
-          fv = -fv;
+      for (int face = 0; face < 6; face++) {
+        for (uint32_t y = 0; y < mipH; y++) {
+          for (uint32_t x = 0; x < mipW; x++) {
+            float fu = ((float)x + 0.5f) / mipW * 2.0f - 1.0f;
+            float fv = ((float)y + 0.5f) / mipH * 2.0f - 1.0f;
+            fv = -fv;
 
-          glm::vec3 N;
-          switch (face) {
-          case 0:
-            N = glm::normalize(glm::vec3(1.0f, fv, -fu));
-            break;
-          case 1:
-            N = glm::normalize(glm::vec3(-1.0f, fv, fu));
-            break;
-          case 2:
-            N = glm::normalize(glm::vec3(fu, 1.0f, -fv));
-            break;
-          case 3:
-            N = glm::normalize(glm::vec3(fu, -1.0f, fv));
-            break;
-          case 4:
-            N = glm::normalize(glm::vec3(fu, fv, 1.0f));
-            break;
-          case 5:
-            N = glm::normalize(glm::vec3(-fu, fv, -1.0f));
-            break;
-          }
-          glm::vec3 R = N;
-          glm::vec3 V = R;
-
-          glm::vec3 prefilteredColor(0.0f);
-          float totalWeight = 0.0f;
-
-          constexpr float PI2 = 3.14159265359f;
-          // 计算 mip0 采样的立体角（用于 LOD 偏置）
-          // saTexel = 4*PI / (6 * faceW * faceH)  （近似每个纹素的立体角）
-          float saTexel = 4.0f * PI2 / (6.0f * (float)(faceW * faceH));
-
-          for (uint32_t i = 0; i < numSamples; ++i) {
-            glm::vec2 Xi = Hammersley(i, numSamples);
-            float cosTheta;
-            glm::vec3 H = ImportanceSampleGGX(Xi, N, roughness, &cosTheta);
-            float NdotH = std::max(cosTheta, 0.0f);
-            glm::vec3 L = glm::normalize(2.0f * glm::dot(V, H) * H - V);
-            float NdotL = std::max(glm::dot(N, L), 0.0f);
-            if (NdotL > 0.0f) {
-              // 计算当前样本的 PDF，用于 LOD 选择以避免采到高频极端值
-              float VdotH = std::max(glm::dot(V, H), 0.0f);
-              float pdf = GGX_PDF(NdotH, VdotH, std::max(roughness, 1e-4f));
-              // 每个样本覆盖的立体角
-              float saSample = 1.0f / (float(numSamples) * pdf + 1e-7f);
-              // LOD = log2(saSample / saTexel) * 0.5，并 clamp 到合理范围
-              float lod =
-                  (roughness == 0.0f)
-                      ? 0.0f
-                      : std::max(0.0f, 0.5f * std::log2(saSample / saTexel));
-              // 限制最大 lod，避免高 roughness 时采到过低分辨率产生色块
-              lod = std::min(lod, (float)(mipLevels - 1));
-              // 当 lod 较小时直接用 bilinear（当前只有
-              // mip0），可以视现有接口忽略 lod 实际已通过 pdf
-              // 权重隐式压低极端值（高斯罗棱传对高频样本给较高 pdf， 对应更大的
-              // lod 意味着在低分辨率采样，等效避免单像素极端值）
-              // 为简化实现，直接用 NdotL 但对 极端亮度 做裁剪：
-              glm::vec3 sampleColor =
-                  SampleCubemapBilinearF(faceData, faceW, faceH, L);
-              // 对每个通道做 firefly 抑制：限制单次样本最大亮度贡献
-              // 用当前已累积平均亮度的倍数做 clamp，防止一个极端值主导结果
-              // 第一次迭代没有参考值，先不 clamp；后续用历史均值 * 8 作为上限
-              if (totalWeight > 0.0f) {
-                glm::vec3 curAvg = prefilteredColor / totalWeight;
-                float avgLum = 0.2126f * curAvg.r + 0.7152f * curAvg.g +
-                               0.0722f * curAvg.b;
-                float sampleLum = 0.2126f * sampleColor.r +
-                                  0.7152f * sampleColor.g +
-                                  0.0722f * sampleColor.b;
-                // 如果样本亮度超过当前均值 8 倍则按比例压制
-                float maxLum = std::max(avgLum * 8.0f, 0.1f);
-                if (sampleLum > maxLum && sampleLum > 0.0f)
-                  sampleColor *= (maxLum / sampleLum);
-              }
-              prefilteredColor += sampleColor * NdotL;
-              totalWeight += NdotL;
+            glm::vec3 N;
+            switch (face) {
+            case 0:
+              N = glm::normalize(glm::vec3(1.0f, fv, -fu));
+              break;
+            case 1:
+              N = glm::normalize(glm::vec3(-1.0f, fv, fu));
+              break;
+            case 2:
+              N = glm::normalize(glm::vec3(fu, 1.0f, -fv));
+              break;
+            case 3:
+              N = glm::normalize(glm::vec3(fu, -1.0f, fv));
+              break;
+            case 4:
+              N = glm::normalize(glm::vec3(fu, fv, 1.0f));
+              break;
+            case 5:
+              N = glm::normalize(glm::vec3(-fu, fv, -1.0f));
+              break;
             }
-          }
-          if (totalWeight > 0.0f)
-            prefilteredColor /= totalWeight;
-          // 最终 clamp，防止残留 NaN/Inf 写入
-          prefilteredColor.r =
-              std::isfinite(prefilteredColor.r) ? prefilteredColor.r : 0.0f;
-          prefilteredColor.g =
-              std::isfinite(prefilteredColor.g) ? prefilteredColor.g : 0.0f;
-          prefilteredColor.b =
-              std::isfinite(prefilteredColor.b) ? prefilteredColor.b : 0.0f;
+            glm::vec3 R = N;
+            glm::vec3 V = R;
 
-          // 写入 staging (R16G16B16A16_SFLOAT, 线性空间)
-          size_t pixBase = offsetPixels + ((size_t)y * mipW + x) * 4;
-          stagingF16[pixBase + 0] = toF16(prefilteredColor.r);
-          stagingF16[pixBase + 1] = toF16(prefilteredColor.g);
-          stagingF16[pixBase + 2] = toF16(prefilteredColor.b);
-          stagingF16[pixBase + 3] = toF16(1.0f);
+            glm::vec3 prefilteredColor(0.0f);
+            float totalWeight = 0.0f;
+
+            constexpr float PI2 = 3.14159265359f;
+            // 计算 mip0 采样的立体角（用于 LOD 偏置）
+            // saTexel = 4*PI / (6 * faceW * faceH)  （近似每个纹素的立体角）
+            float saTexel = 4.0f * PI2 / (6.0f * (float)(faceW * faceH));
+
+            for (uint32_t i = 0; i < numSamples; ++i) {
+              glm::vec2 Xi = Hammersley(i, numSamples);
+              float cosTheta;
+              glm::vec3 H = ImportanceSampleGGX(Xi, N, roughness, &cosTheta);
+              float NdotH = std::max(cosTheta, 0.0f);
+              glm::vec3 L = glm::normalize(2.0f * glm::dot(V, H) * H - V);
+              float NdotL = std::max(glm::dot(N, L), 0.0f);
+              if (NdotL > 0.0f) {
+                // 计算当前样本的 PDF，用于 LOD 选择以避免采到高频极端值
+                float VdotH = std::max(glm::dot(V, H), 0.0f);
+                float pdf = GGX_PDF(NdotH, VdotH, std::max(roughness, 1e-4f));
+                // 每个样本覆盖的立体角
+                float saSample = 1.0f / (float(numSamples) * pdf + 1e-7f);
+                // LOD = log2(saSample / saTexel) * 0.5，并 clamp 到合理范围
+                float lod =
+                    (roughness == 0.0f)
+                        ? 0.0f
+                        : std::max(0.0f, 0.5f * std::log2(saSample / saTexel));
+                // 限制最大 lod，避免高 roughness 时采到过低分辨率产生色块
+                lod = std::min(lod, (float)(mipLevels - 1));
+                // 当 lod 较小时直接用 bilinear（当前只有
+                // mip0），可以视现有接口忽略 lod 实际已通过 pdf
+                // 权重隐式压低极端值（高斯罗棱传对高频样本给较高 pdf，
+                // 对应更大的 lod 意味着在低分辨率采样，等效避免单像素极端值）
+                // 为简化实现，直接用 NdotL 但对 极端亮度 做裁剪：
+                glm::vec3 sampleColor =
+                    SampleCubemapBilinearF(faceData, faceW, faceH, L);
+                // 对每个通道做 firefly 抑制：限制单次样本最大亮度贡献
+                // 用当前已累积平均亮度的倍数做 clamp，防止一个极端值主导结果
+                // 第一次迭代没有参考值，先不 clamp；后续用历史均值 * 8 作为上限
+                if (totalWeight > 0.0f) {
+                  glm::vec3 curAvg = prefilteredColor / totalWeight;
+                  float avgLum = 0.2126f * curAvg.r + 0.7152f * curAvg.g +
+                                 0.0722f * curAvg.b;
+                  float sampleLum = 0.2126f * sampleColor.r +
+                                    0.7152f * sampleColor.g +
+                                    0.0722f * sampleColor.b;
+                  // 如果样本亮度超过当前均值 8 倍则按比例压制
+                  float maxLum = std::max(avgLum * 8.0f, 0.1f);
+                  if (sampleLum > maxLum && sampleLum > 0.0f)
+                    sampleColor *= (maxLum / sampleLum);
+                }
+                prefilteredColor += sampleColor * NdotL;
+                totalWeight += NdotL;
+              }
+            }
+            if (totalWeight > 0.0f)
+              prefilteredColor /= totalWeight;
+            // 最终 clamp，防止残留 NaN/Inf 写入
+            prefilteredColor.r =
+                std::isfinite(prefilteredColor.r) ? prefilteredColor.r : 0.0f;
+            prefilteredColor.g =
+                std::isfinite(prefilteredColor.g) ? prefilteredColor.g : 0.0f;
+            prefilteredColor.b =
+                std::isfinite(prefilteredColor.b) ? prefilteredColor.b : 0.0f;
+
+            // 写入 staging (R16G16B16A16_SFLOAT, 线性空间)
+            size_t pixBase = offsetPixels + ((size_t)y * mipW + x) * 4;
+            stagingF16[pixBase + 0] = toF16(prefilteredColor.r);
+            stagingF16[pixBase + 1] = toF16(prefilteredColor.g);
+            stagingF16[pixBase + 2] = toF16(prefilteredColor.b);
+            stagingF16[pixBase + 3] = toF16(1.0f);
+          }
         }
+        offsetPixels += (size_t)mipW * mipH * 4; // advance by pixels×channels
       }
-      offsetPixels += (size_t)mipW * mipH * 4; // advance by pixels×channels
     }
+
+    uint64_t sourceTime = 0;
+    std::filesystem::path p0 = std::filesystem::u8path(filePaths[0]);
+    if (!filePaths.empty() && std::filesystem::exists(p0)) {
+      auto ftime = std::filesystem::last_write_time(p0);
+      sourceTime = ftime.time_since_epoch().count();
+    }
+    std::string cachePath = filePaths[0] + ".ibl_cache";
+    SaveIBLCache(cachePath, sourceTime, stagingPtr, totalBytes);
   }
   vkUnmapMemory(device, stagingMem);
 

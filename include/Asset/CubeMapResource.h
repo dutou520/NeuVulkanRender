@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/UUID.h"
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
@@ -30,6 +31,13 @@ struct CubeMapResource {
   VkImageView prefilteredImageView = VK_NULL_HANDLE;
   VkSampler prefilteredSampler = VK_NULL_HANDLE;
   static constexpr uint32_t PREFILTER_MIP_LEVELS = 6;
+
+  bool m_hasIBLCache = false;
+  std::vector<uint8_t> m_prefilterCacheData;
+
+  bool LoadIBLCache(const std::string &path, uint64_t sourceTime);
+  bool SaveIBLCache(const std::string &path, uint64_t sourceTime,
+                    const uint8_t *prefilterData, size_t prefilterSize);
 
   // 球谐系数 (9个，xyz存RGB)
   glm::vec4 sh[9] = {};
