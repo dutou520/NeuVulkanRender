@@ -36,6 +36,15 @@
 
 ---
 
+## 🎨 场景编辑与交互
+
+*   **实时编辑流**：基于即时模式（IM）哲学设计，选中物体即可在 UI 中实时修改属性。
+*   **材质系统**：材质作为独立资源，修改参数（颜色、金属度等）优先通过 **Push Constants** 更新实现即时反馈。
+*   **Gizmo 操作**：集成 `ImGuizmo` 支持在视口中通过三轴拖拽移动/旋转物体。
+*   **GUI 架构**：基于 ImGui Docking 分支，支持灵活的窗口拖拽与布局停靠。
+
+---
+
 ## 🏗️ 架构设计
 
 项目采用高度模块化的设计，将核心功能拆分为多个专用的静态库：
@@ -55,11 +64,11 @@
 
 *   **图形 API**: Vulkan SDK (1.3+)
 *   **窗口系统**: SDL3
-*   **数学库**: GLM
-*   **UI 系统**: Dear ImGui + ImGuizmo
+*   **数学库**: GLM (已处理 Vulkan Y 轴坐标差异)
+*   **UI 系统**: Dear ImGui (Docking) + ImGuizmo
 *   **资源加载**: tinygltf, tinyobjloader, stb_image
 *   **序列化**: nlohmann/json
-*   **构建工具**: CMake + vcpkg (依赖管理)
+*   **构建工具**: CMake + vcpkg
 
 ---
 
@@ -74,3 +83,4 @@
 ```bash
 git clone https://github.com/dutou520/NeuVulkanRender.git
 cd NeuVulkanRender
+```
