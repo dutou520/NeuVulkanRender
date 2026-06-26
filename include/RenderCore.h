@@ -126,8 +126,6 @@ private:
   static void CreatePostProcessPipeline();
   static void CreateSSAOResources();
   static void CreateBloomResources();
-  static void CreateBloomRenderPass();
-  static void CreateBloomFramebuffers();
   static void CreateBloomPipelines();
   static void CreatePostProcessDescriptorSets();
   static void CreateGBufferFramebuffers();
@@ -286,12 +284,24 @@ private:
   // 命令执行完成后再进行下一帧准备
   // 防止帧重叠导致的资源竞争（如重复使用未释放的缓冲/图像），支持等待和重置操作
   static std::vector<VkFence> m_InFlightFences;
+  static std::vector<VkFence> m_ImagesInFlight;
 
   // ============================== 资源描述符相关
   // ============================== 描述符池：用于分配描述符集（Descriptor
   // Set）的内存池
   // 预分配描述符池大小，避免频繁创建/销毁描述符集导致的性能开销，需指定支持的描述符类型和数量
   static VkDescriptorPool m_DescriptorPool;
+  static std::vector<VkDescriptorPool> m_DescriptorPools;
+  static VkDescriptorPool m_CurrentDescriptorPool;
+  static VkDescriptorPool m_ImGuiDescriptorPool;
+  static std::unordered_map<VkDescriptorSet, VkDescriptorPool> m_AllocatedSets;
+  static VkDescriptorPool CreateNewDescriptorPool();
+public:
+  static VkResult AllocateDescriptorSets(VkDescriptorSetAllocateInfo *pAllocateInfo,
+                                         VkDescriptorSet *pDescriptorSets);
+  static void FreeDescriptorSets(uint32_t descriptorSetCount,
+                                 const VkDescriptorSet *pDescriptorSets);
+private:
 
   // ============================== 帧状态相关 ==============================
   // 当前帧索引：标识当前正在处理的帧（用于多缓冲同步，如双缓冲时 0/1 切换）
@@ -421,28 +431,20 @@ private:
   static VkDescriptorSetLayout m_PostProcessDescriptorSetLayout;
   static std::vector<VkDescriptorSet> m_PostProcessDescriptorSets;
 
-  // Multi-Level Bloom 资源 (per-frame, 外层索引 = 飞行帧编号)
-  static std::vector<std::vector<GBufferAttachment>> m_BloomMipChain;         // [frame][mip]
-  static std::vector<std::vector<VkFramebuffer>> m_BloomDownsampleFramebuffers; // [frame][mip]
-  static std::vector<std::vector<VkFramebuffer>> m_BloomUpsampleFramebuffers;   // [frame][mip-1]
-
+  // Bloom资源 (MipChain)
   static VkPipeline m_BloomThresholdPipeline;
-  static VkPipeline m_BloomDownsamplePipeline;
-  static VkPipeline m_BloomUpsamplePipeline;
   static VkPipelineLayout m_BloomPipelineLayout;
 
-  static VkRenderPass
-      m_BloomDownsampleRenderPass; // 不包含 Clear，只带 LoadOp::DONT_CARE
-  static VkRenderPass m_BloomUpsampleRenderPass;  // 用于 Upsample
-  static VkRenderPass m_BloomThresholdRenderPass; // 第一步提取
-
   static VkDescriptorSetLayout m_SingleTextureDescriptorSetLayout;
-  static std::vector<std::vector<VkDescriptorSet>>
-      m_BloomThresholdDescriptorSets; // [swapchainIndex][0]
-  static std::vector<std::vector<VkDescriptorSet>>
-      m_BloomDownsampleDescriptorSets; // [swapchainIndex][mipLevel]
-  static std::vector<std::vector<VkDescriptorSet>>
-      m_BloomUpsampleDescriptorSets; // [swapchainIndex][mipLevel]
+  static VkDescriptorSetLayout m_BloomComputeDescriptorSetLayout;
+  static std::vector<std::vector<VkDescriptorSet>> m_BloomThresholdDescriptorSets;
+  static std::vector<std::vector<VkDescriptorSet>> m_BloomDownsampleDescriptorSets;
+  static std::vector<std::vector<VkDescriptorSet>> m_BloomUpsampleDescriptorSets;
+
+  static std::vector<std::vector<GBufferAttachment>> m_BloomMipChain;
+
+  static VkPipeline m_BloomDownsamplePipeline;
+  static VkPipeline m_BloomUpsamplePipeline;
 
   // SSAO资源
   static GBufferAttachment m_SSAONoise;
@@ -460,14 +462,20 @@ private:
     uint32_t enableBloom = 1;
     uint32_t enableToneMapping = 1;
     uint32_t enableGamma = 1;
-    float bloomIntensity = 0.3f;
-    float bloomThreshold = 1.0f;
+    float bloomIntensity = 0.5f;
+    float bloomThreshold = 0.8f;
     float bloomRadius = 1.0f; // 泛光采样半径(通常为 1.0 - 2.0)
     float ssaoRadius = 0.5f;
-    float ssaoStrength = 0.6f;
+    float ssaoStrength = 1.5f;
     uint32_t debugMode =
         0; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth, 5=Smoothness,
            // 6=Specular, 7=Occlusion, 8=MaterialFlags, 9=ShadingID, 10=Emission
+    uint32_t enableSSR = 1;
+    uint32_t ssrMaxSteps = 8;
+    float ssrStepSize = 0.43f;
+    float ssrThickness = 0.500f;
+    float ssrStrength = 1.81f;
+    uint32_t enableSSRSpatial = 1;
   };
   static PostProcessSettings m_PostProcessSettings;
 
@@ -510,6 +518,9 @@ public:
     return m_PostProcessSettings;
   }
 
+  // ========== 自动截图测试接口 ==========
+  static void SaveScreenshot(const std::string &filename, uint32_t imageIndex);
+
   // ========== 工程管理接口 ==========
   static void SetCurrentProject(std::shared_ptr<Project> project) {
     m_CurrentProject = project;
@@ -531,11 +542,11 @@ public:
 
   // ========== PCSS阴影设置接口 ==========
   struct PCSSSettings {
-    glm::vec3 lightDirection = glm::normalize(glm::vec3(0.77f, 0.3f, 0.54f));
-    float lightSize = 30.0f;
+    glm::vec3 lightDirection = glm::normalize(glm::vec3(0.5f, 0.8f, 0.3f));
+    float lightSize = 15.0f;
     float shadowDistance = 30.0f;
     float bias = 0.000001f;     // Shadow Bias参数
-    float minFilterSize = 0.1f; // 基础模糊半径(像素单位)
+    float minFilterSize = 0.2f; // 基础模糊半径(像素单位)
     uint32_t blockerSamples = 16;
     uint32_t pcfSamples = 32;
     uint32_t shadowMapRes = 2048;

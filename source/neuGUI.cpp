@@ -1530,6 +1530,25 @@ void EditorGUI::RenderPostProcessInspector() {
                      "%.2f");
   }
 
+  // SSR Settings
+  if (ImGui::CollapsingHeader("SSR (Screen Space Reflection)", ImGuiTreeNodeFlags_DefaultOpen)) {
+    bool enableSSR = settings.enableSSR != 0;
+    if (ImGui::Checkbox("Enable SSR", &enableSSR)) {
+      settings.enableSSR = enableSSR ? 1 : 0;
+    }
+    bool enableSSRSpatial = settings.enableSSRSpatial != 0;
+    if (ImGui::Checkbox("Spatial Reuse (Denoise)", &enableSSRSpatial)) {
+      settings.enableSSRSpatial = enableSSRSpatial ? 1 : 0;
+    }
+    int steps = static_cast<int>(settings.ssrMaxSteps);
+    if (ImGui::SliderInt("SSR Max Steps", &steps, 1, 200)) {
+      settings.ssrMaxSteps = static_cast<uint32_t>(steps);
+    }
+    ImGui::SliderFloat("SSR Step Size", &settings.ssrStepSize, 0.01f, 2.0f, "%.2f");
+    ImGui::SliderFloat("SSR Thickness", &settings.ssrThickness, 0.001f, 0.5f, "%.3f");
+    ImGui::SliderFloat("SSR Strength", &settings.ssrStrength, 0.0f, 5.0f, "%.2f");
+  }
+
   // Tonemapping & Gamma
   if (ImGui::CollapsingHeader("Tonemapping & Color",
                               ImGuiTreeNodeFlags_DefaultOpen)) {

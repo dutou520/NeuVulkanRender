@@ -36,9 +36,16 @@ layout(push_constant) uniform PostProcessSettings {
     uint enableGamma;
     float bloomIntensity;
     float bloomThreshold;
+    float bloomRadius; // 对齐 C++
     float ssaoRadius;
     float ssaoStrength;
     uint debugMode; // 0=Shaded, 1=Wireframe, 2=Albedo, 3=Normal, 4=Depth, 5=Smoothness, 6=Specular, 7=Occlusion, 8=MaterialFlags, 9=ShadingID, 10=Emission
+    uint enableSSR;
+    uint ssrMaxSteps;
+    float ssrStepSize;
+    float ssrThickness;
+    float ssrStrength;
+    uint enableSSRSpatial; // 对齐 C++
 } settings;
 
 layout(location = 0) in vec2 fragTexCoord;
@@ -98,6 +105,92 @@ float calculateSSAO(vec2 uv) {
     
     occlusion = 1.0 - (occlusion / float(sampleCount));
     return pow(occlusion, settings.ssaoStrength);
+}
+
+// ===================== SSR (Screen Space Reflection) =====================
+
+vec3 calculateSSR(vec2 uv, vec3 fragPos, vec3 normalVS, float smoothness, vec3 specular) {
+    if (smoothness < 0.01) return vec3(0.0);
+
+    vec3 viewDir = normalize(fragPos);
+    vec3 reflectDir = reflect(viewDir, normalVS);
+
+    // 如果反射方向朝向相机（Z正方向），屏幕空间内无法投射，尽早剔除
+    if (reflectDir.z > 0.3) return vec3(0.0);
+
+    int maxSteps = int(settings.ssrMaxSteps);
+    float stepSize = settings.ssrStepSize;
+    float thickness = settings.ssrThickness;
+
+    vec3 currentRayPos = fragPos;
+    vec2 hitUV = vec2(0.0);
+    bool hit = false;
+
+    for (int i = 0; i < maxSteps; i++) {
+        currentRayPos += reflectDir * stepSize;
+
+        // 投影到屏幕空间
+        vec4 projectedPos = camera.projection * vec4(currentRayPos, 1.0);
+        projectedPos.xyz /= projectedPos.w;
+        vec2 sampleUV = projectedPos.xy * 0.5 + 0.5;
+
+        // 边界检查
+        if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) {
+            break;
+        }
+
+        // 采样深度并重建位置
+        float sampledDepth = texture(depthBuffer, sampleUV).r;
+        if (sampledDepth >= 0.9999) continue;
+
+        vec3 sampledPos = reconstructViewPosition(sampleUV, sampledDepth);
+
+        float depthDiff = sampledPos.z - currentRayPos.z;
+        // 在观察空间中，Z值是负的，且负得越多说明越远
+        if (depthDiff >= 0.0 && depthDiff < thickness) {
+            // 发生碰撞，使用二分查找精细调整
+            vec3 minRayPos = currentRayPos - reflectDir * stepSize;
+            vec3 maxRayPos = currentRayPos;
+            
+            for (int j = 0; j < 5; j++) {
+                vec3 midRayPos = mix(minRayPos, maxRayPos, 0.5);
+                vec4 midProj = camera.projection * vec4(midRayPos, 1.0);
+                midProj.xyz /= midProj.w;
+                vec2 midUV = midProj.xy * 0.5 + 0.5;
+                
+                float d = texture(depthBuffer, midUV).r;
+                vec3 p = reconstructViewPosition(midUV, d);
+                
+                float diff = p.z - midRayPos.z;
+                if (diff >= 0.0 && diff < thickness) {
+                    maxRayPos = midRayPos;
+                    hitUV = midUV;
+                } else {
+                    minRayPos = midRayPos;
+                }
+            }
+            hit = true;
+            break;
+        }
+    }
+
+    if (hit) {
+        // 边缘渐变淡出
+        vec2 edge = vec2(1.0) - abs(hitUV * 2.0 - 1.0);
+        float edgeFade = clamp(edge.x * edge.y * 10.0, 0.0, 1.0);
+
+        // 采样反射点颜色
+        vec3 reflectedColor = texture(sceneColor, hitUV).rgb;
+
+        // 菲涅尔效应
+        float cosTheta = max(dot(normalVS, -viewDir), 0.0);
+        // fresnelSchlick F0 = specular
+        vec3 F = specular + (vec3(1.0) - specular) * pow(1.0 - cosTheta, 5.0);
+
+        return reflectedColor * F * smoothness * settings.ssrStrength * edgeFade;
+    }
+
+    return vec3(0.0);
 }
 
 // ===================== 色调映射 =====================
@@ -232,6 +325,9 @@ void main() {
         ao = calculateSSAO(fragTexCoord);
         hdrColor *= ao;
     }
+
+    // SSR 已经移至 TAA Pass (taa.comp) 内部处理，以使 TAA 能够直接作用于反射噪点。
+    // 在此处屏蔽二次 SSR 叠加。
     
     // Bloom
     if (settings.enableBloom != 0) {

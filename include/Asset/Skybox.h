@@ -17,7 +17,7 @@ struct SkyboxSettings {
   std::string filePath;               // .skybox 文件路径
   std::vector<std::string> facePaths; // top, right, left, front, back, bottom
   float rotationY = 0.0f;
-  float brightness = 1.0f;
+  float brightness = 0.1f;
 
   bool LoadFromFile(const std::string &path) {
     std::ifstream ifs(std::filesystem::u8path(path));
