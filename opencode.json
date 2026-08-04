@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "renderdoc-mcp": {
+      "type": "local",
+      "command": ["C:\\Users\\asus\\.gemini\\config\\vendor_imports\\renderdoc-mcp\\bin\\renderdoc-mcp.exe"],
+      "enabled": true
+    }
+  }
+}

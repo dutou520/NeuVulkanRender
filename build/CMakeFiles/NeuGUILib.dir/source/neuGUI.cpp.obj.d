@@ -151,6 +151,17 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_vector.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_bvector.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/functional \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/std_function.h \
+ C:/msys64/mingw64/include/c++/14.1.0/unordered_map \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/unordered_map.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable_policy.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
+ C:/msys64/mingw64/include/c++/14.1.0/array \
+ C:/msys64/mingw64/include/c++/14.1.0/compare \
  D:/CppPrograms/NeuVulkanRender/include/Asset/AssetManager.h \
  D:/CppPrograms/NeuVulkanRender/include/Core/UUID.h \
  C:/msys64/mingw64/include/c++/14.1.0/cstdint \
@@ -226,13 +237,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/codecvt \
  C:/msys64/mingw64/include/c++/14.1.0/bits/fs_dir.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/fs_ops.h \
- C:/msys64/mingw64/include/c++/14.1.0/unordered_map \
- C:/msys64/mingw64/include/c++/14.1.0/bits/unordered_map.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable_policy.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
  D:/CppPrograms/NeuVulkanRender/include/Asset/ModelImporter.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/MeshNode.h \
  D:/CppPrograms/NeuVulkanRender/include/Nodes/Node.h \
@@ -269,10 +273,6 @@ CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec3.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/type_vec3.inl \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/compute_vector_decl.hpp \
- C:/msys64/mingw64/include/c++/14.1.0/functional \
- C:/msys64/mingw64/include/c++/14.1.0/bits/std_function.h \
- C:/msys64/mingw64/include/c++/14.1.0/array \
- C:/msys64/mingw64/include/c++/14.1.0/compare \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/detail/_vectorize.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_bool3_precision.hpp \
  D:/vcpkg/installed/x64-mingw-dynamic/include/glm/ext/vector_float3.hpp \

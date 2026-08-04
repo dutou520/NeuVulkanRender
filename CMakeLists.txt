@@ -184,12 +184,28 @@ endif()
 add_library(NeuVulkanRenderLib INTERFACE)
 target_link_libraries(NeuVulkanRenderLib INTERFACE NeuRenderCoreLib)
 
+# 6.5 NeuConsoleLib (命令行调试系统)
+add_library(NeuConsoleLib STATIC source/Console.cpp)
+generate_export_header(NeuConsoleLib EXPORT_MACRO_NAME NEUCONSOLE_API BASE_NAME NeuConsole)
+target_compile_definitions(NeuConsoleLib PUBLIC NEUCONSOLE_STATIC_DEFINE)
+target_include_directories(NeuConsoleLib PUBLIC 
+    "${CMAKE_SOURCE_DIR}/include" 
+    "${CMAKE_CURRENT_BINARY_DIR}"
+)
+target_link_libraries(NeuConsoleLib PUBLIC 
+    NeuRenderCoreLib
+    NeuSceneLib
+    NeuLogLib
+    glm::glm
+)
+
 # 7. 创建主程序并链接
 add_executable(NeuVulkanRender source/Main.cpp)
 # Note: explicit link to NeuSceneLib after NeuAssetLib to resolve circular dependency
 target_link_libraries(NeuVulkanRender PRIVATE 
     NeuRenderCoreLib
     NeuSceneLib  # Explicit re-link to resolve circular dependency with NeuAssetLib
+    NeuConsoleLib
 )
 
 # ========== Shader 编译自动化 ==========
@@ -233,9 +249,12 @@ else()
     message(WARNING "glslc not found! Shaders will not be automatically compiled.")
 endif()
 
-# 复制资源文件到构建目录
+# 复制资源文件到构建目录。
+# 使用 copy_directory_if_different：仅复制有变化的内容且保留源文件时间戳，
+# 避免每次构建强制覆盖资源导致天空盒 IBL 缓存（.ibl_cache，按源文件修改时间校验）
+# 反复失效而重新预计算（CPU 密集，非常慢）。
 add_custom_command(TARGET NeuVulkanRender POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
     "${CMAKE_SOURCE_DIR}/resource"
     "$<TARGET_FILE_DIR:NeuVulkanRender>/resource"
     COMMENT "Copying resource folder to build directory"

@@ -1,0 +1,20 @@
+[  3%] Built target NeuLogLib
+[  7%] Built target NeuWindowLib
+[ 13%] Built target NeuImGuiBackendLib
+[ 15%] Building CXX object CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj
+[ 17%] Linking CXX static library libNeuGUILib.a
+[ 17%] Built target NeuGUILib
+[ 23%] Built target NeuCoreLib
+[ 38%] Built target NeuAssetLib
+[ 53%] Built target NeuSceneLib
+[ 55%] Building CXX object CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj
+[ 57%] Linking CXX static library libNeuRenderCoreLib.a
+[ 61%] Built target NeuRenderCoreLib
+[ 96%] Built target CompileShaders
+[ 98%] Building CXX object CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj
+[100%] Linking CXX executable NeuVulkanRender.exe
+C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: cannot open output file NeuVulkanRender.exe: Permission denied
+collect2.exe: error: ld returned 1 exit status
+mingw32-make[2]: *** [CMakeFiles\NeuVulkanRender.dir\build.make:115: NeuVulkanRender.exe] Error 1
+mingw32-make[1]: *** [CMakeFiles\Makefile2:326: CMakeFiles/NeuVulkanRender.dir/all] Error 2
+mingw32-make: *** [Makefile:90: all] Error 2

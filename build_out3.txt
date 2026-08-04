@@ -1,0 +1,17 @@
+[  3%] Built target NeuLogLib
+[  7%] Built target NeuWindowLib
+[ 13%] Built target NeuImGuiBackendLib
+[ 15%] Building CXX object CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj
+[ 17%] Linking CXX static library libNeuGUILib.a
+[ 17%] Built target NeuGUILib
+[ 23%] Built target NeuCoreLib
+[ 38%] Built target NeuAssetLib
+[ 53%] Built target NeuSceneLib
+[ 55%] Building CXX object CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj
+[ 57%] Linking CXX static library libNeuRenderCoreLib.a
+[ 61%] Built target NeuRenderCoreLib
+[ 96%] Built target CompileShaders
+[ 98%] Building CXX object CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj
+[100%] Linking CXX executable NeuVulkanRender.exe
+Copying resource folder to build directory
+[100%] Built target NeuVulkanRender

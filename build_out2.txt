@@ -1,0 +1,40 @@
+[  3%] Built target NeuLogLib
+[  7%] Built target NeuWindowLib
+[  9%] Building CXX object CMakeFiles/NeuImGuiBackendLib.dir/source/imgui_impl_vulkan.cpp.obj
+[ 11%] Linking CXX static library libNeuImGuiBackendLib.a
+[ 13%] Built target NeuImGuiBackendLib
+[ 15%] Building CXX object CMakeFiles/NeuGUILib.dir/source/neuGUI.cpp.obj
+[ 17%] Linking CXX static library libNeuGUILib.a
+[ 17%] Built target NeuGUILib
+[ 19%] Building CXX object CMakeFiles/NeuCoreLib.dir/source/Object.cpp.obj
+[ 21%] Building CXX object CMakeFiles/NeuCoreLib.dir/source/UUID.cpp.obj
+[ 23%] Linking CXX static library libNeuCoreLib.a
+[ 23%] Built target NeuCoreLib
+[ 25%] Building CXX object CMakeFiles/NeuAssetLib.dir/source/AssetManager.cpp.obj
+[ 26%] Building CXX object CMakeFiles/NeuAssetLib.dir/source/MetaFile.cpp.obj
+[ 28%] Building CXX object CMakeFiles/NeuAssetLib.dir/source/ModelImporter.cpp.obj
+[ 30%] Building CXX object CMakeFiles/NeuAssetLib.dir/source/TextureResource.cpp.obj
+[ 32%] Building CXX object CMakeFiles/NeuAssetLib.dir/source/MaterialResource.cpp.obj
+[ 34%] Building CXX object CMakeFiles/NeuAssetLib.dir/source/CubeMapResource.cpp.obj
+[ 36%] Building CXX object CMakeFiles/NeuAssetLib.dir/source/DDSLoader.cpp.obj
+[ 38%] Linking CXX static library libNeuAssetLib.a
+[ 38%] Built target NeuAssetLib
+[ 40%] Building CXX object CMakeFiles/NeuSceneLib.dir/source/Scene.cpp.obj
+[ 42%] Building CXX object CMakeFiles/NeuSceneLib.dir/source/Project.cpp.obj
+[ 44%] Building CXX object CMakeFiles/NeuSceneLib.dir/source/Node.cpp.obj
+[ 46%] Building CXX object CMakeFiles/NeuSceneLib.dir/source/MeshNode.cpp.obj
+[ 48%] Building CXX object CMakeFiles/NeuSceneLib.dir/source/LightNode.cpp.obj
+[ 50%] Building CXX object CMakeFiles/NeuSceneLib.dir/source/PointLightNode.cpp.obj
+[ 51%] Building CXX object CMakeFiles/NeuSceneLib.dir/source/CameraNode.cpp.obj
+[ 53%] Linking CXX static library libNeuSceneLib.a
+[ 53%] Built target NeuSceneLib
+[ 55%] Building CXX object CMakeFiles/NeuRenderCoreLib.dir/source/RenderCore.cpp.obj
+[ 57%] Building CXX object CMakeFiles/NeuRenderCoreLib.dir/source/GBuffer.cpp.obj
+[ 59%] Building CXX object CMakeFiles/NeuRenderCoreLib.dir/source/Camera.cpp.obj
+[ 61%] Linking CXX static library libNeuRenderCoreLib.a
+[ 61%] Built target NeuRenderCoreLib
+[ 96%] Built target CompileShaders
+[ 98%] Building CXX object CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj
+[100%] Linking CXX executable NeuVulkanRender.exe
+Copying resource folder to build directory
+[100%] Built target NeuVulkanRender

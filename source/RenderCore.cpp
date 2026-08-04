@@ -18,6 +18,7 @@
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_vulkan.h>
 #include <nlohmann/json.hpp>
@@ -63,6 +64,20 @@ std::unordered_map<VkDescriptorSet, VkDescriptorPool>
     RenderCore::m_AllocatedSets;
 uint32_t RenderCore::m_CurrentFrame = 0;
 bool RenderCore::m_FramebufferResized = false;
+
+// ========== SceneView & UI Pass 静态成员初始化 ==========
+VkRenderPass RenderCore::m_UIRenderPass = VK_NULL_HANDLE;
+VkImage RenderCore::m_SceneViewFinalImage = VK_NULL_HANDLE;
+VkImageView RenderCore::m_SceneViewFinalImageView = VK_NULL_HANDLE;
+VkDeviceMemory RenderCore::m_SceneViewFinalMemory = VK_NULL_HANDLE;
+VkFramebuffer RenderCore::m_SceneViewFinalFramebuffer = VK_NULL_HANDLE;
+VkExtent2D RenderCore::m_SceneViewExtent = {1280, 720};
+VkExtent2D RenderCore::m_SceneViewPendingExtent = {1280, 720};
+VkDescriptorSet RenderCore::m_SceneViewDescriptorSet = VK_NULL_HANDLE;
+VkSampler RenderCore::m_SceneViewSampler = VK_NULL_HANDLE;
+bool RenderCore::m_NeedRecreateSceneView = false;
+bool RenderCore::m_SceneViewHovered = false;
+bool RenderCore::m_SceneViewFocused = false;
 VkDebugUtilsMessengerEXT RenderCore::m_DebugMessenger = VK_NULL_HANDLE;
 
 // ========== 延迟渲染系统静态成员定?==========
@@ -113,14 +128,12 @@ uint32_t RenderCore::m_IndexCount = 0;
 std::vector<VkFramebuffer> RenderCore::m_CompositionFramebuffers;
 VkSampler RenderCore::m_GBufferSampler = VK_NULL_HANDLE;
 
-// ========== 相机系统静态成员定?==========
+// ========== 相机系统静态成员定义 ==========
 Camera RenderCore::m_Camera(glm::vec3(2.0f, 2.0f, 2.0f),
                             glm::vec3(0.0f, 1.0f, 0.0f), -135.0f, -35.0f);
 float RenderCore::m_DeltaTime = 0.0f;
 float RenderCore::m_LastFrameTime = 0.0f;
 bool RenderCore::m_CameraControlEnabled = false;
-float RenderCore::m_LastMouseX = 640.0f;
-float RenderCore::m_LastMouseY = 360.0f;
 bool RenderCore::m_FirstMouse = true;
 
 // ========== 自定义几何体静态成员定?==========
@@ -130,6 +143,7 @@ bool RenderCore::m_UseCustomGeometry = false;
 
 // ========== 工程管理静态成员定?==========
 std::shared_ptr<Project> RenderCore::m_CurrentProject = nullptr;
+std::vector<std::string> RenderCore::m_PendingScreenshotPaths;
 
 // ========== 性能控制静态成员定?==========
 bool RenderCore::m_VSync = true;
@@ -209,7 +223,7 @@ float RenderCore::m_SuperResolutionScale = 1.25f; // 默认
 bool RenderCore::m_TAAEnabled = true;
 float RenderCore::m_TAAFeedbackFactor = 0.88f;
 
-GBufferAttachment RenderCore::m_TAAHistoryTextures[2];
+GBufferAttachment RenderCore::m_TAAHistoryTextures[3];
 VkPipeline RenderCore::m_TAAPipeline = VK_NULL_HANDLE;
 VkPipelineLayout RenderCore::m_TAAPipelineLayout = VK_NULL_HANDLE;
 VkDescriptorSetLayout RenderCore::m_TAADescriptorSetLayout = VK_NULL_HANDLE;
@@ -310,6 +324,10 @@ void RenderCore::Init() {
   CreateCommandPool();          // Create command pool
   CreateUniformBuffers();       // 创建 Uniform Buffers
   CreateDescriptorPool();       // Create descriptor pool
+
+  // ========== UI 初始化 ==========
+  CreateUIRenderPass();
+
   CreateDefaultTextures(); // Create default textures (white, black, normal)
   CreateDefaultMaterial(); // Create default material
 
@@ -332,9 +350,10 @@ void RenderCore::Init() {
   }
 
   // ========== 核心资源初始?(纹理/缓冲) ==========
-  // 初始渲染分辨率等于交换链分辨?(除非手动设置了Scale)
-  m_RenderExtent.width = m_SwapchainExtent.width / m_SuperResolutionScale;
-  m_RenderExtent.height = m_SwapchainExtent.height / m_SuperResolutionScale;
+  // 渲染分辨率跟随 SceneView 视口尺寸（除以超分辨率Scale）
+  // 这样 3D 内容宽高比始终与视口一致，面板拖拽不会导致拉伸
+  m_RenderExtent.width = m_SceneViewExtent.width / m_SuperResolutionScale;
+  m_RenderExtent.height = m_SceneViewExtent.height / m_SuperResolutionScale;
 
   CreateGBuffer();           // 创建 GBuffer 资源
   CreateSampler();           // 创建全局采样?
@@ -375,6 +394,14 @@ void RenderCore::Init() {
   // ========== 后处理逻辑初始?==========
   CreatePostProcessRenderPass(); // 创建后处理渲染通道 (作为最终Pass)
 
+  // ========== SceneView 初始化（依赖 PostProcessRenderPass）==========
+  CreateSceneViewResources();
+
+  // 注册 SceneView resize 回调
+  EditorGUI::SetSceneViewResizeCallback([](uint32_t w, uint32_t h) {
+    NotifySceneViewResize(w, h);
+  });
+
   // 创建最终Swapchain Framebuffers (依赖 PostProcessRenderPass)
   CreateSwapchainFramebuffers();
 
@@ -392,6 +419,8 @@ void RenderCore::Init() {
 
   // ========== 场景设置 ==========
   InitImGui(); // Initialize ImGui
+  // SceneView 纹理注册必须在 ImGui Vulkan 后端初始化之后执行
+  CreateSceneViewDescriptorSet();
 
   LOG_I("RenderCore Initialized with Deferred + Forward Rendering & "
         "Post-Processing Pipeline");
@@ -399,6 +428,8 @@ void RenderCore::Init() {
 
 void RenderCore::Shutdown() {
   vkDeviceWaitIdle(m_Device);
+
+  DestroySceneViewResources();
 
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplSDL3_Shutdown();
@@ -515,6 +546,11 @@ void RenderCore::Shutdown() {
 
   vkDestroyRenderPass(m_Device, m_PostProcessRenderPass, nullptr);
   m_PostProcessRenderPass = VK_NULL_HANDLE;
+
+  if (m_UIRenderPass != VK_NULL_HANDLE) {
+    vkDestroyRenderPass(m_Device, m_UIRenderPass, nullptr);
+    m_UIRenderPass = VK_NULL_HANDLE;
+  }
 
   // 6. 采样器与缓冲?
   if (m_GBufferSampler != VK_NULL_HANDLE) {
@@ -939,12 +975,13 @@ void RenderCore::CreateSwapchain(VkSwapchainKHR oldSwapchain) {
   m_SwapchainImageFormat = surfaceFormat.format;
   m_SwapchainExtent = extent;
 
-  // Update Render Extent based on Super Resolution Scale
+  // Render Extent 跟随 SceneView 视口（除以超分辨率Scale），
+  // 保证 3D 内容宽高比始终与视口一致，而非窗口
   m_RenderExtent.width =
-      std::max(1u, static_cast<uint32_t>(m_SwapchainExtent.width /
+      std::max(1u, static_cast<uint32_t>(m_SceneViewExtent.width /
                                          m_SuperResolutionScale));
   m_RenderExtent.height =
-      std::max(1u, static_cast<uint32_t>(m_SwapchainExtent.height /
+      std::max(1u, static_cast<uint32_t>(m_SceneViewExtent.height /
                                          m_SuperResolutionScale));
 }
 
@@ -1023,7 +1060,7 @@ void RenderCore::CreateSwapchainFramebuffers() {
 
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = m_PostProcessRenderPass;
+    framebufferInfo.renderPass = m_UIRenderPass;
     framebufferInfo.attachmentCount = 1;
     framebufferInfo.pAttachments = attachments;
     framebufferInfo.width = m_SwapchainExtent.width;
@@ -1262,7 +1299,7 @@ void RenderCore::InitImGui() {
   init_info.Queue = m_GraphicsQueue;
   init_info.PipelineCache = VK_NULL_HANDLE;
   init_info.DescriptorPool = m_ImGuiDescriptorPool;
-  init_info.RenderPass = m_PostProcessRenderPass;
+  init_info.RenderPass = m_UIRenderPass;
   init_info.Subpass = 0;
   init_info.MinImageCount = 2;
   init_info.ImageCount = m_SwapchainImages.size();
@@ -1428,7 +1465,9 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     vkCmdEndRenderPass(commandBuffer);
 
     // Transition shadow map to shader read optimal
-    shadowBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    // Shadow render pass 的 finalLayout 已是 SHADER_READ_ONLY_OPTIMAL，
+    // 这里仅做同步，不再改变布局
+    shadowBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     shadowBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     shadowBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     shadowBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -1783,8 +1822,8 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
       vkCmdPipelineBarrier(commandBuffer, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
     };
 
-    uint32_t currentWidth = m_SwapchainExtent.width / 2;
-    uint32_t currentHeight = m_SwapchainExtent.height / 2;
+    uint32_t currentWidth = m_SceneViewExtent.width / 2;
+    uint32_t currentHeight = m_SceneViewExtent.height / 2;
 
     // 1. Threshold (Scene -> Mip 0)
     transitionImageLayout(m_BloomMipChain[m_CurrentFrame][0].image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
@@ -1800,8 +1839,8 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     } dbParams;
     dbParams.threshold = m_PostProcessSettings.bloomThreshold;
     dbParams.softThreshold = 0.5f;
-    dbParams.texelSize = {1.0f / (float)m_SwapchainExtent.width,
-                          1.0f / (float)m_SwapchainExtent.height};
+    dbParams.texelSize = {1.0f / (float)m_SceneViewExtent.width,
+                          1.0f / (float)m_SceneViewExtent.height};
 
     vkCmdPushConstants(commandBuffer, m_BloomPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(dbParams), &dbParams);
 
@@ -1847,8 +1886,8 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
       uint32_t prevWidth = currentWidth;
       uint32_t prevHeight = currentHeight;
 
-      uint32_t upWidth = std::max(1u, m_SwapchainExtent.width / 2 >> i);
-      uint32_t upHeight = std::max(1u, m_SwapchainExtent.height / 2 >> i);
+      uint32_t upWidth = std::max(1u, m_SceneViewExtent.width / 2 >> i);
+      uint32_t upHeight = std::max(1u, m_SceneViewExtent.height / 2 >> i);
 
       // 将目标 Mip[i] 转换为 General 用于读写
       transitionImageLayout(m_BloomMipChain[m_CurrentFrame][i].image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
@@ -1877,14 +1916,17 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     }
   }
 
-  // ========== Pass 4: PostProcess Pass (Final Output) ==========
+  // ========== Pass 4: PostProcess Pass (→ SceneView RT) ==========
   {
+    // PostProcessRenderPass 的 initialLayout = VK_IMAGE_LAYOUT_UNDEFINED，
+    // RenderPass 自动处理布局转换，无需显式 pre-barrier
+
     VkRenderPassBeginInfo ppPassInfo{};
     ppPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     ppPassInfo.renderPass = m_PostProcessRenderPass;
-    ppPassInfo.framebuffer = m_SwapchainFramebuffers[imageIndex];
+    ppPassInfo.framebuffer = m_SceneViewFinalFramebuffer;
     ppPassInfo.renderArea.offset = {0, 0};
-    ppPassInfo.renderArea.extent = m_SwapchainExtent;
+    ppPassInfo.renderArea.extent = m_SceneViewExtent;
 
     ppPassInfo.clearValueCount = 0;
     ppPassInfo.pClearValues = nullptr;
@@ -1898,15 +1940,15 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(m_SwapchainExtent.width);
-    viewport.height = static_cast<float>(m_SwapchainExtent.height);
+    viewport.width = static_cast<float>(m_SceneViewExtent.width);
+    viewport.height = static_cast<float>(m_SceneViewExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = m_SwapchainExtent;
+    scissor.extent = m_SceneViewExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1924,7 +1966,48 @@ void RenderCore::RecordCommandBuffer(VkCommandBuffer commandBuffer,
 
     vkCmdDraw(commandBuffer, 3, 1, 0, 0); // Fullscreen triangle
 
-    // ImGui on top
+    vkCmdEndRenderPass(commandBuffer);
+
+    // PostProcessRenderPass finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    // 布局未变，但需要执行屏障确保颜色写入对后续着色器读取可见
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = m_SceneViewFinalImage;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(commandBuffer,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                         0, 0, nullptr, 0, nullptr, 1, &barrier);
+  }
+
+  // ========== Pass 5: UI Pass (→ Swapchain) ==========
+  {
+    VkRenderPassBeginInfo uiPassInfo{};
+    uiPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    uiPassInfo.renderPass = m_UIRenderPass;
+    uiPassInfo.framebuffer = m_SwapchainFramebuffers[imageIndex];
+    uiPassInfo.renderArea.offset = {0, 0};
+    uiPassInfo.renderArea.extent = m_SwapchainExtent;
+
+    VkClearValue clearValue{};
+    clearValue.color = {{0.12f, 0.12f, 0.12f, 1.0f}};
+    uiPassInfo.clearValueCount = 1;
+    uiPassInfo.pClearValues = &clearValue;
+
+    vkCmdBeginRenderPass(commandBuffer, &uiPassInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
     vkCmdEndRenderPass(commandBuffer);
@@ -2016,13 +2099,42 @@ void RenderCore::DrawFrame() {
   // 4. 重置并发帧 Fence
   vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame]);
 
-  // 5. 安全启动 ImGui 的帧渲染流程（按照 Vulkan -> SDL -> ImGui::NewFrame 顺序紧密排布）
+  // 检查是否需要重建 SceneView 资源（视口 resize）
+  if (m_NeedRecreateSceneView) {
+    vkDeviceWaitIdle(m_Device);
+    DestroySceneViewResources();
+    m_SceneViewExtent = m_SceneViewPendingExtent;
+    CreateSceneViewResources();
+    m_NeedRecreateSceneView = false;
+    // 渲染分辨率跟随视口：宽高比变化时需要重建 GBuffer/合成/前向/TAA
+    RecreateRenderResolutionResources();
+
+    // Bloom 尺寸跟随 SceneView，需一并重建
+    for (auto &perFrame : m_BloomMipChain) {
+      for (auto &mip : perFrame) {
+        if (mip.view != VK_NULL_HANDLE) {
+          vkDestroyImageView(m_Device, mip.view, nullptr);
+          vkDestroyImage(m_Device, mip.image, nullptr);
+          vkFreeMemory(m_Device, mip.memory, nullptr);
+          mip.view = VK_NULL_HANDLE;
+        }
+      }
+    }
+    m_BloomMipChain.clear();
+    CreateBloomResources();
+
+    // 后处理/合成描述符集引用已变化的图像（GBuffer/SceneColor/Bloom）
+    CreateDescriptorSets();
+    CreatePostProcessDescriptorSets();
+  }
+
+  // 6. 启动 ImGui 帧流程（UI 每帧刷新，避免闪烁并保证交互/停靠正常）
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
 
   if (Window::IsGUIVisible()) {
-    neuGUI::Render(); // Call the UI render function
+    neuGUI::Render();
   }
   ImGui::Render();
 
@@ -2106,8 +2218,30 @@ void RenderCore::DrawFrame() {
     SaveScreenshot("screenshot_ssr.png", imageIndex);
   }
 
+  // 执行控制台/外部请求的截图（在帧末安全执行，每帧最多一张）
+  if (!m_PendingScreenshotPaths.empty()) {
+    std::string screenshotPath = m_PendingScreenshotPaths.front();
+    m_PendingScreenshotPaths.erase(m_PendingScreenshotPaths.begin());
+    vkDeviceWaitIdle(m_Device);
+    SaveScreenshot(screenshotPath, imageIndex);
+    LOG_I("Screenshot saved: {}", screenshotPath);
+  }
+
   m_FrameCount++;
   m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+  // TODO: 临时 FPS 统计（调试 30fps 锁定问题，确认后移除）
+  {
+    static int fpsLogCounter = 0;
+    static double fpsLogAccum = 0.0;
+    fpsLogAccum += m_DeltaTime;
+    if (++fpsLogCounter >= 120) {
+      LOG_I("Measured FPS: {:.1f} (VSync={}, TargetFPS={})", 120.0 / fpsLogAccum,
+            m_VSync ? "ON" : "OFF", m_TargetFPS);
+      fpsLogCounter = 0;
+      fpsLogAccum = 0.0;
+    }
+  }
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
       m_FramebufferResized) {
@@ -2155,6 +2289,16 @@ void RenderCore::RecreateSwapchain() {
   while (Window::GetWidth() == 0 || Window::GetHeight() == 0) {
     Window::PollEvents();
     SDL_Delay(1);
+  }
+
+  // 窗口最小化或恢复过渡期时 currentExtent 可能为 0x0，
+  // 此时创建 swapchain/framebuffer 会触发验证错误甚至崩溃。
+  // 跳过重建，保留旧 swapchain，等待窗口恢复后下一帧重试。
+  VkSurfaceCapabilitiesKHR caps{};
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_PhysicalDevice, m_Surface, &caps);
+  if (caps.currentExtent.width == 0 || caps.currentExtent.height == 0) {
+    m_FramebufferResized = true; // 保持重试标记
+    return;
   }
 
   // vkDeviceWaitIdle(m_Device); // ?Remove full wait
@@ -3503,7 +3647,7 @@ void RenderCore::CreateDescriptorSets() {
 void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
   // 使用相机获取视图和投影矩?
   float aspectRatio =
-      (float)m_SwapchainExtent.width / (float)m_SwapchainExtent.height;
+      (float)m_RenderExtent.width / (float)m_RenderExtent.height;
 
   static auto startTime = std::chrono::high_resolution_clock::now();
   auto currentTime = std::chrono::high_resolution_clock::now();
@@ -3612,7 +3756,7 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
   cameraData.invView = glm::inverse(ubo.view);
   cameraData.invProj = glm::inverse(ubo.proj);
   cameraData.viewportSize =
-      glm::vec2(m_SwapchainExtent.width, m_SwapchainExtent.height);
+      glm::vec2(m_RenderExtent.width, m_RenderExtent.height);
   cameraData.nearPlane = 0.1f;
   cameraData.farPlane = 100.0f; // Assuming standard range
 
@@ -3621,66 +3765,75 @@ void RenderCore::UpdateUniformBuffer(uint32_t currentImage) {
 }
 
 void RenderCore::ProcessInput() {
-  // 注意：m_DeltaTime 已经?DrawFrame 开始处计算过了
-  // 这里不再重复计算，以保证一致?
+  const bool *keyState = SDL_GetKeyboardState(nullptr);
 
-  // 检查是否按下右键启用相机控?
+  // UI 已在本帧渲染完成（DrawFrame 中先 Render 后 ProcessInput），
+  // 直接读取最新 hover 状态，避免一帧延迟
+  bool hovered = EditorGUI::IsSceneViewHovered();
   float mouseXf, mouseYf;
   Uint32 mouseButtons = SDL_GetMouseState(&mouseXf, &mouseYf);
-
   bool rightMousePressed = (mouseButtons & SDL_BUTTON_RMASK) != 0;
 
-  // 仅当 ImGui 没有捕获鼠标时才处理相机控制
-  if (ImGui::GetIO().WantCaptureMouse) {
+  if (!m_CameraControlEnabled) {
+    // 进入控制：鼠标在 SceneView 内且按住 RMB
+    if (hovered && rightMousePressed) {
+      m_CameraControlEnabled = true;
+      m_FirstMouse = true;
+      Window::SetRelativeMouseMode(true);
+      Window::SetCursorVisible(false);
+      // 丢弃进入控制前积累的残留相对位移，避免第一帧产生跳跃
+      SDL_GetRelativeMouseState(nullptr, nullptr);
+    } else {
+      // 保险：确保相对鼠标模式与相机控制状态同步
+      // （控制可能被 Console 等路径直接关闭，此处兜底解除鼠标捕获；
+      //   仅在状态不一致时操作，避免干扰 ImGui 对光标的正常管理）
+      if (Window::IsRelativeMouseMode()) {
+        Window::SetRelativeMouseMode(false);
+        Window::SetCursorVisible(true);
+      }
+      return;
+    }
+  }
+
+  if (!rightMousePressed) {
+    // 退出控制：仅由 RMB 释放触发，不依赖 hovered。
     m_CameraControlEnabled = false;
     m_FirstMouse = true;
+    Window::SetRelativeMouseMode(false);
+    Window::SetCursorVisible(true);
     return;
   }
 
-  if (rightMousePressed) {
-    if (!m_CameraControlEnabled) {
-      m_CameraControlEnabled = true;
-      m_FirstMouse = true;
-      SDL_SetWindowRelativeMouseMode(Window::GetNativeWindow(), true);
-    }
-
-    // 使用相对鼠标模式时获取相对移?
+  // 使用 SDL_GetRelativeMouseState 获取相对鼠标移动量。
+  // 启用相对鼠标模式后，SDL 会自动捕获鼠标并提供真实的相对位移。
+  if (!m_FirstMouse) {
     float relX, relY;
     SDL_GetRelativeMouseState(&relX, &relY);
-    if (!m_FirstMouse) {
-      m_Camera.ProcessMouseMovement(relX, -relY);
-    }
-    m_FirstMouse = false;
-
-    // 处理键盘输入
-    const bool *keyState = SDL_GetKeyboardState(nullptr);
-
-    if (keyState[SDL_SCANCODE_W]) {
-      m_Camera.ProcessKeyboard(Camera::Movement::FORWARD, m_DeltaTime);
-    }
-    if (keyState[SDL_SCANCODE_S]) {
-      m_Camera.ProcessKeyboard(Camera::Movement::BACKWARD, m_DeltaTime);
-    }
-    if (keyState[SDL_SCANCODE_A]) {
-      m_Camera.ProcessKeyboard(Camera::Movement::LEFT, m_DeltaTime);
-    }
-    if (keyState[SDL_SCANCODE_D]) {
-      m_Camera.ProcessKeyboard(Camera::Movement::RIGHT, m_DeltaTime);
-    }
-    if (keyState[SDL_SCANCODE_SPACE]) {
-      m_Camera.ProcessKeyboard(Camera::Movement::UP, m_DeltaTime);
-    }
-    if (keyState[SDL_SCANCODE_LCTRL] || keyState[SDL_SCANCODE_LSHIFT]) {
-      m_Camera.ProcessKeyboard(Camera::Movement::DOWN, m_DeltaTime);
-    }
-    if (keyState[SDL_SCANCODE_R]) {
-      m_Camera.Reset();
-    }
+    m_Camera.ProcessMouseMovement(relX, -relY);
   } else {
-    if (m_CameraControlEnabled) {
-      m_CameraControlEnabled = false;
-      SDL_SetWindowRelativeMouseMode(Window::GetNativeWindow(), false);
-    }
+    m_FirstMouse = false;
+  }
+
+  if (keyState[SDL_SCANCODE_W]) {
+    m_Camera.ProcessKeyboard(Camera::Movement::FORWARD, m_DeltaTime);
+  }
+  if (keyState[SDL_SCANCODE_S]) {
+    m_Camera.ProcessKeyboard(Camera::Movement::BACKWARD, m_DeltaTime);
+  }
+  if (keyState[SDL_SCANCODE_A]) {
+    m_Camera.ProcessKeyboard(Camera::Movement::LEFT, m_DeltaTime);
+  }
+  if (keyState[SDL_SCANCODE_D]) {
+    m_Camera.ProcessKeyboard(Camera::Movement::RIGHT, m_DeltaTime);
+  }
+  if (keyState[SDL_SCANCODE_SPACE]) {
+    m_Camera.ProcessKeyboard(Camera::Movement::UP, m_DeltaTime);
+  }
+  if (keyState[SDL_SCANCODE_LCTRL] || keyState[SDL_SCANCODE_LSHIFT]) {
+    m_Camera.ProcessKeyboard(Camera::Movement::DOWN, m_DeltaTime);
+  }
+  if (keyState[SDL_SCANCODE_R]) {
+    m_Camera.Reset();
   }
 }
 
@@ -4088,8 +4241,7 @@ void RenderCore::CreateSceneRenderTarget() {
   vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &commandBuffer);
 
   LOG_I("Scene HDR render targets created: {}x{} (x{})",
-        m_SwapchainExtent.width, m_SwapchainExtent.height,
-        MAX_FRAMES_IN_FLIGHT);
+        m_RenderExtent.width, m_RenderExtent.height, MAX_FRAMES_IN_FLIGHT);
 }
 
 void RenderCore::CreatePostProcessRenderPass() {
@@ -4101,7 +4253,7 @@ void RenderCore::CreatePostProcessRenderPass() {
   colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
   colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
   VkAttachmentReference colorAttachmentRef{};
   colorAttachmentRef.attachment = 0;
@@ -4504,8 +4656,8 @@ void RenderCore::CreateBloomResources() {
   for (int f = 0; f < MAX_FRAMES_IN_FLIGHT; f++) {
     m_BloomMipChain[f].resize(BLOOM_MIP_LEVELS);
 
-    uint32_t currentWidth = m_SwapchainExtent.width / 2;
-    uint32_t currentHeight = m_SwapchainExtent.height / 2;
+    uint32_t currentWidth = m_SceneViewExtent.width / 2;
+    uint32_t currentHeight = m_SceneViewExtent.height / 2;
 
     for (uint32_t i = 0; i < BLOOM_MIP_LEVELS; i++) {
       VkImageCreateInfo imageInfo{};
@@ -5483,7 +5635,7 @@ void RenderCore::CollectSceneRenderables() {
 
   // 计算视锥?
   float aspectRatio =
-      (float)m_SwapchainExtent.width / (float)m_SwapchainExtent.height;
+      (float)m_RenderExtent.width / (float)m_RenderExtent.height;
   glm::mat4 viewProj =
       m_Camera.GetProjectionMatrix(aspectRatio) * m_Camera.GetViewMatrix();
   Frustum currentFrustum;
@@ -5978,8 +6130,8 @@ void RenderCore::CalculateFrustumBoundingSphere(const Camera &camera,
                                                 float &outRadius) {
   // 获取相机参数
   float fov = camera.GetFov();
-  float aspectRatio = static_cast<float>(m_SwapchainExtent.width) /
-                      static_cast<float>(m_SwapchainExtent.height);
+  float aspectRatio = static_cast<float>(m_RenderExtent.width) /
+                      static_cast<float>(m_RenderExtent.height);
   float nearPlane = camera.GetNearPlane();
   float farPlane = glm::min(camera.GetFarPlane(), maxDistance);
 
@@ -6165,22 +6317,21 @@ void RenderCore::SetSuperResolutionScale(float scale) {
 // restart requirement
 
 void RenderCore::RecreateRenderResolutionResources() {
-  return;
-  /* Functionality removed
-  // 1. Calculate new Render Resolution
+  // 1. Calculate new Render Resolution (跟随 SceneView 视口，保证宽高比一致)
   int width =
-      static_cast<int>(m_SwapchainExtent.width / m_SuperResolutionScale);
+      static_cast<int>(m_SceneViewExtent.width / m_SuperResolutionScale);
   int height =
-      static_cast<int>(m_SwapchainExtent.height / m_SuperResolutionScale);
+      static_cast<int>(m_SceneViewExtent.height / m_SuperResolutionScale);
   width = std::max(1, width);
   height = std::max(1, height);
 
   m_RenderExtent = {static_cast<uint32_t>(width),
                     static_cast<uint32_t>(height)};
 
-  LOG_I("Recreating Render Resources. Render Resolution: {}x{} (Display: "
-        "{}x{}, Scale: {:.2f})",
-        m_RenderExtent.width, m_RenderExtent.height, m_SwapchainExtent.width,
+  LOG_I("Recreating Render Resources. Render Resolution: {}x{} (SceneView: "
+        "{}x{}, Swapchain: {}x{}, Scale: {:.2f})",
+        m_RenderExtent.width, m_RenderExtent.height, m_SceneViewExtent.width,
+        m_SceneViewExtent.height, m_SwapchainExtent.width,
         m_SwapchainExtent.height, m_SuperResolutionScale);
 
   // 2. Clean up Low Res Resources
@@ -6210,17 +6361,6 @@ void RenderCore::RecreateRenderResolutionResources() {
       vkDestroyFramebuffer(m_Device, fb, nullptr);
   }
   g_ForwardFramebuffers.clear();
-
-  // SSAO (Low Res if we want SSAO to be cheaper, usually yes)
-  if (m_SSAONoise.view) {
-    // Actually m_SSAONoise is small texture, no need to recreate.
-    // But SSAO Attachments (Color/Blur) need recreation.
-    // Assuming CreateSSAOResources handles this if we call Destroy first.
-    // But we don't have a DestroySSAOResources function yet.
-    // For now, let's assume SSAO is tied to SwapchainExtent as before?
-    // No, we should make SSAO RenderExtent size.
-    // TODO: Implement proper SSAO cleanup/recreation.
-  }
 
   // 3. Recreate Resources
   CreateGBuffer();
@@ -6252,7 +6392,7 @@ void RenderCore::RecreateRenderResolutionResources() {
     }
 
     // Depth
-    imageInfos[4].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    imageInfos[4].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imageInfos[4].imageView = m_GBuffer.GetDepthView(i);
     imageInfos[4].sampler = m_GBufferSampler;
 
@@ -6278,8 +6418,9 @@ void RenderCore::RecreateRenderResolutionResources() {
                            descriptorWrites.data(), 0, nullptr);
   }
 
-  // Forward Pass Framebuffers are recreated.
-*/
+  // 6. TAA History 依赖 Swapchain Extent，需一并重建
+  CreateTAAResources();
+  CreateTAADescriptorSets();
 }
 
 // ========== TAA Implementation ==========
@@ -6319,7 +6460,7 @@ static void EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
 }
 
 void RenderCore::CreateTAAResources() {
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     if (m_TAAHistoryTextures[i].view)
       vkDestroyImageView(m_Device, m_TAAHistoryTextures[i].view, nullptr);
     if (m_TAAHistoryTextures[i].image)
@@ -6329,12 +6470,12 @@ void RenderCore::CreateTAAResources() {
     m_TAAHistoryTextures[i] = GBufferAttachment{};
   }
 
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = m_SwapchainExtent.width;
-    imageInfo.extent.height = m_SwapchainExtent.height;
+    imageInfo.extent.width = m_SceneViewExtent.width;
+    imageInfo.extent.height = m_SceneViewExtent.height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
@@ -6385,13 +6526,14 @@ void RenderCore::CreateTAAResources() {
       throw std::runtime_error("Failed to create TAA History View!");
     }
 
-    // Transition to General Layout immediately using single time command
+    // Transition to Shader Read Only Layout immediately using single time
+    // command (TAA dispatch 前会先转回 GENERAL 供 storage write)
     VkCommandBuffer cmd = BeginSingleTimeCommands();
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // Compute Shader Read/Write
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.image = m_TAAHistoryTextures[i].image;
@@ -6401,18 +6543,17 @@ void RenderCore::CreateTAAResources() {
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
     barrier.srcAccessMask = 0;
-    barrier.dstAccessMask =
-        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
     vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0,
+                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0,
                          nullptr, 1, &barrier);
 
     EndSingleTimeCommands(cmd);
   }
 
-  LOG_I("TAA Resources Created: {}x{}", m_SwapchainExtent.width,
-        m_SwapchainExtent.height);
+  LOG_I("TAA Resources Created: {}x{}", m_SceneViewExtent.width,
+        m_SceneViewExtent.height);
 }
 
 struct TAAPushConstants {
@@ -6539,28 +6680,32 @@ void RenderCore::CreateTAAPipeline() {
 }
 
 void RenderCore::CreateTAADescriptorSets() {
-  std::vector<VkDescriptorSetLayout> layouts(2, m_TAADescriptorSetLayout);
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
+                                             m_TAADescriptorSetLayout);
   VkDescriptorSetAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   // replaced descriptor pool assignment
-  allocInfo.descriptorSetCount = 2;
+  allocInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
   allocInfo.pSetLayouts = layouts.data();
 
-  m_TAADescriptorSets.resize(2);
+  m_TAADescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
   if (RenderCore::AllocateDescriptorSets(
           &allocInfo, m_TAADescriptorSets.data()) != VK_SUCCESS) {
     throw std::runtime_error("Failed to allocate TAA Descriptor Sets!");
   }
 
-  for (int i = 0; i < 2; i++) {
-    // Ping-Pong Logic initialized here but updated per frame potentially
-    int writeIndex = i; // Frame 0: Write to 0? No wait.
-    int readIndex = (i + 1) % 2;
+  for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    // 每组 set 与 m_CurrentFrame 一一对应：
+    // Binding 1 (History) = 上一帧的结果 (i + MAX_FRAMES_IN_FLIGHT - 1) % 3
+    // Binding 3 (Result)  = 本帧要写入的 history (i)
+    int readIndex = (i + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
+    int writeIndex = i;
 
     std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
     VkDescriptorImageInfo historyInfo{};
-    historyInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    // History 纹理在 TAA dispatch 之外始终处于 SHADER_READ_ONLY_OPTIMAL
+    historyInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     historyInfo.imageView = m_TAAHistoryTextures[readIndex].view;
     historyInfo.sampler = m_GBufferSampler;
 
@@ -6594,7 +6739,8 @@ void RenderCore::RecordTAAPass(VkCommandBuffer commandBuffer,
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  // Forward Pass 的 finalLayout 已是 SHADER_READ_ONLY_OPTIMAL，这里仅做同步
+  barrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
   barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -6616,18 +6762,32 @@ void RenderCore::RecordTAAPass(VkCommandBuffer commandBuffer,
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                     m_TAAPipeline);
 
-  // Select Ping-Pong Set
-  // Set 0: Read Hist[1], Write Hist[0]. Result -> Hist[0]
-  // Set 1: Read Hist[0], Write Hist[1]. Result -> Hist[1]
-  // Wait. In CreateTAADescriptorSets:
-  // i=0: Write Binding 3 -> m_TAAHistoryTextures[0]. Read Binding 1 ->
-  // m_TAAHistoryTextures[1]. So Set 0 writes to Hist[0].
-
-  // Result Index logic:
-  // Frame 0 -> Result Index 0 (Hist[0]). Use Set 0.
-  // Frame 1 -> Result Index 1 (Hist[1]). Use Set 1.
-  int setIndex = m_FrameCount % 2;
+  // Select Set: 与 m_CurrentFrame 一一对应
+  // Set i: Read Hist[(i+2)%3], Write Hist[i]. Result -> Hist[i]
+  // (TAA history 按并发帧索引，避免多帧并发时的读写竞争)
+  int setIndex = m_CurrentFrame;
   VkDescriptorSet currentSet = m_TAADescriptorSets[setIndex];
+
+  // 将要写入的 History 纹理从 SHADER_READ_ONLY 转回 GENERAL（供 TAA storage write）
+  // 必须在 TAA dispatch 之前完成，且必须在上一次 Bloom/PostProcess 读取之后
+  VkImageMemoryBarrier toGeneralBarrier{};
+  toGeneralBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  toGeneralBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  toGeneralBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+  toGeneralBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  toGeneralBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  toGeneralBarrier.image = m_TAAHistoryTextures[setIndex].image;
+  toGeneralBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  toGeneralBarrier.subresourceRange.baseMipLevel = 0;
+  toGeneralBarrier.subresourceRange.levelCount = 1;
+  toGeneralBarrier.subresourceRange.baseArrayLayer = 0;
+  toGeneralBarrier.subresourceRange.layerCount = 1;
+  toGeneralBarrier.srcAccessMask = 0;
+  toGeneralBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0,
+                       nullptr, 1, &toGeneralBarrier);
 
   // Bind Descriptor Sets
   // Slot 0: TAA Set.
@@ -6657,7 +6817,7 @@ void RenderCore::RecordTAAPass(VkCommandBuffer commandBuffer,
   pc.prevViewProj = m_PrevViewProj; // Must be Unjittered!
   pc.resolutionInfo = glm::vec4(
       (float)m_RenderExtent.width, (float)m_RenderExtent.height,
-      (float)m_SwapchainExtent.width, (float)m_SwapchainExtent.height);
+      (float)m_SceneViewExtent.width, (float)m_SceneViewExtent.height);
   pc.cameraPos = glm::vec4(m_Camera.GetPosition(), 1.0f);
   pc.feedbackFactor = m_TAAFeedbackFactor;
   pc.enableSSR = m_PostProcessSettings.enableSSR;
@@ -6673,9 +6833,9 @@ void RenderCore::RecordTAAPass(VkCommandBuffer commandBuffer,
                      &pc);
 
   // Dispatch
-  // Output is High Res (Swapchain Extent)
-  uint32_t groupCountX = (m_SwapchainExtent.width + 15) / 16;
-  uint32_t groupCountY = (m_SwapchainExtent.height + 15) / 16;
+  // Output is High Res (SceneView Extent)
+  uint32_t groupCountX = (m_SceneViewExtent.width + 15) / 16;
+  uint32_t groupCountY = (m_SceneViewExtent.height + 15) / 16;
 
   vkCmdDispatch(commandBuffer, groupCountX, groupCountY, 1);
 
@@ -6689,32 +6849,14 @@ void RenderCore::RecordTAAPass(VkCommandBuffer commandBuffer,
   vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0,
                        nullptr, 1, &barrier);
-
-  VkImageMemoryBarrier writeBarrier{};
-  writeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  writeBarrier.oldLayout =
-      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // Assuming it was read last
-                                                // time
-  writeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-  writeBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  writeBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  writeBarrier.image = m_TAAHistoryTextures[setIndex].image;
-  writeBarrier.subresourceRange = barrier.subresourceRange;
-  writeBarrier.srcAccessMask =
-      VK_ACCESS_SHADER_READ_BIT; // It was read by Bloom/PostProcess
-  writeBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-
-  writeBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0,
-                       nullptr, 1, &writeBarrier);
+  // 注意：History 纹理保持 SHADER_READ_ONLY 供 Bloom/PostProcess 采样，
+  // 转回 GENERAL 的操作已移至下一帧 TAA dispatch 之前（见 toGeneralBarrier）
 }
 
 void RenderCore::UpdateFrameDescriptors() {
   // 1. Update TAA Descriptors (Binding 0 and 2)
   if (m_TAAEnabled) {
-    int setIndex = m_FrameCount % 2;
+    int setIndex = m_CurrentFrame;
     VkDescriptorSet currentSet = m_TAADescriptorSets[setIndex];
 
     std::array<VkWriteDescriptorSet, 4> writeSets{};
@@ -6733,7 +6875,8 @@ void RenderCore::UpdateFrameDescriptors() {
     writeSets[0].pImageInfo = &colorInfo;
 
     VkDescriptorImageInfo depthInfo{};
-    depthInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    // GBuffer/Forward pass 后 depth 的布局是 SHADER_READ_ONLY_OPTIMAL
+    depthInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     depthInfo.imageView =
         m_GBuffer.GetDepthView(m_CurrentFrame); // Low Res Depth
     depthInfo.sampler = m_GBufferSampler;
@@ -6775,8 +6918,7 @@ void RenderCore::UpdateFrameDescriptors() {
   // 2. Update Bloom/PostProcess Descriptors (To read TAA Result or SceneColor)
   VkImageView inputView;
   if (m_TAAEnabled) {
-    int resultIndex = m_FrameCount % 2; // The one we JUST wrote to in TAA pass?
-    // Wait, logic in RecordTAAPass: resultIndex = frameCount % 2.
+    int resultIndex = m_CurrentFrame; // 本帧 TAA 刚写入的 history
     inputView = m_TAAHistoryTextures[resultIndex].view;
   } else {
     inputView = m_SceneColor[m_CurrentFrame].view;
@@ -7213,6 +7355,210 @@ void RenderCore::SaveScreenshot(const std::string &filename, uint32_t imageIndex
 
   vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
   vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
+}
+
+void RenderCore::RequestScreenshot(const std::string &filename) {
+  // 只在主线程（渲染线程）上访问，无需锁
+  m_PendingScreenshotPaths.push_back(filename);
+}
+
+void RenderCore::CreateUIRenderPass() {
+  VkAttachmentDescription colorAttachment{};
+  colorAttachment.format = m_SwapchainImageFormat;
+  colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+  colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+  colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+  colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+  VkAttachmentReference colorAttachmentRef{};
+  colorAttachmentRef.attachment = 0;
+  colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+  VkSubpassDescription subpass{};
+  subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  subpass.colorAttachmentCount = 1;
+  subpass.pColorAttachments = &colorAttachmentRef;
+
+  std::array<VkSubpassDependency, 2> dependencies{};
+  dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+  dependencies[0].dstSubpass = 0;
+  dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependencies[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependencies[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+  dependencies[1].srcSubpass = 0;
+  dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+  dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+  dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependencies[1].dstAccessMask = 0;
+  dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+  VkRenderPassCreateInfo renderPassInfo{};
+  renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+  renderPassInfo.attachmentCount = 1;
+  renderPassInfo.pAttachments = &colorAttachment;
+  renderPassInfo.subpassCount = 1;
+  renderPassInfo.pSubpasses = &subpass;
+  renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+  renderPassInfo.pDependencies = dependencies.data();
+
+  if (vkCreateRenderPass(m_Device, &renderPassInfo, nullptr,
+                         &m_UIRenderPass) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create UI render pass!");
+  }
+  LOG_I("UI render pass created successfully");
+}
+
+void RenderCore::CreateSceneViewResources() {
+  if (m_SceneViewExtent.width == 0 || m_SceneViewExtent.height == 0) {
+    m_SceneViewExtent = {1280, 720};
+  }
+
+  VkImageCreateInfo imageInfo{};
+  imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+  imageInfo.imageType = VK_IMAGE_TYPE_2D;
+  imageInfo.extent.width = m_SceneViewExtent.width;
+  imageInfo.extent.height = m_SceneViewExtent.height;
+  imageInfo.extent.depth = 1;
+  imageInfo.mipLevels = 1;
+  imageInfo.arrayLayers = 1;
+  imageInfo.format = m_SwapchainImageFormat;
+  imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+  imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+  imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+  imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+  if (vkCreateImage(m_Device, &imageInfo, nullptr, &m_SceneViewFinalImage) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create SceneView image!");
+  }
+
+  VkMemoryRequirements memRequirements;
+  vkGetImageMemoryRequirements(m_Device, m_SceneViewFinalImage, &memRequirements);
+
+  VkMemoryAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memRequirements.size;
+  allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits,
+                                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+  if (vkAllocateMemory(m_Device, &allocInfo, nullptr, &m_SceneViewFinalMemory) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to allocate SceneView image memory!");
+  }
+
+  vkBindImageMemory(m_Device, m_SceneViewFinalImage, m_SceneViewFinalMemory, 0);
+
+  VkImageViewCreateInfo viewInfo{};
+  viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  viewInfo.image = m_SceneViewFinalImage;
+  viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+  viewInfo.format = m_SwapchainImageFormat;
+  viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  viewInfo.subresourceRange.baseMipLevel = 0;
+  viewInfo.subresourceRange.levelCount = 1;
+  viewInfo.subresourceRange.baseArrayLayer = 0;
+  viewInfo.subresourceRange.layerCount = 1;
+
+  if (vkCreateImageView(m_Device, &viewInfo, nullptr, &m_SceneViewFinalImageView) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create SceneView image view!");
+  }
+
+  VkFramebufferCreateInfo framebufferInfo{};
+  framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  framebufferInfo.renderPass = m_PostProcessRenderPass;
+  framebufferInfo.attachmentCount = 1;
+  framebufferInfo.pAttachments = &m_SceneViewFinalImageView;
+  framebufferInfo.width = m_SceneViewExtent.width;
+  framebufferInfo.height = m_SceneViewExtent.height;
+  framebufferInfo.layers = 1;
+
+  if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr,
+                          &m_SceneViewFinalFramebuffer) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create SceneView framebuffer!");
+  }
+
+  VkSamplerCreateInfo samplerInfo{};
+  samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+  samplerInfo.magFilter = VK_FILTER_LINEAR;
+  samplerInfo.minFilter = VK_FILTER_LINEAR;
+  samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  samplerInfo.anisotropyEnable = VK_FALSE;
+  samplerInfo.maxAnisotropy = 1.0f;
+  samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+  samplerInfo.unnormalizedCoordinates = VK_FALSE;
+  samplerInfo.compareEnable = VK_FALSE;
+  samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+  samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+  if (vkCreateSampler(m_Device, &samplerInfo, nullptr, &m_SceneViewSampler) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create SceneView sampler!");
+  }
+
+  CreateSceneViewDescriptorSet();
+
+  LOG_I("SceneView resources created: {}x{}", m_SceneViewExtent.width, m_SceneViewExtent.height);
+}
+
+void RenderCore::DestroySceneViewResources() {
+  if (m_SceneViewFinalFramebuffer != VK_NULL_HANDLE) {
+    vkDestroyFramebuffer(m_Device, m_SceneViewFinalFramebuffer, nullptr);
+    m_SceneViewFinalFramebuffer = VK_NULL_HANDLE;
+  }
+  if (m_SceneViewDescriptorSet != VK_NULL_HANDLE) {
+    ImGui_ImplVulkan_RemoveTexture(m_SceneViewDescriptorSet);
+    m_SceneViewDescriptorSet = VK_NULL_HANDLE;
+  }
+  if (m_SceneViewSampler != VK_NULL_HANDLE) {
+    vkDestroySampler(m_Device, m_SceneViewSampler, nullptr);
+    m_SceneViewSampler = VK_NULL_HANDLE;
+  }
+  if (m_SceneViewFinalImageView != VK_NULL_HANDLE) {
+    vkDestroyImageView(m_Device, m_SceneViewFinalImageView, nullptr);
+    m_SceneViewFinalImageView = VK_NULL_HANDLE;
+  }
+  if (m_SceneViewFinalImage != VK_NULL_HANDLE) {
+    vkDestroyImage(m_Device, m_SceneViewFinalImage, nullptr);
+    m_SceneViewFinalImage = VK_NULL_HANDLE;
+  }
+  if (m_SceneViewFinalMemory != VK_NULL_HANDLE) {
+    vkFreeMemory(m_Device, m_SceneViewFinalMemory, nullptr);
+    m_SceneViewFinalMemory = VK_NULL_HANDLE;
+  }
+}
+
+void RenderCore::CreateSceneViewDescriptorSet() {
+  // ImGui Vulkan 后端必须在 ImGui_ImplVulkan_Init 之后才能注册纹理，
+  // 否则 ImGui_ImplVulkan_AddTexture 会解引用空的后端数据导致崩溃 (0xc0000005)。
+  if (ImGui::GetCurrentContext() == nullptr ||
+      ImGui::GetCurrentContext()->IO.BackendRendererUserData == nullptr) {
+    m_SceneViewDescriptorSet = VK_NULL_HANDLE;
+    return;
+  }
+  m_SceneViewDescriptorSet = ImGui_ImplVulkan_AddTexture(
+      m_SceneViewSampler, m_SceneViewFinalImageView,
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+ImTextureID RenderCore::GetSceneViewTextureID() {
+  return (ImTextureID)(intptr_t)m_SceneViewDescriptorSet;
+}
+
+void RenderCore::NotifySceneViewResize(uint32_t w, uint32_t h) {
+  // ImGui 窗口首次布局时 GetContentRegionAvail() 会返回垃圾尺寸（如 32x2），
+  // 必须过滤，否则会创建非法 framebuffer 导致渲染崩溃
+  if (w < 64 || h < 64) {
+    return;
+  }
+  m_SceneViewPendingExtent = {w, h};
+  m_NeedRecreateSceneView = true;
 }
 
 } // namespace neurender

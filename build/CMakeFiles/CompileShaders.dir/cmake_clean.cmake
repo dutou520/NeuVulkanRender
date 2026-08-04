@@ -1,8 +1,11 @@
 file(REMOVE_RECURSE
   "CMakeFiles/CompileShaders"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_blur.frag.spv"
+  "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_downsample.comp.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_downsample.frag.spv"
+  "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_threshold.comp.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_threshold.frag.spv"
+  "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_upsample.comp.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/bloom_upsample.frag.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.frag.spv"
   "D:/CppPrograms/NeuVulkanRender/resource/shaders/compiled/composition.vert.spv"

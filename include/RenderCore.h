@@ -52,6 +52,13 @@ public:
   static TextureResource *GetTextureResource(const UUID &textureID);
   static ImTextureID GetImGuiTextureID(const UUID &textureID);
   static ImTextureID GetImGuiTextureIDByPath(const std::string &path);
+  static ImTextureID GetSceneViewTextureID();
+  static VkExtent2D GetSceneViewExtent() { return m_SceneViewExtent; }
+  static void NotifySceneViewResize(uint32_t w, uint32_t h);
+  static bool IsSceneViewHovered() { return m_SceneViewHovered; }
+  static bool IsSceneViewFocused() { return m_SceneViewFocused; }
+  static void SetSceneViewHovered(bool v) { m_SceneViewHovered = v; }
+  static void SetSceneViewFocused(bool v) { m_SceneViewFocused = v; }
 
 private:
   static void CreateInstance();
@@ -128,6 +135,10 @@ private:
   static void CreateBloomResources();
   static void CreateBloomPipelines();
   static void CreatePostProcessDescriptorSets();
+  static void CreateUIRenderPass();
+  static void CreateSceneViewResources();
+  static void DestroySceneViewResources();
+  static void CreateSceneViewDescriptorSet();
   static void CreateGBufferFramebuffers();
   static void CreateCompositionFramebuffers();
   static void CreateForwardFramebuffers();
@@ -389,9 +400,9 @@ private:
   static std::vector<VkDescriptorSet>
       m_TAADescriptorSets; // Per frame (ping-pong history?) or simpler
 
-  // TAA 需要两个 High Res 纹理。
+  // TAA 需要与并发帧数相同的 High Res 纹理（每帧读写各自的 history，避免竞争）
   static GBufferAttachment
-      m_TAAHistoryTextures[2]; // 0: History, 1: Result (Ping-Pong)
+      m_TAAHistoryTextures[3]; // 按 m_CurrentFrame 索引 (0,1,2)
 
   static void CreateTAAResources();
   static void CreateTAAPipeline();
@@ -430,6 +441,24 @@ private:
   static VkPipelineLayout m_PostProcessPipelineLayout;
   static VkDescriptorSetLayout m_PostProcessDescriptorSetLayout;
   static std::vector<VkDescriptorSet> m_PostProcessDescriptorSets;
+
+  // UI Pass (独立于场景渲染的 RenderPass，承载 ImGui 绘制)
+  static VkRenderPass m_UIRenderPass;
+
+  // Scene View 离屏渲染目标 (PostProcess 输出到这个 RT，然后 ImGui::Image 显示)
+  static VkImage m_SceneViewFinalImage;
+  static VkImageView m_SceneViewFinalImageView;
+  static VkDeviceMemory m_SceneViewFinalMemory;
+  static VkFramebuffer m_SceneViewFinalFramebuffer;
+  static VkExtent2D m_SceneViewExtent;
+  static VkExtent2D m_SceneViewPendingExtent;
+  static VkDescriptorSet m_SceneViewDescriptorSet;
+  static VkSampler m_SceneViewSampler;
+  static bool m_NeedRecreateSceneView;
+
+  // Scene View 交互状态
+  static bool m_SceneViewHovered;
+  static bool m_SceneViewFocused;
 
   // Bloom资源 (MipChain)
   static VkPipeline m_BloomThresholdPipeline;
@@ -500,8 +529,6 @@ private:
   static float m_DeltaTime;
   static float m_LastFrameTime;
   static bool m_CameraControlEnabled;
-  static float m_LastMouseX;
-  static float m_LastMouseY;
   static bool m_FirstMouse;
 
 public:
@@ -520,6 +547,12 @@ public:
 
   // ========== 自动截图测试接口 ==========
   static void SaveScreenshot(const std::string &filename, uint32_t imageIndex);
+
+  /**
+   * @brief 请求保存截图（线程安全）
+   * 在下一帧渲染结束后自动执行，避免与帧循环竞争
+   */
+  static void RequestScreenshot(const std::string &filename);
 
   // ========== 工程管理接口 ==========
   static void SetCurrentProject(std::shared_ptr<Project> project) {
@@ -611,6 +644,9 @@ private:
 
   // 工程管理
   static std::shared_ptr<Project> m_CurrentProject;
+
+  // 待处理的截图请求队列（由 DrawFrame 帧末逐帧消费）
+  static std::vector<std::string> m_PendingScreenshotPaths;
 
   // 性能控制
   static bool m_VSync;

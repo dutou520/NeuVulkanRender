@@ -33,6 +33,7 @@
 #  define NEULOG_DEPRECATED_NO_EXPORT NEULOG_NO_EXPORT NEULOG_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef NEULOG_NO_DEPRECATED
 #    define NEULOG_NO_DEPRECATED

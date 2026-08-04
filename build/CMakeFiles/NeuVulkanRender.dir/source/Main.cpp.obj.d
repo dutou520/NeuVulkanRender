@@ -558,6 +558,15 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_tray.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_version.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_oldnames.h \
+ D:/CppPrograms/NeuVulkanRender/include/Console.h \
+ C:/msys64/mingw64/include/c++/14.1.0/mutex \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/std_mutex.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/unique_lock.h \
+ C:/msys64/mingw64/include/c++/14.1.0/thread \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/std_thread.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/this_thread_sleep.h \
+ D:/CppPrograms/NeuVulkanRender/include/neuGUI.h \
+ D:/CppPrograms/NeuVulkanRender/build/neugui_export.h \
  D:/CppPrograms/NeuVulkanRender/include/neuLog.h \
  D:/CppPrograms/NeuVulkanRender/build/neulog_export.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/spdlog.h \
@@ -572,12 +581,6 @@ CMakeFiles/NeuVulkanRender.dir/source/Main.cpp.obj: \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/registry.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/periodic_worker.h \
  C:/msys64/mingw64/include/c++/14.1.0/condition_variable \
- C:/msys64/mingw64/include/c++/14.1.0/bits/std_mutex.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/unique_lock.h \
- C:/msys64/mingw64/include/c++/14.1.0/mutex \
- C:/msys64/mingw64/include/c++/14.1.0/thread \
- C:/msys64/mingw64/include/c++/14.1.0/bits/std_thread.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/this_thread_sleep.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/synchronous_factory.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/logger.h \
  D:/vcpkg/installed/x64-mingw-dynamic/include/spdlog/details/backtracer.h \

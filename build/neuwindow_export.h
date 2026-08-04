@@ -33,6 +33,7 @@
 #  define NEUWINDOW_DEPRECATED_NO_EXPORT NEUWINDOW_NO_EXPORT NEUWINDOW_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef NEUWINDOW_NO_DEPRECATED
 #    define NEUWINDOW_NO_DEPRECATED

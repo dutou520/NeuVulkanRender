@@ -270,4 +270,5 @@ CMakeFiles/NeuImGuiBackendLib.dir/source/imgui_impl_sdl3.cpp.obj: \
  C:/msys64/mingw64/include/stralign.h \
  C:/msys64/mingw64/include/sec_api/stralign_s.h \
  C:/msys64/mingw64/include/winsvc.h C:/msys64/mingw64/include/mcx.h \
- C:/msys64/mingw64/include/imm.h
+ C:/msys64/mingw64/include/imm.h \
+ D:/vcpkg/installed/x64-mingw-dynamic/include/SDL3/SDL_vulkan.h

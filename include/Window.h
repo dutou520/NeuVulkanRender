@@ -26,6 +26,9 @@ public:
   static void RequestClose() { m_CloseRequested = true; }
   static void ResetCloseRequest() { m_CloseRequested = false; }
   static bool IsMinimized();
+  static void SetRelativeMouseMode(bool enabled);
+  static void SetCursorVisible(bool visible);
+  static bool IsRelativeMouseMode() { return m_RelativeMouseMode; }
   static bool IsGUIVisible() { return m_ShowGUI; }
   static void SetGUIVisible(bool visible) { m_ShowGUI = visible; }
   static void Restart(const char *args = nullptr);
@@ -37,5 +40,6 @@ private:
   static int m_Width;
   static int m_Height;
   static bool m_ShowGUI;
+  static bool m_RelativeMouseMode;
 };
 } // namespace neurender

@@ -11,6 +11,7 @@
 #include "Window.h"
 #include "neuLog.h"
 #include <algorithm>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <imgui.h>
@@ -56,7 +57,16 @@ Node *EditorGUI::s_PendingDeleteNode = nullptr;
 Node *EditorGUI::s_PendingCloneSource = nullptr;
 EditorGUI::RenderMode EditorGUI::s_RenderMode = RenderMode::Shaded;
 bool EditorGUI::s_DockSpaceInitialized = false;
+bool EditorGUI::s_DockSpaceLayoutDirty = false;
 std::string EditorGUI::s_ClipboardPath = "";
+
+// Scene View 静态成员初始化
+std::function<void(uint32_t, uint32_t)> EditorGUI::s_SceneViewResizeCallback;
+bool EditorGUI::s_SceneViewHovered = false;
+bool EditorGUI::s_SceneViewFocused = false;
+bool EditorGUI::s_SceneViewRightClicked = false;
+ImVec2 EditorGUI::s_SceneViewSize = ImVec2(0, 0);
+ImVec2 EditorGUI::s_SceneViewPos = ImVec2(0, 0);
 
 static void RenderTextureSlot(const char *label, const UUID &materialID,
                               uint32_t binding, TextureResource *texRes,
@@ -227,6 +237,8 @@ void EditorGUI::Render() {
 
   RenderSceneHierarchy();
   RenderInspector();
+  // 4.5. Render Scene View
+  RenderSceneView();
   RenderContentBrowser();
 
   // 关闭前的确认弹窗
@@ -285,6 +297,14 @@ void EditorGUI::SetupDockSpace() {
   ImGuiIO &io = ImGui::GetIO();
   if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+
+    // 工程布局刚被加载：移除现有节点，让 DockSpace 在本帧从 ini 设置重建
+    // （节点不存在时 ImGui::DockSpace 会查找 ini 中保存的布局并恢复）
+    if (s_DockSpaceLayoutDirty) {
+      s_DockSpaceLayoutDirty = false;
+      ImGui::DockBuilderRemoveNode(dockspace_id);
+    }
+
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 
     // 首次初始化布局
@@ -304,11 +324,11 @@ void EditorGUI::SetupDockSpace() {
       auto dock_id_bottom = ImGui::DockBuilderSplitNode(
           dockspace_id, ImGuiDir_Down, 0.25f, nullptr, &dockspace_id);
 
-      // 分配窗口到Dock节点
-      ImGui::DockBuilderDockWindow("Scene Hierarchy", dock_id_left);
-      ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
-      ImGui::DockBuilderDockWindow("Content Browser", dock_id_bottom);
-      ImGui::DockBuilderDockWindow("Viewport", dockspace_id);
+      // 分配窗口到Dock节点（名称必须与各面板 ImGui::Begin 的窗口 ID 完全一致）
+      ImGui::DockBuilderDockWindow("场景层级", dock_id_left);
+      ImGui::DockBuilderDockWindow("详细信息", dock_id_right);
+      ImGui::DockBuilderDockWindow("资产浏览器", dock_id_bottom);
+      ImGui::DockBuilderDockWindow("Scene View", dockspace_id);
 
       ImGui::DockBuilderFinish(dockspace_id);
     }
@@ -610,6 +630,9 @@ void EditorGUI::MenuPerformance() {
 }
 
 void EditorGUI::RenderSceneHierarchy() {
+  // 最小尺寸约束：dock 拆分/合并期间窗口尺寸可能瞬时为 0 或负，
+  // 会触发 ImGui 内部 ClipRect 断言崩溃
+  ImGui::SetNextWindowSizeConstraints(ImVec2(50, 50), ImVec2(FLT_MAX, FLT_MAX));
   ImGui::Begin("场景层级");
 
   // 处理挂起的节点操作
@@ -862,6 +885,7 @@ void EditorGUI::RenderNodeTree(Node *node) {
 }
 
 void EditorGUI::RenderInspector() {
+  ImGui::SetNextWindowSizeConstraints(ImVec2(50, 50), ImVec2(FLT_MAX, FLT_MAX));
   ImGui::Begin("详细信息");
 
   if (s_SelectedNode) {
@@ -1569,6 +1593,7 @@ void EditorGUI::RenderPostProcessInspector() {
  * 显示项目资产目录，支持文件浏览、拖拽导入模型、创建文件夹等操作
  */
 void EditorGUI::RenderContentBrowser() {
+  ImGui::SetNextWindowSizeConstraints(ImVec2(50, 50), ImVec2(FLT_MAX, FLT_MAX));
   ImGui::Begin("资产浏览器");
 
   // 获取当前项目，如果没有项目加载则显示提示
@@ -1642,7 +1667,8 @@ void EditorGUI::RenderContentBrowser() {
   // 使用三栏布局：左侧信息，中间列表，右侧预览
   ImGui::Columns(3, "ContentBrowserColumns", true);
   ImGui::SetColumnWidth(0, 200.0f);
-  ImGui::SetColumnWidth(1, ImGui::GetWindowWidth() - 500.0f);
+  // dock 合并/拖拽中窗口可能很窄，宽度必须 > 0
+  ImGui::SetColumnWidth(1, std::max(50.0f, ImGui::GetWindowWidth() - 500.0f));
 
   // 左侧：选中文件信息
   ImGui::BeginChild("FileInfo", ImVec2(0, 0), true);
@@ -1997,7 +2023,10 @@ void EditorGUI::RenderContentBrowser() {
       if (texID.IsValid()) {
         ImTextureID texHandle = RenderCore::GetImGuiTextureID(texID);
         if (texHandle) {
-          float windowWidth = ImGui::GetContentRegionAvail().x;
+          // dock 合并/拖拽中窗口宽度可能为 0 或负，必须保护，
+          // 否则 ImGui::Image 负尺寸触发 ClipRect 断言崩溃
+          float windowWidth =
+              std::max(1.0f, ImGui::GetContentRegionAvail().x);
           ImGui::Image(texHandle, ImVec2(windowWidth, windowWidth));
           ImGui::Text("Dimension: %dx%d",
                       RenderCore::GetTextureResource(texID)->width,
@@ -2257,73 +2286,134 @@ void EditorGUI::LoadProject() {
       ShowFileDialog(true, "Project Files (*.json)\0*.json\0All Files\0*.*\0");
 
   if (!projectFile.empty()) {
-    // 获取工程目录（project.json的父目录）
-    std::string projectPath =
-        std::filesystem::u8path(projectFile).parent_path().u8string();
+    LoadProjectFromPath(projectFile);
+  }
+}
 
-    auto project = Project::Load(projectPath);
-    if (project) {
-      RenderCore::SetCurrentProject(project);
+bool EditorGUI::LoadProjectFromPath(const std::string &projectFile) {
+  if (projectFile.empty()) {
+    LOG_E("Failed to load project: empty path");
+    return false;
+  }
 
-      // 清除现有场景
-      s_Scenes.clear();
-      s_CurrentScene = nullptr;
-      s_ActiveSceneIndex = -1;
-      s_SelectedNode = nullptr;
+  // 获取工程目录（project.json的父目录；若传入目录则直接使用）
+  std::filesystem::path fileObj = std::filesystem::u8path(projectFile);
+  std::string projectPath;
+  if (std::filesystem::is_directory(fileObj)) {
+    projectPath = fileObj.u8string();
+  } else {
+    projectPath = fileObj.parent_path().u8string();
+  }
 
-      // 加载所有场景
-      for (const auto &scenePath : project->GetScenePaths()) {
-        auto scene = Scene::Load(scenePath);
-        if (scene) {
-          s_Scenes.push_back(scene);
-          LOG_I("Loaded scene: {}", scenePath);
-        }
-      }
+  auto project = Project::Load(projectPath);
+  if (!project) {
+    LOG_E("Failed to load project");
+    return false;
+  }
+  RenderCore::SetCurrentProject(project);
 
-      // 设置激活场景
-      std::string activeScenePath = project->GetActiveScenePath();
-      if (!activeScenePath.empty()) {
-        for (size_t i = 0; i < s_Scenes.size(); i++) {
-          // Check if this is the active scene
-          std::string scenePath = project->GetProjectPath() + "/Scenes/" +
-                                  s_Scenes[i]->GetName() + ".json";
-          if (scenePath == activeScenePath) {
-            s_ActiveSceneIndex = static_cast<int>(i);
-            s_CurrentScene = s_Scenes[i];
-            break;
-          }
-        }
-      }
+  // 清除现有场景
+  s_Scenes.clear();
+  s_CurrentScene = nullptr;
+  s_ActiveSceneIndex = -1;
+  s_SelectedNode = nullptr;
 
-      if (s_Scenes.empty()) {
-        LOG_I("No scenes found, project is empty");
-      } else if (!s_CurrentScene && !s_Scenes.empty()) {
-        s_ActiveSceneIndex = 0;
-        s_CurrentScene = s_Scenes[0];
-      }
-
-      // 恢复视角设置
-      const auto &guiSettings = project->GetGuiSettings();
-      if (guiSettings.contains("viewCam")) {
-        auto &camera = RenderCore::GetCamera();
-        const auto &camJson = guiSettings["viewCam"];
-        camera.SetPosition(
-            glm::vec3(camJson["pos"][0], camJson["pos"][1], camJson["pos"][2]));
-        camera.ProcessMouseMovement(
-            camJson.value("yaw", -90.0f) - camera.GetYaw(),
-            camJson.value("pitch", 0.0f) - camera.GetPitch(), false);
-        camera.SetFov(camJson.value("fov", 45.0f));
-        camera.SetMovementSpeed(camJson.value("speed", 2.5f));
-        camera.SetMouseSensitivity(camJson.value("sensitivity", 0.1f));
-        camera.SetNearPlane(camJson.value("near", 0.1f));
-        camera.SetFarPlane(camJson.value("far", 100.0f));
-      }
-
-      LOG_I("Loaded project from: {}", projectPath);
-    } else {
-      LOG_E("Failed to load project");
+  // 加载所有场景
+  for (const auto &scenePath : project->GetScenePaths()) {
+    auto scene = Scene::Load(scenePath);
+    if (scene) {
+      s_Scenes.push_back(scene);
+      LOG_I("Loaded scene: {}", scenePath);
     }
   }
+
+  // 设置激活场景
+  std::string activeScenePath = project->GetActiveScenePath();
+  if (!activeScenePath.empty()) {
+    for (size_t i = 0; i < s_Scenes.size(); i++) {
+      // Check if this is the active scene
+      std::string scenePath = project->GetProjectPath() + "/Scenes/" +
+                              s_Scenes[i]->GetName() + ".json";
+      if (scenePath == activeScenePath) {
+        s_ActiveSceneIndex = static_cast<int>(i);
+        s_CurrentScene = s_Scenes[i];
+        break;
+      }
+    }
+  }
+
+  if (s_Scenes.empty()) {
+    LOG_I("No scenes found, project is empty");
+  } else if (!s_CurrentScene && !s_Scenes.empty()) {
+    s_ActiveSceneIndex = 0;
+    s_CurrentScene = s_Scenes[0];
+  }
+
+  // 恢复视角设置
+  const auto &guiSettings = project->GetGuiSettings();
+  if (guiSettings.contains("viewCam")) {
+    auto &camera = RenderCore::GetCamera();
+    const auto &camJson = guiSettings["viewCam"];
+    camera.SetPosition(
+        glm::vec3(camJson["pos"][0], camJson["pos"][1], camJson["pos"][2]));
+    camera.ProcessMouseMovement(
+        camJson.value("yaw", -90.0f) - camera.GetYaw(),
+        camJson.value("pitch", 0.0f) - camera.GetPitch(), false);
+    camera.SetFov(camJson.value("fov", 45.0f));
+    camera.SetMovementSpeed(camJson.value("speed", 2.5f));
+    camera.SetMouseSensitivity(camJson.value("sensitivity", 0.1f));
+    camera.SetNearPlane(camJson.value("near", 0.1f));
+    camera.SetFarPlane(camJson.value("far", 100.0f));
+  }
+
+  // 恢复工作区布局
+  if (guiSettings.contains("workspaceLayout")) {
+    const std::string &layout = guiSettings["workspaceLayout"];
+    ImGui::LoadIniSettingsFromMemory(layout.c_str());
+    // 已有布局：跳过默认布局初始化，下一帧由 ini 设置重建 DockSpace
+    s_DockSpaceInitialized = true;
+    s_DockSpaceLayoutDirty = true;
+    LOG_I("Restored workspace layout ({} bytes)", layout.size());
+  } else {
+    // 无保存布局：下一帧重置为默认布局
+    s_DockSpaceInitialized = false;
+    s_DockSpaceLayoutDirty = true;
+  }
+
+  LOG_I("Loaded project from: {}", projectPath);
+  return true;
+}
+
+bool EditorGUI::LoadSceneFromPath(const std::string &scenePath) {
+  auto scene = Scene::Load(scenePath);
+  if (!scene) {
+    LOG_E("Failed to load scene: {}", scenePath);
+    return false;
+  }
+
+  // 若场景已在列表中则激活它，否则追加
+  for (size_t i = 0; i < s_Scenes.size(); i++) {
+    if (s_Scenes[i]->GetUUID() == scene->GetUUID()) {
+      s_ActiveSceneIndex = static_cast<int>(i);
+      s_CurrentScene = s_Scenes[i];
+      s_SelectedNode = nullptr;
+      LOG_I("Activated scene: {}", s_Scenes[i]->GetName());
+      return true;
+    }
+  }
+
+  s_Scenes.push_back(scene);
+  s_ActiveSceneIndex = static_cast<int>(s_Scenes.size()) - 1;
+  s_CurrentScene = scene;
+  s_SelectedNode = nullptr;
+  LOG_I("Loaded scene: {} from {}", scene->GetName(), scenePath);
+
+  // 同步到当前工程（若有），便于后续保存
+  auto project = RenderCore::GetCurrentProject();
+  if (project) {
+    project->AddScene(scenePath);
+  }
+  return true;
 }
 
 void EditorGUI::SaveProject() {
@@ -2391,6 +2481,13 @@ void EditorGUI::SaveProject() {
                             {"sensitivity", camera.GetMouseSensitivity()},
                             {"near", camera.GetNearPlane()},
                             {"far", camera.GetFarPlane()}};
+
+  // 保存工作区布局（ImGui ini：DockSpace 布局、各面板位置与尺寸）
+  if (const char *layout = ImGui::SaveIniSettingsToMemory()) {
+    guiSettings["workspaceLayout"] = layout;
+    LOG_I("Saved workspace layout ({} bytes)", strlen(layout));
+  }
+
   project->SetGuiSettings(guiSettings);
 
   // 保存工程文件
@@ -2484,6 +2581,59 @@ void EditorGUI::CreateFolder() {
   } catch (const std::exception &e) {
     LOG_E("Failed to create folder: {}", e.what());
   }
+}
+
+void EditorGUI::RenderSceneView() {
+  // 最小尺寸约束：dock 拆分/合并期间窗口尺寸可能瞬时为 0 或负
+  ImGui::SetNextWindowSizeConstraints(ImVec2(50, 50), ImVec2(FLT_MAX, FLT_MAX));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  ImGui::Begin("Scene View", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  
+  ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+  
+  // 记录视口内容区在屏幕上的位置（dock 拆分/拖拽期间可能为负尺寸）
+  ImVec2 windowPos = ImGui::GetWindowPos();
+  ImVec2 regionMin = ImGui::GetWindowContentRegionMin();
+  ImVec2 contentMin = ImVec2(windowPos.x + regionMin.x, windowPos.y + regionMin.y);
+  
+  // Dock 拆分拖拽中 viewportSize 可能为负，必须保护：
+  // 负尺寸会触发 ImGui 内部 ClipRect 断言崩溃（imgui_draw.cpp:482）
+  bool viewportValid = viewportSize.x > 4.0f && viewportSize.y > 4.0f;
+  if (viewportValid) {
+    s_SceneViewPos = contentMin;
+  }
+  
+  // 检测尺寸变化
+  if (viewportValid &&
+      (viewportSize.x != s_SceneViewSize.x || viewportSize.y != s_SceneViewSize.y)) {
+    s_SceneViewSize = viewportSize;
+    if (s_SceneViewResizeCallback) {
+      s_SceneViewResizeCallback(
+          static_cast<uint32_t>(viewportSize.x),
+          static_cast<uint32_t>(viewportSize.y));
+    }
+  }
+  
+  s_SceneViewHovered = viewportValid && ImGui::IsWindowHovered();
+  s_SceneViewFocused = viewportValid && ImGui::IsWindowFocused();
+  s_SceneViewRightClicked = s_SceneViewHovered && ImGui::IsMouseDown(ImGuiMouseButton_Right);
+  
+  // 显示渲染结果纹理（尺寸非法时绘制一个占位块，避免 Image 负尺寸崩溃）
+  ImTextureID texID = RenderCore::GetSceneViewTextureID();
+  if (texID && viewportValid) {
+    ImGui::Image(texID, viewportSize);
+  } else {
+    ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+    float w = viewportValid ? viewportSize.x : std::max(1.0f, ImGui::GetWindowWidth());
+    float h = viewportValid ? viewportSize.y : std::max(1.0f, ImGui::GetWindowHeight());
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        cursorPos,
+        ImVec2(cursorPos.x + w, cursorPos.y + h),
+        IM_COL32(30, 30, 30, 255));
+  }
+  
+  ImGui::End();
+  ImGui::PopStyleVar();
 }
 
 } // namespace neurender

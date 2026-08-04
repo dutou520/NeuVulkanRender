@@ -33,6 +33,7 @@
 #  define NEUASSET_DEPRECATED_NO_EXPORT NEUASSET_NO_EXPORT NEUASSET_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef NEUASSET_NO_DEPRECATED
 #    define NEUASSET_NO_DEPRECATED

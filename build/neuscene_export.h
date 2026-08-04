@@ -33,6 +33,7 @@
 #  define NEUSCENE_DEPRECATED_NO_EXPORT NEUSCENE_NO_EXPORT NEUSCENE_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef NEUSCENE_NO_DEPRECATED
 #    define NEUSCENE_NO_DEPRECATED

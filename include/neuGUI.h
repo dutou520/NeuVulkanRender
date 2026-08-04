@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
 
 namespace neurender {
 
@@ -25,6 +26,28 @@ public:
   // 设置当前场景
   static void SetCurrentScene(std::shared_ptr<Scene> scene);
   static std::shared_ptr<Scene> GetCurrentScene() { return s_CurrentScene; }
+
+  // 从路径加载工程/场景（供命令行等外部系统调用）
+  // projectFile 可以是工程目录或 project.json 文件路径
+  static bool LoadProjectFromPath(const std::string &projectFile);
+  static bool LoadSceneFromPath(const std::string &scenePath);
+
+  // Scene View 和输入转发
+  static void RenderSceneView();
+  static void SetSceneViewResizeCallback(std::function<void(uint32_t, uint32_t)> callback) {
+    s_SceneViewResizeCallback = std::move(callback);
+  }
+  static bool IsSceneViewHovered() { return s_SceneViewHovered; }
+  static bool IsSceneViewFocused() { return s_SceneViewFocused; }
+  static bool IsSceneViewRightClicked() { return s_SceneViewRightClicked; }
+  // 获取 SceneView 视口中心（屏幕坐标），尺寸非法时返回 {-1,-1}
+  static ImVec2 GetSceneViewCenter() {
+    if (s_SceneViewSize.x <= 0.0f || s_SceneViewSize.y <= 0.0f) {
+      return ImVec2(-1.0f, -1.0f);
+    }
+    return ImVec2(s_SceneViewPos.x + s_SceneViewSize.x * 0.5f,
+                  s_SceneViewPos.y + s_SceneViewSize.y * 0.5f);
+  }
 
   // 获取选中的节点
   static Node *GetSelectedNode() { return s_SelectedNode; }
@@ -120,6 +143,17 @@ private:
 
   // 布局初始化标志
   static bool s_DockSpaceInitialized;
+  // 布局脏标记：工程加载后下一帧重建 DockSpace（从 ini 设置恢复，或重置为默认）
+  static bool s_DockSpaceLayoutDirty;
+
+  // Scene View 状态
+  static std::function<void(uint32_t, uint32_t)> s_SceneViewResizeCallback;
+  static bool s_SceneViewHovered;
+  static bool s_SceneViewFocused;
+  static bool s_SceneViewRightClicked;
+  static ImVec2 s_SceneViewSize;
+  // SceneView 视口内容区在屏幕上的位置（用于鼠标环绕中心）
+  static ImVec2 s_SceneViewPos;
 };
 
 // 简单的neuGUI类保持向后兼容

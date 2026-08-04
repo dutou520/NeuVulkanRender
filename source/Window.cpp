@@ -27,6 +27,7 @@ bool Window::m_CloseRequested = false;
 int Window::m_Width = 0;
 int Window::m_Height = 0;
 bool Window::m_ShowGUI = true;
+bool Window::m_RelativeMouseMode = false;
 
 /**
  * @brief Initializes the SDL window and Vulkan-related settings.
@@ -46,7 +47,7 @@ void Window::Init(int width, int height, const char *title) {
   // support
   SDL_WindowFlags window_flags =
       (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY |
-                        SDL_WINDOW_BORDERLESS);
+                        SDL_WINDOW_RESIZABLE);
 
   // Create the SDL window
   m_Window = SDL_CreateWindow(title, width, height, window_flags);
@@ -128,6 +129,23 @@ void Window::Restart(const char *args) {
 #else
   LOG_E("Restart not implemented for this platform");
 #endif
+}
+
+void Window::SetRelativeMouseMode(bool enabled) {
+  if (enabled) {
+    SDL_SetWindowRelativeMouseMode(m_Window, true);
+  } else {
+    SDL_SetWindowRelativeMouseMode(m_Window, false);
+  }
+  m_RelativeMouseMode = enabled;
+}
+
+void Window::SetCursorVisible(bool visible) {
+  if (visible) {
+    SDL_ShowCursor();
+  } else {
+    SDL_HideCursor();
+  }
 }
 
 } // namespace neurender

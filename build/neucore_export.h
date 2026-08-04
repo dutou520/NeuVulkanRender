@@ -33,6 +33,7 @@
 #  define NEUCORE_DEPRECATED_NO_EXPORT NEUCORE_NO_EXPORT NEUCORE_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef NEUCORE_NO_DEPRECATED
 #    define NEUCORE_NO_DEPRECATED

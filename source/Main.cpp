@@ -1,6 +1,8 @@
 #include "Project/Project.h"
 #include "RenderCore.h"
 #include "Window.h"
+#include "Console.h"
+#include "neuGUI.h"
 #include "neuLog.h"
 #include <spdlog/spdlog.h>
 #if defined(_WIN32) || defined(_WIN64)
@@ -27,32 +29,37 @@ int main(int argc, char *argv[]) {
   neurender::NeuLog::Init();
   LOG_I("Starting NeuVulkanRender...");
 
-  neurender::Window::Init(2560, 1440, "NeuVulkanRender");
+  neurender::Window::Init(1600, 900, "NeuVulkanRender");
 
   neurender::RenderCore::LoadGlobalSettings();
 
-  std::shared_ptr<neurender::Project> startupProject = nullptr;
+  // 命令行参数可传工程路径（目录或 project.json），
+  // 在 RenderCore::Init() 之后执行，确保 EditorGUI 就绪并可加载场景
+  std::string startupProjectPath;
   if (argc > 1) {
-    std::string projectPath = argv[1];
-    LOG_I("Loading project from command line: {}", projectPath);
-    startupProject = neurender::Project::Load(projectPath);
+    startupProjectPath = argv[1];
+    LOG_I("Loading project from command line: {}", startupProjectPath);
   }
 
   try {
     neurender::RenderCore::Init();
 
     // Set project after Init
-    if (startupProject) {
-      neurender::RenderCore::SetCurrentProject(startupProject);
+    if (!startupProjectPath.empty()) {
+      neurender::EditorGUI::LoadProjectFromPath(startupProjectPath);
     }
   } catch (const std::exception &e) {
     LOG_E("RenderCore Init Failed: {0}", e.what());
     return -1;
   }
 
+  // 启动命令行调试系统（stdin 监听线程 + 命令队列）
+  neurender::Console::Init();
+
   while (!neurender::Window::ShouldClose()) {
     neurender::Window::PollEvents();
     try {
+      neurender::Console::Update(); // 在渲染线程上执行控制台命令
       neurender::RenderCore::DrawFrame();
     } catch (const std::exception &e) {
       LOG_E("Render Loop Error: {0}", e.what());
@@ -60,6 +67,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  neurender::Console::Shutdown();
   neurender::RenderCore::Shutdown();
   neurender::Window::Shutdown();
 

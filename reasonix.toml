@@ -1,0 +1,2 @@
+[permissions]
+allow = ["task", "Bash=& \"C:\\Program Files\\CMake\\bin\\cmake.exe\" -B \"D:\\CppPrograms\\NeuVulkanRender\\build\" -S \"D:\\CppPrograms\\NeuVulkanRender\" -DCMAKE_TOOLCHAIN_FILE=D:/vcpkg/scripts/buildsystems/vcpkg.cmake 2>&1", "Bash=& \"C:\\Program Files\\CMake\\bin\\cmake.exe\" --build \"D:\\CppPrograms\\NeuVulkanRender\\build\" 2>&1"]

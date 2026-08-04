@@ -33,6 +33,7 @@
 #  define NEUGUI_DEPRECATED_NO_EXPORT NEUGUI_NO_EXPORT NEUGUI_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef NEUGUI_NO_DEPRECATED
 #    define NEUGUI_NO_DEPRECATED
